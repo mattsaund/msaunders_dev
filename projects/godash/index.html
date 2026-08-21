@@ -1,0 +1,345 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GoDash — Matthew Saunders</title>
+<meta name="description" content="GoDash is an iOS dash cam app with a 10-minute loop buffer, live telemetry overlay, crash detection, and split-screen navigation and music modules.">
+<meta name="theme-color" content="#08090b">
+<link rel="canonical" href="https://msaunders.dev/projects/godash/">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="alternate icon" href="/favicon.png">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://msaunders.dev/projects/godash/">
+<meta property="og:title" content="GoDash — Matthew Saunders">
+<meta property="og:description" content="GoDash is an iOS dash cam app with a 10-minute loop buffer, live telemetry overlay, crash detection, and split-screen navigation and music modules.">
+<script>document.documentElement.classList.add('js');</script>
+<link rel="stylesheet" href="/css/site.css">
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+
+<header class="nav">
+  <div class="nav__in">
+    <a class="brand" href="/"><span class="brand__mark">M</span>msaunders<span class="brand__tld">.dev</span></a>
+    <button class="nav__toggle" type="button" aria-expanded="false" aria-controls="nav-links" aria-label="Toggle navigation"><span></span></button>
+    <nav class="nav__links" id="nav-links" aria-label="Primary">
+      <a class="nav__link" href="/">About</a>
+      <a class="nav__link" href="/projects/" aria-current="page">Projects</a>
+      <a class="nav__link" href="/hobbies/">Hobbies</a>
+      <a class="nav__link" href="/gallery/">Gallery</a>
+    </nav>
+  </div>
+</header>
+
+<main id="main">
+
+  <div class="wrap">
+    <nav class="crumb" aria-label="Breadcrumb">
+      <a href="/projects/">Projects</a><span class="crumb__sep">/</span><span>GoDash</span>
+    </nav>
+  </div>
+
+  <section class="hero" style="padding-top:28px">
+    <div class="wrap">
+      <div style="display:flex;flex-wrap:wrap;gap:10px;margin-bottom:22px">
+        <span class="status status--live"><i class="dot"></i>Live on the App Store</span>
+        <span class="status"><i class="dot"></i>Requires iOS 17+</span>
+        <span class="status"><i class="dot"></i>Actively developed</span>
+      </div>
+      <h1 class="h-xl" style="margin-bottom:14px">GoDash</h1>
+      <p class="hero__role">Your whole drive on one dashboard.</p>
+      <p class="lede">
+        GoDash is an iOS app I designed and built that turns an iPhone in a hands-free car mount into a
+        proper dash cam &mdash; one that also handles navigation, music, and live vehicle telemetry without
+        ever making you switch apps at 70&nbsp;mph.
+      </p>
+      <div class="btn-row" style="margin-top:30px">
+        <a class="btn btn--primary" href="https://apps.apple.com/us/app/godash-dashcam-app/id6792043434" target="_blank" rel="noopener">Download on the App Store <span class="btn__arr">&rarr;</span></a>
+        <a class="btn" href="https://godash.us/" target="_blank" rel="noopener">godash.us <span class="btn__arr">&rarr;</span></a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ---------- SPEC ---------- -->
+  <section class="section section--tight">
+    <div class="wrap">
+      <div class="stats rv">
+        <div class="stat"><div class="stat__n">10 min</div><div class="stat__l">Rolling loop buffer</div></div>
+        <div class="stat"><div class="stat__n">1080p</div><div class="stat__l">Capture resolution</div></div>
+        <div class="stat"><div class="stat__n">5</div><div class="stat__l">Telemetry channels</div></div>
+        <div class="stat"><div class="stat__n">2</div><div class="stat__l">Simultaneous modules</div></div>
+        <div class="stat"><div class="stat__n">0</div><div class="stat__l">Data leaving device</div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ---------- OVERVIEW ---------- -->
+  <section class="section">
+    <div class="wrap">
+      <div class="split rv">
+        <div class="split__label"><p class="eyebrow"><b>01</b> Overview</p></div>
+        <div>
+          <div class="prose">
+            <p>
+              Every drive already involves three or four apps fighting for the same screen: a dash cam
+              recording in the background, maps in the foreground, music somewhere underneath, and none
+              of them aware of each other. GoDash collapses that into a single interface built around
+              one rule &mdash; <strong>nothing on screen should require more than a glance.</strong>
+            </p>
+            <p>
+              The phone's rear camera records continuously into a rolling buffer. Navigation and music
+              live in half-screen modules that can be open at the same time, so the thing you need next
+              is always already visible. Underneath both, a persistent readout shows what the vehicle is
+              actually doing &mdash; speed, g-force, heading, altitude, and trip distance &mdash; sampled
+              live and burned into saved footage.
+            </p>
+            <p>
+              It ships free with basic recording. <strong>GoDash Pro</strong> unlocks higher resolution,
+              longer loops, the telemetry overlay, and crash detection.
+            </p>
+          </div>
+
+          <dl class="kv" style="margin-top:34px">
+            <dt>Role</dt><dd>Sole designer and developer</dd>
+            <dt>Platform</dt><dd>iOS 17+ &mdash; iPhone</dd>
+            <dt>Language</dt><dd><span class="mono">Swift</span> &middot; <span class="mono">SwiftUI</span></dd>
+            <dt>Frameworks</dt><dd>AVFoundation &middot; CoreMotion &middot; CoreLocation &middot; MapKit &middot; MusicKit &middot; Photos</dd>
+            <dt>Status</dt><dd>Shipped and in active development</dd>
+            <dt>Privacy</dt><dd>Recordings, telemetry, and account details stay on device</dd>
+          </dl>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ---------- FEATURES ---------- -->
+  <section class="section">
+    <div class="wrap">
+      <div class="split rv">
+        <div class="split__label"><p class="eyebrow"><b>02</b> Features</p></div>
+        <div class="cols-2" style="gap:1px;background:var(--line);border:1px solid var(--line)">
+          <div class="card" style="border:0">
+            <span class="card__idx">[ REC ]</span>
+            <h3 class="card__title h-md">Loop recording</h3>
+            <p class="card__body">
+              A continuous rolling buffer holds up to ten minutes of driving. One tap writes the current
+              buffer to the device as a permanent clip &mdash; no scrubbing, no file management, no
+              waiting until you get home.
+            </p>
+          </div>
+          <div class="card" style="border:0">
+            <span class="card__idx">[ TELEM ]</span>
+            <h3 class="card__title h-md">Live telemetry overlay</h3>
+            <p class="card__body">
+              Speed, g-force, heading, altitude, and trip distance are sampled while you drive and
+              composited directly onto saved clips, so the footage carries its own context instead of
+              needing a separate log.
+            </p>
+          </div>
+          <div class="card" style="border:0">
+            <span class="card__idx">[ NAV ]</span>
+            <h3 class="card__title h-md">Turn-by-turn navigation</h3>
+            <p class="card__body">
+              Apple&nbsp;Maps directions run inside a module rather than in another app. Full-height when
+              you need the route, collapsed to a single instruction card when you do not.
+            </p>
+          </div>
+          <div class="card" style="border:0">
+            <span class="card__idx">[ AUDIO ]</span>
+            <h3 class="card__title h-md">Apple Music, in place</h3>
+            <p class="card__body">
+              Browse, play, and skip without leaving the recording session. Pairs with navigation in a
+              split view so both are on screen at once.
+            </p>
+          </div>
+          <div class="card" style="border:0">
+            <span class="card__idx">[ SAFETY ]</span>
+            <h3 class="card__title h-md">Crash detection</h3>
+            <p class="card__body">
+              Motion thresholds for collisions and hard braking automatically preserve the footage from
+              before, during, and after the event &mdash; the window you actually need, saved without
+              you touching the phone.
+            </p>
+          </div>
+          <div class="card" style="border:0">
+            <span class="card__idx">[ LIB ]</span>
+            <h3 class="card__title h-md">Clips &amp; export</h3>
+            <p class="card__body">
+              Saved clips are organised chronologically with in-app playback and one-step export to the
+              Photos library.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ---------- HOW IT WORKS ---------- -->
+  <section class="section">
+    <div class="wrap">
+      <div class="split rv">
+        <div class="split__label"><p class="eyebrow"><b>03</b> How it works</p></div>
+        <div class="prose">
+          <h3>The recording pipeline</h3>
+          <p>
+            Capture runs off the rear camera through AVFoundation into a fixed-length ring of video
+            segments. Old segments are discarded as new ones are written, which keeps storage bounded
+            no matter how long the drive is. A save request stitches the segments currently in the ring
+            into a single clip &mdash; the ten minutes leading up to the moment you decided you wanted them.
+          </p>
+
+          <h3>Telemetry</h3>
+          <p>
+            CoreMotion supplies acceleration for g-force, and CoreLocation supplies speed, heading, and
+            altitude. Samples are timestamped against the capture clock so the overlay lines up with the
+            frame it describes rather than drifting across a long clip. Trip distance accumulates across
+            the session.
+          </p>
+
+          <h3>The module system</h3>
+          <p>
+            The interface is a stack of resizable modules rather than a set of screens. Navigation and
+            music each render at full or compact height, and the layout is designed so any pairing is
+            reachable in a single gesture. This is the part I have iterated on most &mdash; the design
+            target is that a driver can restore the layout they want by feel, without reading the screen.
+          </p>
+
+          <h3>Crash detection</h3>
+          <p>
+            A motion threshold on sustained deceleration and impact-scale acceleration flags an event.
+            When one fires, the buffer around it is locked and written out immediately, before the ring
+            can overwrite the segments that matter.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ---------- SCREENS ---------- -->
+  <section class="section">
+    <div class="wrap">
+      <p class="eyebrow rv"><b>04</b> In the car</p>
+      <p class="lede rv" style="margin-bottom:32px">
+        Shot on a hands-free mount during real drives. Select an image to enlarge.
+      </p>
+      <div class="shots rv">
+        <figure class="shot" data-zoom>
+          <img src="/img/godash/incar-home.jpg" width="640" height="1385" loading="lazy" decoding="async" alt="GoDash home layout with navigation and music modules on a dash mount">
+          <figcaption>Home &mdash; maps + music</figcaption>
+        </figure>
+        <figure class="shot" data-zoom>
+          <img src="/img/godash/incar-maps-music.jpg" width="640" height="1385" loading="lazy" decoding="async" alt="Split view showing turn-by-turn navigation above the music player">
+          <figcaption>Split &mdash; navigation + player</figcaption>
+        </figure>
+        <figure class="shot" data-zoom>
+          <img src="/img/godash/incar-maps-telemetry.jpg" width="640" height="1385" loading="lazy" decoding="async" alt="Navigation module above the live telemetry readout showing speed and g-force">
+          <figcaption>Navigation + telemetry</figcaption>
+        </figure>
+        <figure class="shot" data-zoom>
+          <img src="/img/godash/incar-music-telemetry.jpg" width="640" height="1385" loading="lazy" decoding="async" alt="Music module above the live telemetry readout">
+          <figcaption>Music + telemetry</figcaption>
+        </figure>
+        <figure class="shot" data-zoom>
+          <img src="/img/godash/incar-maps-minimusic.jpg" width="640" height="1385" loading="lazy" decoding="async" alt="Full height navigation with the music module collapsed to a compact bar">
+          <figcaption>Full nav, compact music</figcaption>
+        </figure>
+        <figure class="shot" data-zoom>
+          <img src="/img/godash/incar-minimaps-music.jpg" width="640" height="1385" loading="lazy" decoding="async" alt="Compact navigation instruction card above a full height music module">
+          <figcaption>Compact nav, full music</figcaption>
+        </figure>
+        <figure class="shot" data-zoom>
+          <img src="/img/godash/screen-clips.jpg" width="640" height="1385" loading="lazy" decoding="async" alt="Saved clips library listed chronologically">
+          <figcaption>Clips library</figcaption>
+        </figure>
+        <figure class="shot" data-zoom>
+          <img src="/img/godash/screen-telemetry-overlay.jpg" width="640" height="1385" loading="lazy" decoding="async" alt="Saved clip playing back with speed, g-force, heading and altitude burned into the frame">
+          <figcaption>Saved clip &mdash; overlay</figcaption>
+        </figure>
+      </div>
+    </div>
+  </section>
+
+  <!-- ---------- PROMO ---------- -->
+  <section class="section">
+    <div class="wrap">
+      <p class="eyebrow rv"><b>05</b> Press kit</p>
+      <div class="promos rv">
+        <img src="/img/godash/promo-telemetry.jpg" width="800" height="1000" loading="lazy" decoding="async" alt="GoDash promotional image highlighting the live telemetry readout">
+        <img src="/img/godash/promo-music.jpg" width="800" height="1000" loading="lazy" decoding="async" alt="GoDash promotional image highlighting the music module">
+        <img src="/img/godash/promo-clips.jpg" width="800" height="1000" loading="lazy" decoding="async" alt="GoDash promotional image highlighting the saved clips library">
+      </div>
+    </div>
+  </section>
+
+  <!-- ---------- GET IT ---------- -->
+  <section class="section">
+    <div class="wrap">
+      <div class="card rv" style="border-color:var(--accent-line);display:grid;grid-template-columns:1fr auto;gap:clamp(20px,4vw,44px);align-items:center" id="get">
+        <div>
+          <p class="eyebrow" style="margin-bottom:16px"><b>&rarr;</b> Get GoDash</p>
+          <h2 class="h-lg" style="margin-bottom:12px">Free on the App Store</h2>
+          <p class="muted" style="font-size:14.5px;max-width:46ch;margin-bottom:22px">
+            Basic recording is free. GoDash Pro unlocks higher resolution, longer loops, telemetry
+            overlays, and crash detection. Requires an iPhone running iOS&nbsp;17 or later.
+          </p>
+          <div class="btn-row">
+            <a class="btn btn--primary" href="https://apps.apple.com/us/app/godash-dashcam-app/id6792043434" target="_blank" rel="noopener">App Store <span class="btn__arr">&rarr;</span></a>
+            <a class="btn" href="https://godash.us/" target="_blank" rel="noopener">godash.us <span class="btn__arr">&rarr;</span></a>
+          </div>
+        </div>
+        <div style="text-align:center">
+          <img src="/img/godash/qr-appstore.jpg" width="320" height="320" loading="lazy" decoding="async"
+               alt="QR code linking to GoDash on the App Store"
+               style="width:132px;border:1px solid var(--line-2)">
+          <p class="mono dim" style="font-size:11px;letter-spacing:.1em;text-transform:uppercase;margin-top:10px">Scan to install</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="wrap">
+    <div class="pager">
+      <a class="btn" href="/projects/"><span class="btn__arr">&larr;</span> All projects</a>
+      <a class="btn" href="/projects/observatory/">Next: Observatory <span class="btn__arr">&rarr;</span></a>
+    </div>
+  </div>
+
+  <style>
+    @media (max-width: 620px) { #get { grid-template-columns: 1fr !important; } }
+  </style>
+
+</main>
+
+<footer class="foot">
+  <div class="wrap">
+    <div class="foot__in">
+      <div>
+        <p class="foot__note">
+          MATTHEW SAUNDERS &mdash; BALTIMORE, MD<br>
+          <a href="mailto:matt.saunders.963@gmail.com">matt.saunders.963@gmail.com</a><br>
+          &copy; <span id="yr">2026</span> &middot; msaunders.dev
+        </p>
+      </div>
+      <div class="socials">
+        <a class="social" href="https://github.com/mattsaund" target="_blank" rel="noopener me">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 .5C5.73.5.9 5.34.9 11.62c0 4.9 3.17 9.06 7.57 10.53.55.1.76-.24.76-.53l-.02-1.86c-3.08.67-3.73-1.49-3.73-1.49-.5-1.29-1.23-1.63-1.23-1.63-1.01-.69.08-.68.08-.68 1.11.08 1.7 1.15 1.7 1.15.99 1.7 2.6 1.21 3.23.93.1-.72.39-1.21.7-1.49-2.46-.28-5.05-1.23-5.05-5.5 0-1.21.43-2.2 1.15-2.98-.12-.28-.5-1.42.11-2.95 0 0 .93-.3 3.05 1.14a10.5 10.5 0 0 1 5.55 0c2.12-1.44 3.05-1.14 3.05-1.14.61 1.53.23 2.67.11 2.95.72.78 1.15 1.77 1.15 2.98 0 4.28-2.6 5.21-5.07 5.49.4.35.76 1.03.76 2.08l-.01 3.08c0 .3.2.64.77.53a11.13 11.13 0 0 0 7.56-10.53C23.1 5.34 18.27.5 12 .5Z"/></svg>
+          GitHub
+        </a>
+        <a class="social" href="https://www.linkedin.com/in/mattsaundcs/" target="_blank" rel="noopener me">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.45 20.45h-3.56v-5.57c0-1.33-.02-3.04-1.85-3.04-1.86 0-2.14 1.45-2.14 2.94v5.67H9.35V9h3.41v1.56h.05a3.74 3.74 0 0 1 3.37-1.85c3.6 0 4.27 2.37 4.27 5.46v6.28ZM5.34 7.43a2.07 2.07 0 1 1 0-4.14 2.07 2.07 0 0 1 0 4.14ZM7.12 20.45H3.55V9h3.57v11.45ZM22.22 0H1.77C.79 0 0 .77 0 1.72v20.55C0 23.23.79 24 1.77 24h20.45c.98 0 1.78-.77 1.78-1.73V1.72C24 .77 23.2 0 22.22 0Z"/></svg>
+          LinkedIn
+        </a>
+        <a class="social" href="https://www.instagram.com/m.saunders" target="_blank" rel="noopener me">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.16c3.2 0 3.58.01 4.85.07 1.17.05 1.8.25 2.23.41.56.22.96.48 1.38.9.42.42.68.82.9 1.38.16.42.36 1.06.41 2.23.06 1.27.07 1.65.07 4.85s-.01 3.58-.07 4.85c-.05 1.17-.25 1.8-.41 2.23-.22.56-.48.96-.9 1.38-.42.42-.82.68-1.38.9-.42.16-1.06.36-2.23.41-1.27.06-1.65.07-4.85.07s-3.58-.01-4.85-.07c-1.17-.05-1.8-.25-2.23-.41-.56-.22-.96-.48-1.38-.9-.42-.42-.68-.82-.9-1.38-.16-.42-.36-1.06-.41-2.23C2.17 15.58 2.16 15.2 2.16 12s.01-3.58.07-4.85c.05-1.17.25-1.8.41-2.23.22-.56.48-.96.9-1.38.42-.42.82-.68 1.38-.9.42-.16 1.06-.36 2.23-.41C8.42 2.17 8.8 2.16 12 2.16ZM12 0C8.74 0 8.33.01 7.05.07 5.78.13 4.9.33 4.14.63a5.87 5.87 0 0 0-2.13 1.38A5.87 5.87 0 0 0 .63 4.14c-.3.76-.5 1.64-.56 2.91C.01 8.33 0 8.74 0 12s.01 3.67.07 4.95c.06 1.27.26 2.15.56 2.91.31.79.72 1.46 1.38 2.13a5.87 5.87 0 0 0 2.13 1.38c.76.3 1.64.5 2.91.56C8.33 23.99 8.74 24 12 24s3.67-.01 4.95-.07c1.27-.06 2.15-.26 2.91-.56a5.87 5.87 0 0 0 2.13-1.38 5.87 5.87 0 0 0 1.38-2.13c.3-.76.5-1.64.56-2.91.06-1.28.07-1.69.07-4.95s-.01-3.67-.07-4.95c-.06-1.27-.26-2.15-.56-2.91a5.87 5.87 0 0 0-1.38-2.13A5.87 5.87 0 0 0 19.86.63c-.76-.3-1.64-.5-2.91-.56C15.67.01 15.26 0 12 0Zm0 5.84a6.16 6.16 0 1 0 0 12.32 6.16 6.16 0 0 0 0-12.32ZM12 16a4 4 0 1 1 0-8 4 4 0 0 1 0 8Zm7.85-10.4a1.44 1.44 0 1 1-2.88 0 1.44 1.44 0 0 1 2.88 0Z"/></svg>
+          Instagram
+        </a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<script src="/js/site.js" defer></script>
+<script>document.getElementById('yr').textContent=new Date().getFullYear();</script>
+</body>
+</html>
