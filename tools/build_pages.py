@@ -65,6 +65,7 @@ def page(path, *, title, desc, active, body, canonical, noindex=False):
 
 {FOOT}
 
+<script src="/js/cosmos.js" defer></script>
 <script src="/js/site.js" defer></script>
 <script>document.getElementById('yr').textContent=new Date().getFullYear();</script>
 </body>
