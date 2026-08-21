@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>GoDash — Matthew Saunders</title>
+<title>GoDash / Matthew Saunders</title>
 <meta name="description" content="GoDash is an iOS dash cam app with a 10-minute loop buffer, live telemetry overlay, crash detection, and split-screen navigation and music modules.">
 <meta name="theme-color" content="#08090b">
 <link rel="canonical" href="https://msaunders.dev/projects/godash/">
@@ -11,7 +11,7 @@
 <link rel="alternate icon" href="/favicon.png">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://msaunders.dev/projects/godash/">
-<meta property="og:title" content="GoDash — Matthew Saunders">
+<meta property="og:title" content="GoDash / Matthew Saunders">
 <meta property="og:description" content="GoDash is an iOS dash cam app with a 10-minute loop buffer, live telemetry overlay, crash detection, and split-screen navigation and music modules.">
 <script>document.documentElement.classList.add('js');</script>
 <link rel="stylesheet" href="/css/site.css">
@@ -50,9 +50,9 @@
       <h1 class="h-xl" style="margin-bottom:14px">GoDash</h1>
       <p class="hero__role">Your whole drive on one dashboard.</p>
       <p class="lede">
-        GoDash is an iOS app I designed and built that turns an iPhone in a hands-free car mount into a
-        proper dash cam &mdash; one that also handles navigation, music, and live vehicle telemetry without
-        ever making you switch apps at 70&nbsp;mph.
+        An iOS app I designed and built. It turns an iPhone in a hands-free car mount into a dash
+        cam that also handles navigation, music, and live vehicle telemetry, without switching
+        apps at 70&nbsp;mph.
       </p>
       <div class="btn-row" style="margin-top:30px">
         <a class="btn btn--primary" href="https://apps.apple.com/us/app/godash-dashcam-app/id6792043434" target="_blank" rel="noopener">Download on the App Store <span class="btn__arr">&rarr;</span></a>
@@ -82,30 +82,29 @@
         <div>
           <div class="prose">
             <p>
-              Every drive already involves three or four apps fighting for the same screen: a dash cam
-              recording in the background, maps in the foreground, music somewhere underneath, and none
-              of them aware of each other. GoDash collapses that into a single interface built around
-              one rule &mdash; <strong>nothing on screen should require more than a glance.</strong>
+              A drive normally involves three or four apps fighting for the same screen: a dash cam
+              in the background, maps in the foreground, music underneath, none of them aware of each
+              other. GoDash collapses that into one interface built around a single rule:
+              <strong>nothing on screen should require more than a glance.</strong>
             </p>
             <p>
-              The phone's rear camera records continuously into a rolling buffer. Navigation and music
-              live in half-screen modules that can be open at the same time, so the thing you need next
-              is always already visible. Underneath both, a persistent readout shows what the vehicle is
-              actually doing &mdash; speed, g-force, heading, altitude, and trip distance &mdash; sampled
-              live and burned into saved footage.
+              The rear camera records continuously into a rolling buffer. Navigation and music sit in
+              half-screen modules that can be open at once, so what you need next is already visible.
+              Under both, a persistent readout shows speed, g-force, heading, altitude, and trip
+              distance, sampled live and burned into saved footage.
             </p>
             <p>
-              It ships free with basic recording. <strong>GoDash Pro</strong> unlocks higher resolution,
-              longer loops, the telemetry overlay, and crash detection.
+              Free with basic recording. <strong>GoDash Pro</strong> unlocks higher resolution, longer
+              loops, the telemetry overlay, and crash detection.
             </p>
           </div>
 
           <dl class="kv" style="margin-top:34px">
             <dt>Role</dt><dd>Sole designer and developer</dd>
-            <dt>Platform</dt><dd>iOS 17+ &mdash; iPhone</dd>
+            <dt>Platform</dt><dd>iPhone, iOS 17+</dd>
             <dt>Language</dt><dd><span class="mono">Swift</span> &middot; <span class="mono">SwiftUI</span></dd>
             <dt>Frameworks</dt><dd>AVFoundation &middot; CoreMotion &middot; CoreLocation &middot; MapKit &middot; MusicKit &middot; Photos</dd>
-            <dt>Status</dt><dd>Shipped and in active development</dd>
+            <dt>Status</dt><dd>Shipped, in active development</dd>
             <dt>Privacy</dt><dd>Recordings, telemetry, and account details stay on device</dd>
           </dl>
         </div>
@@ -123,9 +122,8 @@
             <span class="card__idx">[ REC ]</span>
             <h3 class="card__title h-md">Loop recording</h3>
             <p class="card__body">
-              A continuous rolling buffer holds up to ten minutes of driving. One tap writes the current
-              buffer to the device as a permanent clip &mdash; no scrubbing, no file management, no
-              waiting until you get home.
+              A rolling buffer holds up to ten minutes of driving. One tap writes it to the device
+              as a permanent clip. No scrubbing, no file management, no waiting until you get home.
             </p>
           </div>
           <div class="card" style="border:0">
@@ -133,41 +131,39 @@
             <h3 class="card__title h-md">Live telemetry overlay</h3>
             <p class="card__body">
               Speed, g-force, heading, altitude, and trip distance are sampled while you drive and
-              composited directly onto saved clips, so the footage carries its own context instead of
-              needing a separate log.
+              composited onto saved clips, so the footage carries its own context.
             </p>
           </div>
           <div class="card" style="border:0">
             <span class="card__idx">[ NAV ]</span>
             <h3 class="card__title h-md">Turn-by-turn navigation</h3>
             <p class="card__body">
-              Apple&nbsp;Maps directions run inside a module rather than in another app. Full-height when
-              you need the route, collapsed to a single instruction card when you do not.
+              Apple&nbsp;Maps directions run in a module, not another app. Full-height for the route,
+              collapsed to one instruction card when you do not need it.
             </p>
           </div>
           <div class="card" style="border:0">
             <span class="card__idx">[ AUDIO ]</span>
             <h3 class="card__title h-md">Apple Music, in place</h3>
             <p class="card__body">
-              Browse, play, and skip without leaving the recording session. Pairs with navigation in a
-              split view so both are on screen at once.
+              Browse, play, and skip without leaving the recording session. Pairs with navigation
+              so both are on screen at once.
             </p>
           </div>
           <div class="card" style="border:0">
             <span class="card__idx">[ SAFETY ]</span>
             <h3 class="card__title h-md">Crash detection</h3>
             <p class="card__body">
-              Motion thresholds for collisions and hard braking automatically preserve the footage from
-              before, during, and after the event &mdash; the window you actually need, saved without
-              you touching the phone.
+              Motion thresholds for collisions and hard braking preserve the footage from before,
+              during, and after the event, saved without you touching the phone.
             </p>
           </div>
           <div class="card" style="border:0">
             <span class="card__idx">[ LIB ]</span>
             <h3 class="card__title h-md">Clips &amp; export</h3>
             <p class="card__body">
-              Saved clips are organised chronologically with in-app playback and one-step export to the
-              Photos library.
+              Saved clips are organised chronologically, with in-app playback and one-step export
+              to Photos.
             </p>
           </div>
         </div>
@@ -184,32 +180,31 @@
           <h3>The recording pipeline</h3>
           <p>
             Capture runs off the rear camera through AVFoundation into a fixed-length ring of video
-            segments. Old segments are discarded as new ones are written, which keeps storage bounded
-            no matter how long the drive is. A save request stitches the segments currently in the ring
-            into a single clip &mdash; the ten minutes leading up to the moment you decided you wanted them.
+            segments. Old segments are discarded as new ones are written, so storage stays bounded no
+            matter how long the drive is. A save stitches the ring into one clip: the ten minutes
+            leading up to the moment you wanted them.
           </p>
 
           <h3>Telemetry</h3>
           <p>
-            CoreMotion supplies acceleration for g-force, and CoreLocation supplies speed, heading, and
-            altitude. Samples are timestamped against the capture clock so the overlay lines up with the
-            frame it describes rather than drifting across a long clip. Trip distance accumulates across
-            the session.
+            CoreMotion supplies acceleration for g-force, CoreLocation supplies speed, heading, and
+            altitude. Samples are timestamped against the capture clock so the overlay lines up with
+            the frame it describes instead of drifting across a long clip.
           </p>
 
           <h3>The module system</h3>
           <p>
-            The interface is a stack of resizable modules rather than a set of screens. Navigation and
-            music each render at full or compact height, and the layout is designed so any pairing is
-            reachable in a single gesture. This is the part I have iterated on most &mdash; the design
-            target is that a driver can restore the layout they want by feel, without reading the screen.
+            The interface is a stack of resizable modules, not a set of screens. Navigation and music
+            each render at full or compact height, and any pairing is reachable in one gesture. This is
+            the part I have iterated on most. The target: a driver can restore the layout they want by
+            feel, without reading the screen.
           </p>
 
           <h3>Crash detection</h3>
           <p>
-            A motion threshold on sustained deceleration and impact-scale acceleration flags an event.
-            When one fires, the buffer around it is locked and written out immediately, before the ring
-            can overwrite the segments that matter.
+            A motion threshold on sustained deceleration and impact-scale acceleration flags an
+            event. The buffer around it is locked and written out immediately, before the ring can
+            overwrite the segments that matter.
           </p>
         </div>
       </div>
@@ -226,11 +221,11 @@
       <div class="shots rv">
         <figure class="shot" data-zoom>
           <img src="/img/godash/incar-home.jpg" width="640" height="1385" loading="lazy" decoding="async" alt="GoDash home layout with navigation and music modules on a dash mount">
-          <figcaption>Home &mdash; maps + music</figcaption>
+          <figcaption>Home: maps + music</figcaption>
         </figure>
         <figure class="shot" data-zoom>
           <img src="/img/godash/incar-maps-music.jpg" width="640" height="1385" loading="lazy" decoding="async" alt="Split view showing turn-by-turn navigation above the music player">
-          <figcaption>Split &mdash; navigation + player</figcaption>
+          <figcaption>Split: navigation + player</figcaption>
         </figure>
         <figure class="shot" data-zoom>
           <img src="/img/godash/incar-maps-telemetry.jpg" width="640" height="1385" loading="lazy" decoding="async" alt="Navigation module above the live telemetry readout showing speed and g-force">
@@ -254,7 +249,7 @@
         </figure>
         <figure class="shot" data-zoom>
           <img src="/img/godash/screen-telemetry-overlay.jpg" width="640" height="1385" loading="lazy" decoding="async" alt="Saved clip playing back with speed, g-force, heading and altitude burned into the frame">
-          <figcaption>Saved clip &mdash; overlay</figcaption>
+          <figcaption>Saved clip: overlay</figcaption>
         </figure>
       </div>
     </div>
@@ -281,7 +276,7 @@
           <h2 class="h-lg" style="margin-bottom:12px">Free on the App Store</h2>
           <p class="muted" style="font-size:14.5px;max-width:46ch;margin-bottom:22px">
             Basic recording is free. GoDash Pro unlocks higher resolution, longer loops, telemetry
-            overlays, and crash detection. Requires an iPhone running iOS&nbsp;17 or later.
+            overlays, and crash detection. Requires iOS&nbsp;17 or later.
           </p>
           <div class="btn-row">
             <a class="btn btn--primary" href="https://apps.apple.com/us/app/godash-dashcam-app/id6792043434" target="_blank" rel="noopener">App Store <span class="btn__arr">&rarr;</span></a>
@@ -316,7 +311,7 @@
     <div class="foot__in">
       <div>
         <p class="foot__note">
-          MATTHEW SAUNDERS &mdash; BALTIMORE, MD<br>
+          MATTHEW SAUNDERS, BALTIMORE, MD<br>
           <a href="mailto:matt.saunders.963@gmail.com">matt.saunders.963@gmail.com</a><br>
           &copy; <span id="yr">2026</span> &middot; msaunders.dev
         </p>

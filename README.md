@@ -1,23 +1,23 @@
 # msaunders.dev
 
-Personal site for Matthew Saunders. Plain static HTML/CSS/JS — no build step, no
+Personal site for Matthew Saunders. Plain static HTML/CSS/JS: no build step, no
 dependencies, no external requests. Cloudflare Pages serves the repo root as-is.
 
 ## Structure
 
 ```
 index.html                    About  (landing page, built from the academic resume)
-projects/index.html           Projects index — 3 slots, GoDash featured
+projects/index.html           Projects index: 3 slots, GoDash featured
 projects/godash/              GoDash writeup (full)
 projects/observatory/         Mobile Computerized Automated Observatory (stub)
 projects/apt-decoder/         NOAA APT ground station (stub)
-hobbies/index.html            Placeholder — reserved slots
-gallery/index.html            Placeholder — grid + lightbox wired, awaiting images
+hobbies/index.html            Placeholder: reserved slots
+gallery/index.html            Placeholder: grid + lightbox wired, awaiting images
 404.html                      Not found
 
 css/site.css                  Design tokens + every component
 js/site.js                    Mobile nav, scroll reveal, image lightbox
-js/cosmos.js                  ASCII planetarium — scroll-driven background art
+js/cosmos.js                  ASCII planetarium: scroll-driven background art
 img/godash/                   Web-optimised GoDash media (source: assets/)
 files/                        Resume PDF
 favicon.svg / favicon.png
@@ -25,7 +25,7 @@ _headers                      Cloudflare Pages cache + security headers
 robots.txt, sitemap.xml
 
 assets/                       Original source media (not linked from the site)
-tools/build_pages.py          Optional page generator — see below
+tools/build_pages.py          Optional page generator: see below
 ```
 
 ## Cloudflare Pages settings
@@ -38,7 +38,7 @@ Pushing to `main` deploys.
 
 ## Editing
 
-Every page is a complete, hand-editable HTML file — edit them directly.
+Every page is a complete, hand-editable HTML file: edit them directly.
 
 `tools/build_pages.py` is a convenience only: it regenerates the pages other than
 `index.html` from a shared shell, so the nav and footer stay identical everywhere.
@@ -57,23 +57,30 @@ If you'd rather stop using it, delete `tools/` and edit the HTML directly.
 shaded sphere computed per glyph from a real lighting model, with Saturn's and
 Uranus' rings intersected against the ring plane and depth-sorted against the
 globe. Scroll position drives the rotation, so the planets spin as you move down
-the page and unwind if you scroll back up. Each body holds a fixed spot on screen
-and cross-fades to the next one, and every page starts on a different body.
+the page and unwind if you scroll back up. The bodies are pinned to document
+coordinates, spaced evenly down the page, so they scroll up and off with
+everything else. Every page starts on a different body.
 
-Worst-case render is ~0.14 ms a frame (Saturn, 65x19 glyphs) and only the
-visible body is redrawn, so the whole effect costs nothing measurable. It
+Worst-case render is ~0.14 ms a frame (Saturn, 65x19 glyphs) and only bodies
+near the viewport are redrawn, so the whole effect costs nothing measurable. It
 respects `prefers-reduced-motion` by drawing the art and freezing the spin.
 
-To retune: `BODIES` at the top of the file holds every knob — frame extents,
+To retune: `BODIES` at the top of the file holds every knob: frame extents,
 grid size, axial tilt, spin rate per pixel scrolled, ambient light, ring radii
-and gaps, and screen position. `--space` in `css/site.css` sets the ink colour.
+and gaps, and horizontal placement. `--space` in `css/site.css` sets the ink colour.
 `window.__cosmos` exposes `{ render, bodies }` in the console for experimenting.
 
 ## Design
 
-Pure black (`#000`), by design. Colours, spacing, and type live as CSS custom properties at the
-top of `css/site.css` — change `--accent` to reskin the whole site. No gradients are
-used anywhere.
+Pure black (`#000`), by design. Colours, spacing, and type live as CSS custom
+properties at the top of `css/site.css`: change `--accent` to reskin the whole
+site. No gradients anywhere.
+
+There are no horizontal dividers. The page reads as one continuous surface, and
+the only structure is a pair of hairline side rails hung off `<main>` and
+`<footer>` so they run unbroken from the nav to the bottom.
+
+House style: no em dashes, no en dashes, plain hyphens only. Copy stays terse.
 
 ## Adding a gallery image
 

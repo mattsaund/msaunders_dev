@@ -1,4 +1,4 @@
-/* msaunders.dev — nav toggle, scroll reveal, image lightbox */
+/* msaunders.dev : nav toggle, scroll reveal, image lightbox */
 (function () {
   'use strict';
 

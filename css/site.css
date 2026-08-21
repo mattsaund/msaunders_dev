@@ -1,5 +1,5 @@
 /* ============================================================
-   msaunders.dev — core stylesheet
+   msaunders.dev : core stylesheet
    Dark, hairline-ruled, monospace-forward. No gradients.
    ============================================================ */
 
@@ -14,7 +14,7 @@
   --line-2:    #232931;
   --line-3:    #363e49;
 
-  /* ASCII planetarium ink — faint enough to sit behind body copy */
+  /* ASCII planetarium ink, faint enough to sit behind body copy */
   --space:     #243c50;
 
   --fg:        #e7eaef;
@@ -88,21 +88,28 @@ hr { border: 0; border-top: 1px solid var(--line); margin: 0; }
   padding: 0 var(--pad);
   position: relative;
 }
-/* technical-drawing side rules */
-.wrap::before, .wrap::after {
+/* Technical-drawing side rails.
+   These hang off <main> and <footer> rather than each .wrap, so they run
+   unbroken from the nav to the bottom of the page instead of restarting at
+   every section's padding. With the horizontal dividers gone they are the
+   only structure left, so they have to be continuous. */
+main::before, main::after,
+.foot::before, .foot::after {
   content: "";
   position: absolute; top: 0; bottom: 0; width: 1px;
   background: var(--line);
   pointer-events: none;
 }
-.wrap::before { left: 0; }
-.wrap::after  { right: 0; }
-@media (max-width: 720px) { .wrap::before, .wrap::after { display: none; } }
+main::before, .foot::before { left:  max(0px, calc(50% - var(--wrap) / 2)); }
+main::after,  .foot::after  { right: max(0px, calc(50% - var(--wrap) / 2)); }
+
+@media (max-width: 720px) {
+  main::before, main::after, .foot::before, .foot::after { display: none; }
+}
 
 main { min-height: 60vh; }
 
-.section { padding: clamp(48px, 8vw, 88px) 0; border-bottom: 1px solid var(--line); }
-.section:last-of-type { border-bottom: 0; }
+.section { padding: clamp(48px, 8vw, 88px) 0; }
 .section--tight { padding: clamp(32px, 5vw, 56px) 0; }
 
 /* --- nav --------------------------------------------------- */
@@ -112,7 +119,6 @@ main { min-height: 60vh; }
   background: rgba(0, 0, 0, .82);
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
-  border-bottom: 1px solid var(--line);
 }
 .nav__in {
   max-width: var(--wrap); height: 100%;
@@ -207,7 +213,7 @@ main { min-height: 60vh; }
 }
 
 /* --- hero -------------------------------------------------- */
-.hero { padding: clamp(56px, 10vw, 104px) 0 clamp(40px, 7vw, 72px); border-bottom: 1px solid var(--line); }
+.hero { padding: clamp(56px, 10vw, 104px) 0 clamp(40px, 7vw, 72px); }
 .hero__meta {
   font: 400 12px/1 var(--mono); color: var(--fg-3);
   letter-spacing: .1em; text-transform: uppercase;
@@ -399,7 +405,7 @@ main { min-height: 60vh; }
 .stat__l { font: 400 11px/1.4 var(--mono); letter-spacing: .1em; text-transform: uppercase; color: var(--fg-3); margin-top: 9px; }
 
 /* --- footer ------------------------------------------------ */
-.foot { border-top: 1px solid var(--line); padding: 40px 0 48px; }
+.foot { padding: 56px 0 48px; }
 .foot__in { display: flex; flex-wrap: wrap; gap: 24px; justify-content: space-between; align-items: flex-start; }
 .foot__note { font: 400 11.5px/1.7 var(--mono); color: var(--fg-3); letter-spacing: .04em; }
 .socials { display: flex; flex-wrap: wrap; gap: 8px; }
@@ -426,10 +432,13 @@ main { min-height: 60vh; }
 .pager { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; padding: 28px 0 48px; }
 
 /* --- ASCII planetarium ------------------------------------- */
-/* Fixed layer behind everything. js/cosmos.js fills each <pre>
-   with a shaded ASCII body and spins it from scroll position. */
+/* Sits in document space, not the viewport, so the bodies scroll up and
+   off the page with everything else. js/cosmos.js fills each <pre> with a
+   shaded ASCII body and spins it from scroll position. */
 .cosmos {
-  position: fixed; inset: 0; z-index: 0;
+  position: absolute; top: 0; left: 0;
+  width: 100%; height: 100%;
+  z-index: 0;
   overflow: hidden; pointer-events: none;
   user-select: none; -webkit-user-select: none;
 }
@@ -437,14 +446,11 @@ main { min-height: 60vh; }
   position: absolute; margin: 0;
   font-family: var(--mono);
   line-height: 1;
-  letter-spacing: 0;
   white-space: pre;
   color: var(--space);
-  opacity: 0;
-  transition: opacity .45s linear;
-  will-change: opacity;
 }
 /* Content rides above the planetarium. */
+body { position: relative; }
 .nav, main, .foot, .skip { position: relative; z-index: 1; }
 .nav { z-index: 100; }
 

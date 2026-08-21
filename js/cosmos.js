@@ -1,20 +1,20 @@
 /* ============================================================
-   msaunders.dev — ASCII planetarium
+   msaunders.dev : ASCII planetarium
 
    Renders shaded ASCII spheres (plus Saturn's and Uranus' ring
    systems) into fixed background layers. Every body is computed
-   at runtime from real lighting maths — there are no image or
-   pre-baked frame assets. Rotation is driven by scroll position,
-   so the planets spin as the page moves and unwind if you scroll
-   back up. Each body holds its spot on screen and cross-fades to
-   the next one as you travel down the document.
+   at runtime from real lighting maths, with no image or pre-baked
+   frame assets. The bodies are pinned to document coordinates, so
+   they scroll up and off the page with everything else. Rotation
+   is driven by scroll position: they spin as the page moves and
+   unwind if you scroll back up.
    ============================================================ */
 (function () {
   'use strict';
 
   /* --- tunables ------------------------------------------- */
   /* Bourke's 10-level ramp. Ink density rises monotonically, which the
-     obvious-looking ".,:;=+ic*ox%#@" does not — 'i' and 'c' read lighter
+     obvious-looking ".,:;=+ic*ox%#@" does not: 'i' and 'c' read lighter
      than '=' and '+', so gradients came out mottled. Index 0 is a space,
      which gives the empty-sky threshold for free. */
   var RAMP = " .:-=+*#%@";
@@ -128,34 +128,36 @@
      tilt      : pole tipped toward the viewer (rad)
      roll      : pole tipped within the view plane (rad)
      spin      : radians of rotation per pixel scrolled (sign = direction)
-     amb       : ambient light on the night side                          */
+     amb       : ambient light on the night side
+     at        : horizontal placement only; vertical position is assigned
+                 from the document height so the bodies space themselves    */
   var BODIES = [
     { name: 'saturn', tex: texSaturn, rows: 19, extX: 2.45, extY: 1.20, sz: 1.00,
       tilt: 0.46, roll: -0.16, spin: 0.0034, amb: 0.17, phase: 0.4,
       rings: { inner: 1.28, outer: 2.30, gaps: [[1.68, 1.78], [2.04, 2.09]] },
-      at: { right: '-3vw', top: '11vh' } },
+      at: { right: '-3vw' } },
 
     { name: 'moon', tex: texMoon, rows: 17, extX: 1.14, extY: 1.14, sz: 1.20,
       tilt: 0.18, roll: 0.10, spin: -0.0026, amb: 0.13, phase: 1.9,
-      at: { left: '3vw',  top: '46vh' } },
+      at: { left: '2vw' } },
 
     { name: 'jupiter', tex: texJupiter, rows: 21, extX: 1.12, extY: 1.12, sz: 1.10,
       tilt: 0.10, roll: 0.06, spin: 0.0052, amb: 0.19, phase: 2.7,
-      at: { right: '-6vw', top: '33vh' } },
+      at: { right: '-6vw' } },
 
     { name: 'mars', tex: texMars, rows: 16, extX: 1.16, extY: 1.16, sz: 1.05,
       tilt: 0.34, roll: -0.28, spin: 0.0040, amb: 0.15, phase: 0.9,
-      at: { left: '4vw',  top: '15vh' } },
+      at: { left: '3vw' } },
 
     /* Uranus rolls onto its side, so its rings stand up vertically. */
     { name: 'uranus', tex: texUranus, rows: 26, extX: 1.10, extY: 2.10, sz: 0.95,
       tilt: 0.52, roll: 1.5708, spin: -0.0031, amb: 0.20, phase: 3.4,
       rings: { inner: 1.44, outer: 2.02, gaps: [[1.63, 1.69]] },
-      at: { right: '3vw',  top: '11vh' } },
+      at: { right: '2vw' } },
 
     { name: 'neptune', tex: texNeptune, rows: 18, extX: 1.14, extY: 1.14, sz: 1.00,
       tilt: -0.30, roll: 0.22, spin: 0.0029, amb: 0.18, phase: 5.1,
-      at: { left: '-4vw', top: '30vh' } }
+      at: { left: '-4vw' } }
   ];
 
   /* Derive the glyph width that keeps each disk round. */
@@ -280,59 +282,49 @@
     pre.className = 'cosmos__body';
     for (var key in p.at) { if (p.at.hasOwnProperty(key)) pre.style[key] = p.at[key]; }
     host.appendChild(pre);
-    live.push({ p: p, el: pre, drawn: null, shown: -1 });
+    live.push({ p: p, el: pre, drawn: null, top: 0, h: 0 });
   }
   document.body.insertBefore(host, document.body.firstChild);
 
   /* --- layout --------------------------------------------- */
-  var count = 1, maxScroll = 0;
+  var count = 1;
 
   function measure() {
     var vw = window.innerWidth, vh = window.innerHeight;
-    maxScroll = Math.max(0, document.documentElement.scrollHeight - vh);
-    count = clamp(Math.round(maxScroll / vh / 0.8), 1, live.length);
+    var docH = document.documentElement.scrollHeight;
+    host.style.height = docH + 'px';
+
+    count = clamp(Math.round((docH - vh) / vh / 0.8), 1, live.length);
 
     var base = clamp(Math.min(vw, vh * 1.7) / 108, 6, 13);
     for (var i = 0; i < live.length; i++) {
-      live[i].el.style.fontSize = (base * live[i].p.sz).toFixed(2) + 'px';
-      live[i].drawn = null;                     // force a repaint at the new size
-    }
-  }
+      var s = live[i];
+      if (i >= count) { s.el.style.display = 'none'; continue; }
+      s.el.style.display = '';
 
-  /* Opacity envelope: full inside the body's band, tapering so
-     neighbours cross-fade instead of popping. */
-  function envelope(t, centre, half) {
-    var d = Math.abs(t - centre) / half;
-    if (d <= 0.55) return 1;
-    if (d >= 1.25) return 0;
-    return 1 - (d - 0.55) / 0.70;
+      var fs = base * s.p.sz;
+      s.el.style.fontSize = fs.toFixed(2) + 'px';
+      s.h = s.p.rows * fs;
+      /* Spread the bodies evenly down the document so roughly one is in
+         view at a time; each then scrolls off with the rest of the page. */
+      s.top = Math.round((i + 0.5) / count * docH - s.h / 2);
+      s.el.style.top = s.top + 'px';
+      s.drawn = null;                     // force a repaint at the new size
+    }
   }
 
   function frame() {
     var y = window.scrollY || window.pageYOffset || 0;
-    var t = maxScroll > 0 ? clamp(y / maxScroll, 0, 1) : 0;
-    var half = 0.5 / count;
+    var vh = window.innerHeight;
+    var near = y - vh * 0.5, far = y + vh * 1.5;
 
-    for (var i = 0; i < live.length; i++) {
-      var s = live[i], op = 0;
-      if (i < count) {
-        var centre = (i + 0.5) / count, tt = t;
-        /* Hold the first and last bodies wide open at the ends of the
-           document, otherwise the hero and the footer both open on a
-           half-faded planet. */
-        if (i === 0 && tt < centre) tt = centre;
-        if (i === count - 1 && tt > centre) tt = centre;
-        op = envelope(tt, centre, half);
-      }
+    for (var i = 0; i < count; i++) {
+      var s = live[i];
+      /* Only the bodies near the viewport are worth redrawing. */
+      if (s.top + s.h < near || s.top > far) continue;
 
-      if (op !== s.shown) {
-        s.el.style.opacity = op;
-        s.shown = op;
-      }
-      if (op <= 0.01) continue;
-
-      /* Quantise the angle so we only redraw when a glyph could change. */
       var angle = s.p.phase + (reduced ? 0 : y * s.p.spin);
+      /* Quantise so we only redraw when a glyph could actually change. */
       var q = Math.round(angle * 40) / 40;
       if (q !== s.drawn) {
         s.el.textContent = render(s.p, q);
