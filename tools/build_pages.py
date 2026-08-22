@@ -12,7 +12,7 @@ import hashlib, os, re
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # Projects is reachable from the About page and the project writeups, not the top nav.
-TABS = [("About", "/"), ("Hobbies", "/hobbies/"), ("Gallery", "/gallery/")]
+TABS = [("About", "/"), ("Misc", "/misc/")]
 
 SOCIAL_SVG = {}
 with open(os.path.join(ROOT, "index.html"), encoding="utf-8") as f:
@@ -33,7 +33,8 @@ def crumb(trail):
             + '\n    </nav>\n  </div>')
 
 
-ASSETS = ("css/site.css", "js/site.js", "js/cosmos.js")
+ASSETS = ("css/site.css", "js/site.js", "js/cosmos.js",
+          "favicon.svg", "favicon.png")
 
 
 def stamp_assets():
@@ -83,7 +84,7 @@ def page(path, *, title, desc, body, canonical, trail=(), noindex=False):
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{title}</title>
 <meta name="description" content="{desc}">
-<meta name="theme-color" content="#08090b">
+<meta name="theme-color" content="#000000">
 {'<meta name="robots" content="noindex">' if noindex else f'<link rel="canonical" href="{canonical}">'}
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
 <link rel="alternate icon" href="/favicon.png">
@@ -566,7 +567,7 @@ OBSERVATORY = """
         <span class="note__label">Slot reserved</span>
         The full build log is being written: mirror figuring, frame geometry, drive calibration,
         first-light images. Astrophotography from this scope will appear in the
-        <a href="/gallery/">Gallery</a>.
+        <a href="/misc/">Misc</a>.
       </div>
     </div>
   </section>
@@ -672,15 +673,16 @@ APT = """
 
 
 # ==================================================================
-#  HOBBIES  (placeholder, content pending)
-# ==================================================================
-HOBBIES = """
+#  MISC  (hobbies + gallery, one page)
+# ==============================================================
+MISC = """
   <section class="hero">
     <div class="wrap">
       <p class="eyebrow"><b>//</b> Off the clock</p>
-      <h1 class="h-xl">Hobbies</h1>
+      <h1 class="h-xl">Misc</h1>
       <p class="lede">
-        What I do when I am not writing code or studying. Most of it feeds back into what I build.
+        What I do when I am not writing code or studying, and the pictures that
+        come out of it. Most of it feeds back into what I build.
       </p>
     </div>
   </section>
@@ -691,8 +693,7 @@ HOBBIES = """
         <div class="empty__icon">&hellip;</div>
         <h2>Section under construction</h2>
         <p>
-          This page is reserved. The slots below are marked out. Photographs will live in the
-          <a href="/gallery/">Gallery</a>.
+          This page is reserved. The slots below are marked out.
         </p>
       </div>
 
@@ -704,23 +705,6 @@ HOBBIES = """
         <div class="card"><span class="card__idx">[ 05 ]</span><h2 class="card__title h-md">Rock climbing</h2><p class="card__body">Problem solving with consequences.</p><span class="status status--soon"><i class="dot"></i>Pending</span></div>
         <div class="card"><span class="card__idx">[ 06 ]</span><h2 class="card__title h-md">Travel, music &amp; film</h2><p class="card__body">Places worth the drive, records worth the shelf, films worth rewatching.</p><span class="status status--soon"><i class="dot"></i>Pending</span></div>
       </div>
-    </div>
-  </section>
-"""
-
-
-# ==================================================================
-#  GALLERY  (placeholder, awaiting media)
-# ==================================================================
-GALLERY = """
-  <section class="hero">
-    <div class="wrap">
-      <p class="eyebrow"><b>//</b> Images</p>
-      <h1 class="h-xl">Gallery</h1>
-      <p class="lede">
-        Astrophotography, hardware builds, and whatever else is worth looking at. The grid is
-        wired up and waiting on files.
-      </p>
     </div>
   </section>
 
@@ -747,6 +731,8 @@ GALLERY = """
     </div>
   </section>
 """
+
+
 
 
 # ==================================================================
@@ -788,13 +774,9 @@ if __name__ == "__main__":
          desc="A custom SDR ground station and quadrifilar helix antenna that automatically captures and decodes APT downlinks from NOAA weather satellites.",
          body=APT, canonical="https://msaunders.dev/projects/apt-decoder/", trail=[("Projects", "/projects/"), ("APT Decoder", None)])
 
-    page("hobbies/index.html", title="Hobbies / Matthew Saunders",
-         desc="Astrophotography, aerospace, computer building, camping, hiking, climbing, music, and film.",
-         body=HOBBIES, canonical="https://msaunders.dev/hobbies/", trail=[("Hobbies", None)])
-
-    page("gallery/index.html", title="Gallery / Matthew Saunders",
-         desc="Astrophotography and hardware build photography by Matthew Saunders.",
-         body=GALLERY, canonical="https://msaunders.dev/gallery/", trail=[("Gallery", None)])
+    page("misc/index.html", title="Misc / Matthew Saunders",
+         desc="Astrophotography, aerospace, computer building, camping, hiking, climbing, music and film, plus the photographs that come out of them.",
+         body=MISC, canonical="https://msaunders.dev/misc/", trail=[("Misc", None)])
 
     page("404.html", title="404 / Matthew Saunders",
          desc="Page not found.", body=NOTFOUND,

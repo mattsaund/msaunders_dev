@@ -1,0 +1,4 @@
+# The two pages folded into /misc/. Both were live and indexed, so they redirect
+# rather than 404.
+/hobbies/*  /misc/  301
+/gallery/*  /misc/  301

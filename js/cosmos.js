@@ -165,6 +165,88 @@
     return clamp(a, 0.10, 1.20);
   }
 
+  /* --- irregular bodies ------------------------------------ *
+     A potato instead of a ball: the radius varies with direction, so the
+     silhouette itself changes as the body tumbles. The lobes live in BODY
+     space, which is the whole point -- rotating the body rotates the lumps,
+     and that is what makes an asteroid read as an asteroid rather than a
+     sphere with a moving texture. */
+  /* Three scales of deformation, all generated from a seed so no single lobe
+     ends up dominating. Hand-picked amplitudes were the problem before: one
+     broad lobe was twice its neighbours and read as a spike sticking out of an
+     otherwise round body at certain angles. */
+  function lobeField(seed, n, aMin, aSpan, negChance) {
+    var r = rng(seed), out = [], i, y, ph, c;
+    for (i = 0; i < n; i++) {
+      y = r() * 2 - 1;
+      ph = r() * Math.PI * 2;
+      c = Math.sqrt(Math.max(0, 1 - y * y));
+      out.push({
+        x: c * Math.cos(ph), y: y, z: c * Math.sin(ph),
+        a: (aMin + r() * aSpan) * (r() < negChance ? -1 : 1)
+      });
+    }
+    return out;
+  }
+
+  var ROCK   = lobeField(0x51F0AA, 5, 0.105, 0.075, 0.50);    /* overall shape  */
+  var FACETS = lobeField(0xA33C17, 14, 0.034, 0.042, 0.45);   /* flats and edges */
+  var KNOBS  = lobeField(0xB0C1D2, 24, 0.018, 0.036, 0.45);   /* bumps, craters  */
+
+  function rockRadius(bx, by, bz) {
+    /* Elongation first. Most asteroids are notably longer on one axis, and a
+       body built only from scattered lobes averages back out to a ball: ten
+       of them cancelled almost perfectly and the outline barely moved as it
+       turned. A single long axis gives the silhouette something to sweep. */
+    var r = 0.78 + 0.24 * (bx * bx - 0.34);
+    var i, L, d, d2, d3;
+    /* Signed and gentle: sets the silhouette. */
+    for (i = 0; i < ROCK.length; i++) {
+      L = ROCK[i]; d = bx * L.x + by * L.y + bz * L.z;
+      r += L.a * d * d * d;
+    }
+    /* One-sided, medium falloff: shears the shape into flats. */
+    for (i = 0; i < FACETS.length; i++) {
+      L = FACETS[i]; d = bx * L.x + by * L.y + bz * L.z;
+      if (d > 0) { d2 = d * d; r += L.a * d2 * d2 * d; }            /* d^5 */
+    }
+    /* One-sided and tight: individual knobs and pits. Powers are done by
+       multiplication; Math.pow here would run a million times per redraw. */
+    for (i = 0; i < KNOBS.length; i++) {
+      L = KNOBS[i]; d = bx * L.x + by * L.y + bz * L.z;
+      if (d > 0) { d3 = d * d * d; r += L.a * d3 * d3 * d3; }       /* d^9 */
+    }
+    return r;
+  }
+
+  /* Bounding radius, measured rather than guessed: the lobes cannot all peak
+     in the same direction, so the analytic worst case is far too generous. */
+  var ROCK_MAX = (function () {
+    var m = 0, i, y, ph, c, r;
+    for (i = 0; i < 2400; i++) {
+      y = (i / 2399) * 2 - 1;
+      ph = i * 2.39996;                       /* golden angle, spreads the samples */
+      c = Math.sqrt(Math.max(0, 1 - y * y));
+      r = rockRadius(c * Math.cos(ph), y, c * Math.sin(ph));
+      if (r > m) m = r;
+    }
+    return m * 1.05;
+  })();
+
+  var ROCK_CRATERS = features(770231, 22, 0.11, 0.20);
+
+  function texRock(bx, by, bz, la, lo) {
+    var a = 0.60, i, c, d;
+    for (i = 0; i < ROCK_CRATERS.length; i++) {
+      c = ROCK_CRATERS[i];
+      d = bx * c.x + by * c.y + bz * c.z;
+      if (d > c.c) a += (d < c.rim) ? 0.26 : -0.28;
+    }
+    a += 0.09 * Math.sin(lo * 7.0 + la * 5.0);
+    a += 0.05 * Math.sin(lo * 15.0 - la * 11.0);
+    return clamp(a, 0.12, 1.15);
+  }
+
   function texUranus(bx, by, bz, la, lo) {
     return 0.86 + 0.05 * Math.sin(la * 5.0) + 0.025 * Math.sin(lo * 3.0);
   }
@@ -192,8 +274,8 @@
       tilt: 0.18, roll: 0.10, rate: -0.075, amb: 0.13, phase: 1.9,
       side: 'left' },
 
-    { name: 'jupiter', tex: texJupiter, rows: 21, extX: 1.12, extY: 1.12, sz: 1.10,
-      tilt: 0.10, roll: 0.06, rate: 0.140, amb: 0.19, phase: 2.7,
+    { name: 'asteroid', tex: texRock, rock: true, rows: 30, extX: 1.20, extY: 1.20, sz: 1.12,
+      tilt: 0.55, roll: 0.35, rate: 0.085, amb: 0.15, phase: 1.1,
       side: 'right' },
 
     { name: 'mars', tex: texMars, rows: 16, extX: 1.16, extY: 1.16, sz: 1.05,
@@ -208,7 +290,11 @@
 
     { name: 'neptune', tex: texNeptune, rows: 18, extX: 1.14, extY: 1.14, sz: 1.00,
       tilt: -0.30, roll: 0.22, rate: 0.095, amb: 0.18, phase: 5.1,
-      side: 'left' }
+      side: 'left' },
+
+    { name: 'jupiter', tex: texJupiter, rows: 21, extX: 1.12, extY: 1.12, sz: 1.10,
+      tilt: 0.10, roll: 0.06, rate: 0.140, amb: 0.19, phase: 2.7,
+      side: 'right' }
   ];
 
 
@@ -246,6 +332,21 @@
     var vx = ny * uz - nz * uy, vy = nz * ux - nx * uz, vz = nx * uy - ny * ux;
 
     var ca = Math.cos(angle), sa = Math.sin(angle);
+    var rock = !!p.rock;
+
+    /* Scratch, not a returned array: this runs once per bisection step per
+       cell, and allocating there would be all GC and no work. */
+    var _bx = 0, _by = 0, _bz = 0;
+    function toBody(px, py, pz) {
+      var L = Math.sqrt(px * px + py * py + pz * pz) || 1;
+      var ax = px / L, ay = py / L, az = pz / L;
+      _by = ax * nx + ay * ny + az * nz;
+      var b0 = ax * ux + ay * uy + az * uz;
+      var b1 = ax * vx + ay * vy + az * vz;
+      _bx = b0 * ca + b1 * sa;
+      _bz = b1 * ca - b0 * sa;
+      return L;
+    }
     var rings = p.rings, gaps = rings ? rings.gaps : null;
     var gain = p.gain || 1;
     var lx = L[0], ly = L[1], lz = L[2];
@@ -263,26 +364,43 @@
         var sx = (2 * (i + 0.5) / W - 1) * extX;
         var d2 = sx * sx + sy * sy;
 
-        /* ---- lit sphere ---- */
-        var sphere = -1, zs = -1e9;
-        if (d2 <= 1) {
-          zs = Math.sqrt(1 - d2);
-          var lum = sx * lx + sy * ly + zs * lz;
+        /* ---- lit surface ---- */
+        var sphere = -1, zs = -1e9, hit = false;
+
+        if (rock) {
+          /* Bisect down the ray: hi starts outside the bounding sphere, lo at
+             the z=0 plane. Newton would be fewer steps but blows up near the
+             silhouette where the surface is edge-on; bisection just works. */
+          var hi = ROCK_MAX * ROCK_MAX - d2;
+          if (hi > 0) {
+            hi = Math.sqrt(hi);
+            var lo0 = 0;
+            if (toBody(sx, sy, 0) < rockRadius(_bx, _by, _bz)) {
+              for (var k = 0; k < 9; k++) {
+                var mid = (lo0 + hi) * 0.5;
+                if (toBody(sx, sy, mid) < rockRadius(_bx, _by, _bz)) lo0 = mid;
+                else hi = mid;
+              }
+              zs = lo0; hit = true;
+            }
+          }
+        } else if (d2 <= 1) {
+          zs = Math.sqrt(1 - d2); hit = true;
+        }
+
+        if (hit) {
+          var Lp = toBody(sx, sy, zs);          // also fills _bx/_by/_bz
+          var nzv = zs / Lp;                    // cosine of the view angle
+          var lum = (sx / Lp) * lx + (sy / Lp) * ly + nzv * lz;
           if (lum < 0) lum = 0;
 
-          /* view-space normal -> body frame, then unspin by the angle */
-          var by = clamp(sx * nx + sy * ny + zs * nz, -1, 1);
-          var b0 = sx * ux + sy * uy + zs * uz;
-          var b1 = sx * vx + sy * vy + zs * vz;
-          var bx = b0 * ca + b1 * sa;
-          var bz = b1 * ca - b0 * sa;
-
+          var by = clamp(_by, -1, 1);
           var la = Math.asin(by);
-          var lo = Math.atan2(bz, bx);
+          var lo = Math.atan2(_bz, _bx);
 
-          var alb = p.tex(bx, by, bz, la, lo);
+          var alb = p.tex(_bx, by, _bz, la, lo);
           sphere = alb * (p.amb + (1 - p.amb) * lum * (0.45 + 0.55 * lum));
-          sphere *= (0.58 + 0.42 * zs) * gain;            // limb darkening
+          sphere *= (0.58 + 0.42 * nzv) * gain;           // limb darkening
         }
 
         /* ---- ring plane ----
@@ -383,16 +501,18 @@
      face no longer needs its own parentheses. Six cells wide: the three
      combining marks carry zero advance width. */
   var LENNY = " \u0361\u00b0 \u035c\u0296 \u0361\u00b0";
-  /* Nine cells across and five rows tall reads as round at this cell aspect
-     (glyphs are about 0.6 as wide as they are tall). Everything is centred on
-     column 4, which is where the mouth lands. */
+  /* Nine cells across. Underscores sit low in their own line box, so a row of
+     them reads as the edge of the box below it: that is what draws the top of
+     the head without spending a row on it, and what lets the arms meet the
+     torso on one continuous line. Everything is centred on column 4, which is
+     where the mouth lands. */
   var MARKER = [
-    "  .---.  ",
-    " /     \\ ",
+    " _______ ",
+    "|       |",
     "|" + LENNY + " |",
-    " \\     / ",
-    "  '---'  ",
-    "  \\ | /  ",
+    "|_______|",
+    "    |    ",
+    "  \\_|_/  ",
     "    |    ",
     "   / \\   "
   ].join("\n");

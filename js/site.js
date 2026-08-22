@@ -3,9 +3,10 @@
   'use strict';
 
   /* --- typed name ----------------------------------------- */
-  /* The full name stays in the markup, so it is what ships in the HTML and
-     what a screen reader announces via aria-label; the typing only controls
-     what is painted. If this script never runs, the name is simply there. */
+  /* Opens on the domain, holds, backspaces it away, then types the name.
+     The finished name is what sits in the markup, so it is what ships in the
+     HTML and what a screen reader announces via aria-label; the animation only
+     controls what is painted. If this never runs, the name is simply there. */
   var name = document.getElementById('typed');
   if (name) {
     var full = name.textContent;
@@ -19,20 +20,29 @@
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
       name.appendChild(caret);
     } else {
+      var INTRO = 'msaunders.dev';
       var out = document.createElement('span');
       out.setAttribute('aria-hidden', 'true');
+      out.textContent = INTRO;
       name.textContent = '';
       name.appendChild(out);
       name.appendChild(caret);
 
-      var i = 0;
-      (function step() {
-        out.textContent = full.slice(0, ++i);
-        if (i < full.length) {
-          /* Slight jitter so it reads as typing rather than a ticker. */
-          setTimeout(step, 45 + Math.random() * 55);
+      var type = function (n) {
+        out.textContent = full.slice(0, n);
+        if (n < full.length) {
+          /* Jitter, so it reads as typing rather than a ticker. */
+          setTimeout(function () { type(n + 1); }, 45 + Math.random() * 55);
         }
-      })();
+      };
+
+      var erase = function (n) {
+        out.textContent = INTRO.slice(0, n);
+        if (n > 0) setTimeout(function () { erase(n - 1); }, 38);
+        else setTimeout(function () { type(1); }, 260);
+      };
+
+      setTimeout(function () { erase(INTRO.length - 1); }, 2000);
     }
   }
 

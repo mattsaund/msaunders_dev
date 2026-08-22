@@ -168,8 +168,8 @@ main { min-height: 60vh; }
 .hero__meta span { display: inline-flex; align-items: center; gap: 7px; }
 .dot { width: 5px; height: 5px; background: var(--accent); flex: none; }
 .hero h1 { margin-bottom: 16px; }
-.hero .socials { margin-bottom: 30px; }
-.hero .btn-row { margin-top: 28px; }
+.hero .links { margin-bottom: 30px; }
+
 /* Terminal caret: blinks while the name types and keeps blinking after. */
 .caret {
   color: var(--accent);
@@ -198,6 +198,8 @@ main { min-height: 60vh; }
 .btn--primary { border-color: var(--accent-line); background: var(--accent-bg); color: var(--accent); }
 .btn--primary:hover { border-color: var(--accent); background: #112538; color: var(--accent-hi); }
 .btn-row { display: flex; flex-wrap: wrap; gap: 10px; }
+/* The hero's one row of everything: resume, contact, profiles, misc. */
+.links { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 4px; }
 
 /* --- tags / chips ------------------------------------------ */
 .tags { display: flex; flex-wrap: wrap; gap: 6px; list-style: none; margin: 0; padding: 0; }
@@ -440,9 +442,11 @@ main { min-height: 60vh; }
 .socials { display: flex; flex-wrap: wrap; gap: 8px; }
 .social {
   display: inline-flex; align-items: center; gap: 8px;
-  font: 400 12px/1 var(--mono); letter-spacing: .05em;
-  color: var(--fg-2); border: 1px solid var(--line); background: var(--bg-2);
-  padding: 9px 12px; transition: color .15s, border-color .15s, background-color .15s;
+  /* Matches .btn exactly: the two sit side by side in the hero's single row,
+     so any difference in size or padding reads as a mistake. */
+  font: 400 12.5px/1 var(--mono); letter-spacing: .06em; text-transform: uppercase;
+  color: var(--fg); border: 1px solid var(--line-2); background: var(--bg-2);
+  padding: 11px 15px; transition: color .15s, border-color .15s, background-color .15s;
 }
 .social:hover { color: var(--accent); border-color: var(--accent-line); background: var(--accent-bg); }
 .social svg { width: 14px; height: 14px; fill: currentColor; flex: none; }
