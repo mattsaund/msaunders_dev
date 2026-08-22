@@ -11,7 +11,8 @@ Run it after editing NAV/FOOT or any page body below:
 import os, re
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-TABS = [("About", "/"), ("Projects", "/projects/"), ("Hobbies", "/hobbies/"), ("Gallery", "/gallery/")]
+# Projects is reachable from the About page and the project writeups, not the top nav.
+TABS = [("About", "/"), ("Hobbies", "/hobbies/"), ("Gallery", "/gallery/")]
 
 SOCIAL_SVG = {}
 with open(os.path.join(ROOT, "index.html"), encoding="utf-8") as f:
@@ -731,7 +732,7 @@ GALLERY = """
 #  404
 # ==================================================================
 NOTFOUND = """
-  <section class="hero" style="border-bottom:0">
+  <section class="hero">
     <div class="wrap">
       <p class="eyebrow"><b>404</b> Not found</p>
       <h1 class="h-xl">Signal lost<span class="caret">_</span></h1>
@@ -752,19 +753,19 @@ if __name__ == "__main__":
     print("building pages...")
     page("projects/index.html", title="Projects / Matthew Saunders",
          desc="Hardware and software projects by Matthew Saunders: GoDash iOS dash cam, an automated observatory, and a NOAA APT satellite ground station.",
-         active="Projects", body=PROJECTS, canonical="https://msaunders.dev/projects/")
+         active=None, body=PROJECTS, canonical="https://msaunders.dev/projects/")
 
     page("projects/godash/index.html", title="GoDash / Matthew Saunders",
          desc="GoDash is an iOS dash cam app with a 10-minute loop buffer, live telemetry overlay, crash detection, and split-screen navigation and music modules.",
-         active="Projects", body=GODASH, canonical="https://msaunders.dev/projects/godash/")
+         active=None, body=GODASH, canonical="https://msaunders.dev/projects/godash/")
 
     page("projects/observatory/index.html", title="Mobile Computerized Automated Observatory / Matthew Saunders",
          desc="A car-portable Newtonian reflector with a motorised Raspberry Pi driven base that tracks celestial objects for hour-long exposures.",
-         active="Projects", body=OBSERVATORY, canonical="https://msaunders.dev/projects/observatory/")
+         active=None, body=OBSERVATORY, canonical="https://msaunders.dev/projects/observatory/")
 
     page("projects/apt-decoder/index.html", title="NOAA Satellite APT Decoder / Matthew Saunders",
          desc="A custom SDR ground station and quadrifilar helix antenna that automatically captures and decodes APT downlinks from NOAA weather satellites.",
-         active="Projects", body=APT, canonical="https://msaunders.dev/projects/apt-decoder/")
+         active=None, body=APT, canonical="https://msaunders.dev/projects/apt-decoder/")
 
     page("hobbies/index.html", title="Hobbies / Matthew Saunders",
          desc="Astrophotography, aerospace, computer building, camping, hiking, climbing, music, and film.",

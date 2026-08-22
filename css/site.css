@@ -16,6 +16,7 @@
 
   /* ASCII planetarium ink, faint enough to sit behind body copy */
   --space:     #243c50;
+  --star:      #2b4a62;   /* starfield sits in the margins, so a touch brighter */
 
   --fg:        #e7eaef;
   --fg-2:      #98a2b0;
@@ -217,11 +218,13 @@ main { min-height: 60vh; }
 .hero__meta {
   font: 400 12px/1 var(--mono); color: var(--fg-3);
   letter-spacing: .1em; text-transform: uppercase;
-  display: flex; flex-wrap: wrap; gap: 8px 18px; margin-bottom: 26px;
+  display: flex; flex-wrap: wrap; gap: 8px 18px; margin-bottom: 24px;
 }
 .hero__meta span { display: inline-flex; align-items: center; gap: 7px; }
 .dot { width: 5px; height: 5px; background: var(--accent); flex: none; }
-.hero h1 { margin-bottom: 18px; }
+.hero h1 { margin-bottom: 16px; }
+.hero .socials { margin-bottom: 30px; }
+.hero .btn-row { margin-top: 28px; }
 .hero h1 .caret { color: var(--accent); }
 .hero__role {
   font: 400 clamp(13px, 1.6vw, 15px)/1.5 var(--mono);
@@ -276,6 +279,16 @@ main { min-height: 60vh; }
 .split { display: grid; grid-template-columns: 200px 1fr; gap: clamp(24px, 4vw, 48px); align-items: start; }
 @media (max-width: 860px) { .split { grid-template-columns: 1fr; gap: 20px; } }
 .split__label { position: sticky; top: calc(var(--nav-h) + 28px); }
+/* Secondary link sitting under a section label. */
+.split__link {
+  display: inline-flex; align-items: center; gap: 7px;
+  font: 400 11.5px/1 var(--mono);
+  letter-spacing: .09em; text-transform: uppercase;
+  color: var(--accent);
+}
+.split__link:hover { color: var(--accent-hi); }
+.split__link span { transition: transform .15s; }
+.split__link:hover span { transform: translateX(3px); }
 @media (max-width: 860px) { .split__label { position: static; } }
 
 /* --- cards ------------------------------------------------- */
@@ -330,6 +343,20 @@ main { min-height: 60vh; }
 .tl__where { font-size: 13.5px; color: var(--fg-3); margin-bottom: 10px; font-family: var(--mono); }
 .tl__desc { font-size: 14px; color: var(--fg-2); }
 .tl__desc ul { margin: 0; padding-left: 1.1em; }
+
+/* Project entries: the title links out to its own writeup. */
+.tl__what a {
+  color: inherit;
+  display: inline-flex; align-items: baseline; gap: 9px;
+  transition: color .15s;
+}
+.tl__what a:hover { color: var(--accent); }
+.tl__arr {
+  color: var(--fg-3); font-size: .8em;
+  transition: transform .15s, color .15s;
+}
+.tl__what a:hover .tl__arr { transform: translateX(3px); color: var(--accent); }
+.tl__tags { margin: 11px 0 12px; }
 
 /* --- figures / media --------------------------------------- */
 .shots { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 16px; }
@@ -405,7 +432,8 @@ main { min-height: 60vh; }
 .stat__l { font: 400 11px/1.4 var(--mono); letter-spacing: .1em; text-transform: uppercase; color: var(--fg-3); margin-top: 9px; }
 
 /* --- footer ------------------------------------------------ */
-.foot { padding: 56px 0 48px; }
+/* Deep bottom padding leaves the horizon globe its own clear band. */
+.foot { padding: 56px 0 clamp(140px, 22vh, 250px); }
 .foot__in { display: flex; flex-wrap: wrap; gap: 24px; justify-content: space-between; align-items: flex-start; }
 .foot__note { font: 400 11.5px/1.7 var(--mono); color: var(--fg-3); letter-spacing: .04em; }
 .socials { display: flex; flex-wrap: wrap; gap: 8px; }
@@ -449,6 +477,33 @@ main { min-height: 60vh; }
   white-space: pre;
   color: var(--space);
 }
+/* The horizon globe spans the full width at the foot of the page. */
+.cosmos__horizon { width: 100%; }
+
+/* Starfield. Scattered only in the margins either side of the content
+   column, so no star ever sits behind body copy. */
+.stars { position: absolute; inset: 0; pointer-events: none; }
+.star {
+  position: absolute;
+  font-family: var(--mono);
+  font-style: normal;
+  line-height: 1;
+  color: var(--star);
+}
+.star--blue { color: #35709f; }
+.star--tw {
+  animation-name: twinkle;
+  animation-iteration-count: infinite;
+  animation-timing-function: ease-in-out;
+}
+@keyframes twinkle {
+  0%, 100% { opacity: .20; }
+  50%      { opacity: .95; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .star--tw { animation: none; opacity: .58; }
+}
+
 /* Content rides above the planetarium. */
 body { position: relative; }
 .nav, main, .foot, .skip { position: relative; z-index: 1; }

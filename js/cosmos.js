@@ -5,9 +5,9 @@
    systems) into fixed background layers. Every body is computed
    at runtime from real lighting maths, with no image or pre-baked
    frame assets. The bodies are pinned to document coordinates, so
-   they scroll up and off the page with everything else. Rotation
-   is driven by scroll position: they spin as the page moves and
-   unwind if you scroll back up.
+   they scroll up and off the page with everything else, and they
+   turn on their own clock: a slow constant rotation independent of
+   scrolling. A scattered ASCII starfield fills the side margins.
    ============================================================ */
 (function () {
   'use strict';
@@ -18,7 +18,8 @@
      than '=' and '+', so gradients came out mottled. Index 0 is a space,
      which gives the empty-sky threshold for free. */
   var RAMP = " .:-=+*#%@";
-  var CHAR_ASPECT = 0.6;           // glyph advance / line height
+  var CHAR_ASPECT = 0.6;           // glyph advance / line height (measured at init)
+  var SCALE = 1.15;                // global size trim for every body
   var L = unit(-0.60, 0.40, 0.69); // key light, upper-left, toward viewer
 
   /* --- small maths ---------------------------------------- */
@@ -79,17 +80,18 @@
   function texSaturn(bx, by, bz, la, lo) {
     return 0.84 + 0.15 * Math.sin(la * 9.5)
                 + 0.07 * Math.sin(la * 4.2 + 1.1)
-                + 0.04 * Math.sin(lo * 3.0 + la * 7.0);
+                + 0.08 * Math.sin(lo * 3.0 + la * 7.0);
   }
 
   function texJupiter(bx, by, bz, la, lo) {
     var a = 0.80 + 0.17 * Math.sin(la * 12.5)
-                 + 0.11 * Math.sin(la * 5.5 + 0.8)
-                 + 0.05 * Math.sin(lo * 4.0 + la * 14.0);
+                 + 0.10 * Math.sin(la * 5.5 + 0.8)
+                 + 0.14 * Math.sin(lo * 4.0 + la * 14.0)      // festoons
+                 + 0.07 * Math.sin(lo * 7.0 - la * 9.0);      // turbulence
     var dl = wrapPi(lo - 0.7) * 0.62, dla = (la + 0.33) * 1.9;   // Great Red Spot
     var d = Math.sqrt(dl * dl + dla * dla);
     if (d < 0.42) a *= 0.50 + 0.36 * (d / 0.42);
-    return a;
+    return clamp(a, 0.12, 1.15);
   }
 
   var MARS_ALBEDO = features(31415, 16, 0.16, 0.26);
@@ -109,11 +111,45 @@
 
   function texNeptune(bx, by, bz, la, lo) {
     var a = 0.76 + 0.09 * Math.sin(la * 6.5)
-                 + 0.05 * Math.sin(lo * 2.5 + la * 4.0);
+                 + 0.12 * Math.sin(lo * 2.5 + la * 4.0)
+                 + 0.07 * Math.sin(lo * 4.5 - la * 3.0);
     var dl = wrapPi(lo + 1.1) * 0.70, dla = (la - 0.30) * 2.1;   // Great Dark Spot
     var d = Math.sqrt(dl * dl + dla * dla);
-    if (d < 0.36) a *= 0.52 + 0.36 * (d / 0.36);
-    return a;
+    if (d < 0.40) a *= 0.48 + 0.38 * (d / 0.40);
+    return clamp(a, 0.12, 1.15);
+  }
+
+  /* Continents as body-frame unit vectors with a cosine radius, roughly
+     where the real ones are, so the globe reads as Earth rather than noise. */
+  function place(latDeg, lonDeg, radDeg) {
+    var la = latDeg * Math.PI / 180, lo = lonDeg * Math.PI / 180, c = Math.cos(la);
+    return { x: c * Math.cos(lo), y: Math.sin(la), z: c * Math.sin(lo),
+             c: Math.cos(radDeg * Math.PI / 180) };
+  }
+
+  var LAND = [
+    place(  8,   20, 30),   // Africa
+    place( 50,   15, 16),   // Europe
+    place( 48,   95, 34),   // Asia
+    place( 24,   78, 13),   // India
+    place( 45, -100, 27),   // North America
+    place(-12,  -58, 22),   // South America
+    place(-25,  134, 16),   // Australia
+    place( 72,  -40, 11)    // Greenland
+  ];
+
+  function texEarth(bx, by, bz, la, lo) {
+    var a = 0.38;                                   // ocean
+    for (var i = 0; i < LAND.length; i++) {
+      var c = LAND[i], d = bx * c.x + by * c.y + bz * c.z;
+      /* Ramp hard at the edge so coastlines stay crisp instead of blurring. */
+      if (d > c.c) a += 0.55 * Math.min(1, (d - c.c) / (1 - c.c) * 3.4);
+    }
+    var pl = Math.abs(la);
+    if (pl > 1.32) a = 1.18;                        // ice caps
+    else if (pl > 1.14) a += 0.46 * (pl - 1.14) / 0.18;
+    a += 0.07 * Math.sin(lo * 6.0 + la * 4.0);      // weather
+    return clamp(a, 0.14, 1.18);
   }
 
   function texUranus(bx, by, bz, la, lo) {
@@ -127,48 +163,58 @@
      rows      : glyph rows; cols is derived so the disk stays circular.
      tilt      : pole tipped toward the viewer (rad)
      roll      : pole tipped within the view plane (rad)
-     spin      : radians of rotation per pixel scrolled (sign = direction)
+     rate      : radians of rotation per second (sign = direction). One turn
+                 takes 2*PI/rate seconds, so 0.105 is a ~60 second day.
      amb       : ambient light on the night side
-     at        : horizontal placement only; vertical position is assigned
-                 from the document height so the bodies space themselves    */
+     side      : which edge to hug; the exact x is computed so the body is
+                 always fully on screen. Vertical position is assigned from
+                 the document height so the bodies space themselves.        */
   var BODIES = [
     { name: 'saturn', tex: texSaturn, rows: 19, extX: 2.45, extY: 1.20, sz: 1.00,
-      tilt: 0.46, roll: -0.16, spin: 0.0034, amb: 0.17, phase: 0.4,
+      tilt: 0.46, roll: -0.16, rate: 0.105, amb: 0.17, phase: 0.4,
       rings: { inner: 1.28, outer: 2.30, gaps: [[1.68, 1.78], [2.04, 2.09]] },
-      at: { right: '-3vw' } },
+      side: 'right' },
 
     { name: 'moon', tex: texMoon, rows: 17, extX: 1.14, extY: 1.14, sz: 1.20,
-      tilt: 0.18, roll: 0.10, spin: -0.0026, amb: 0.13, phase: 1.9,
-      at: { left: '2vw' } },
+      tilt: 0.18, roll: 0.10, rate: -0.075, amb: 0.13, phase: 1.9,
+      side: 'left' },
 
     { name: 'jupiter', tex: texJupiter, rows: 21, extX: 1.12, extY: 1.12, sz: 1.10,
-      tilt: 0.10, roll: 0.06, spin: 0.0052, amb: 0.19, phase: 2.7,
-      at: { right: '-6vw' } },
+      tilt: 0.10, roll: 0.06, rate: 0.140, amb: 0.19, phase: 2.7,
+      side: 'right' },
 
     { name: 'mars', tex: texMars, rows: 16, extX: 1.16, extY: 1.16, sz: 1.05,
-      tilt: 0.34, roll: -0.28, spin: 0.0040, amb: 0.15, phase: 0.9,
-      at: { left: '3vw' } },
+      tilt: 0.34, roll: -0.28, rate: 0.110, amb: 0.15, phase: 0.9,
+      side: 'left' },
 
     /* Uranus rolls onto its side, so its rings stand up vertically. */
     { name: 'uranus', tex: texUranus, rows: 26, extX: 1.10, extY: 2.10, sz: 0.95,
-      tilt: 0.52, roll: 1.5708, spin: -0.0031, amb: 0.20, phase: 3.4,
+      tilt: 0.52, roll: 1.5708, rate: -0.085, amb: 0.20, phase: 3.4,
       rings: { inner: 1.44, outer: 2.02, gaps: [[1.63, 1.69]] },
-      at: { right: '2vw' } },
+      side: 'right' },
 
     { name: 'neptune', tex: texNeptune, rows: 18, extX: 1.14, extY: 1.14, sz: 1.00,
-      tilt: -0.30, roll: 0.22, spin: 0.0029, amb: 0.18, phase: 5.1,
-      at: { left: '-4vw' } }
+      tilt: -0.30, roll: 0.22, rate: 0.095, amb: 0.18, phase: 5.1,
+      side: 'left' }
   ];
 
-  /* Derive the glyph width that keeps each disk round. */
-  for (var bi = 0; bi < BODIES.length; bi++) {
-    var bd = BODIES[bi];
-    bd.cols = Math.round(bd.rows * (bd.extX / bd.extY) / CHAR_ASPECT);
-  }
+
+  /* The horizon body: an Earth so large it is mostly below the page, with
+     only a shallow band of its limb showing along the very bottom.
+       span   : sphere diameter in viewport widths
+       reveal : px of globe left visible above the document bottom
+     tilt is 60 degrees so the visible apex sits near 30 degrees latitude
+     (not the pole, where the surface would just swirl) and the rotation
+     reads as a clean rightward drift. Negative rate == drifting right. */
+  var EARTH = {
+    name: 'earth', tex: texEarth, pin: true,
+    span: 4.0, reveal: 250, sz: 1.00,
+    tilt: 1.05, roll: 0, rate: -0.011, amb: 0.22, gain: 1.75, phase: 0.6
+  };
 
   /* --- renderer ------------------------------------------- */
   function render(p, angle) {
-    var W = p.cols, H = p.rows, extX = p.extX, extY = p.extY;
+    var W = p.cols, H = p.rows, extX = p.extX, extY = p.extY, yc = p.yc || 0;
 
     /* Body axis in view space. */
     var ct = Math.cos(p.tilt), st = Math.sin(p.tilt);
@@ -184,6 +230,7 @@
 
     var ca = Math.cos(angle), sa = Math.sin(angle);
     var rings = p.rings, gaps = rings ? rings.gaps : null;
+    var gain = p.gain || 1;
     var lx = L[0], ly = L[1], lz = L[2];
     var lastIdx = RAMP.length - 1;
 
@@ -191,7 +238,9 @@
 
     for (j = 0; j < H; j++) {
       var line = new Array(W);
-      var sy = (1 - 2 * (j + 0.5) / H) * extY;
+      /* yc offsets the frame up the sphere, so a pinned body can render
+         just the shallow band that is actually on screen. */
+      var sy = (1 - 2 * (j + 0.5) / H) * extY + yc;
 
       for (i = 0; i < W; i++) {
         var sx = (2 * (i + 0.5) / W - 1) * extX;
@@ -216,7 +265,7 @@
 
           var alb = p.tex(bx, by, bz, la, lo);
           sphere = alb * (p.amb + (1 - p.amb) * lum * (0.45 + 0.55 * lum));
-          sphere *= 0.58 + 0.42 * zs;                     // limb darkening
+          sphere *= (0.58 + 0.42 * zs) * gain;            // limb darkening
         }
 
         /* ---- ring plane ----
@@ -234,6 +283,16 @@
             if (open) {
               var t = (rr - rings.inner) / (rings.outer - rings.inner);
               cov = (0.55 + 0.45 * Math.sin(t * 8.2)) * (1 - 0.45 * t);
+
+              /* Azimuth of this ring point, measured in the rotating frame.
+                 Inner material shears ahead of outer on a Keplerian profile,
+                 so the density clumps wind up as the body turns. */
+              var au = sx * ux + sy * uy + zr * uz;
+              var av = sx * vx + sy * vy + zr * vz;
+              var phi = Math.atan2(av, au) - angle * Math.pow(rr, -1.5) * 1.7;
+              cov *= 0.70 + 0.30 * (0.62 * Math.sin(phi * 2.0 + 0.4)
+                                  + 0.38 * Math.sin(phi * 5.0 - 1.1));
+
               /* the flatter the system sits to us, the more material per glyph */
               cov = clamp(cov, 0, 1) * (0.55 + 0.45 * (1 - Math.abs(nz)));
               ringLum = 0.88;
@@ -265,6 +324,12 @@
   host.className = 'cosmos';
   host.setAttribute('aria-hidden', 'true');
 
+  /* Stars live in their own layer so they can be rebuilt on resize without
+     disturbing the planets, and so the planets paint over them. */
+  var stars = document.createElement('div');
+  stars.className = 'stars';
+  host.appendChild(stars);
+
   var reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
   /* Start each page on a different body so the site doesn't feel looped. */
@@ -280,73 +345,231 @@
     var p = BODIES[(b + offset) % BODIES.length];
     var pre = document.createElement('pre');
     pre.className = 'cosmos__body';
-    for (var key in p.at) { if (p.at.hasOwnProperty(key)) pre.style[key] = p.at[key]; }
     host.appendChild(pre);
     live.push({ p: p, el: pre, drawn: null, top: 0, h: 0 });
   }
+  /* The horizon is not one of the drifters: it is pinned to the foot of the
+     document and always on, so it stays out of `live` and its count logic. */
+  var horizonEl = document.createElement('pre');
+  horizonEl.className = 'cosmos__body cosmos__horizon';
+  host.appendChild(horizonEl);
+  var horizon = { p: EARTH, el: horizonEl, drawn: null, top: 0, h: 0 };
+
   document.body.insertBefore(host, document.body.firstChild);
+
+  /* --- starfield ------------------------------------------- */
+  /* Weighted toward '.' so the field reads as depth rather than confetti. */
+  var STAR_GLYPHS = "....*+,'`x.*.:.";
+
+  function wrapWidth() {
+    var v = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--wrap'));
+    return (isFinite(v) && v > 0) ? v : 1120;
+  }
+
+  function buildStars(vw, docH) {
+    /* Only the margins either side of the content column get stars, so they
+       never end up sitting behind body copy. Below this width there is no
+       margin worth using. */
+    var gutter = (vw - wrapWidth()) / 2;
+    if (vw < 860 || gutter < 60) { stars.textContent = ''; return; }
+
+    var r = rng(0x5EEDB0);
+    var n = clamp(Math.round(2 * gutter * docH / 6200), 0, 340);
+    var buf = [];
+
+    for (var i = 0; i < n; i++) {
+      var onRight = r() < 0.5;
+      var inset = 8 + r() * (gutter - 18);
+      var x = onRight ? (vw - inset) : inset;
+      var y = r() * docH;
+      var g = STAR_GLYPHS.charAt((r() * STAR_GLYPHS.length) | 0);
+      var twinkle = r() < 0.26;
+      var cls = 'star';
+      if (twinkle) cls += ' star--tw';
+      if (r() < 0.13) cls += ' star--blue';
+
+      var css = 'left:' + x.toFixed(0) + 'px;top:' + y.toFixed(0) + 'px;'
+              + 'font-size:' + (9 + (r() * 5 | 0)) + 'px';
+      /* Fixed stars carry their brightness inline; twinkling ones let the
+         keyframes own opacity, staggered so they do not pulse in unison. */
+      if (twinkle) {
+        css += ';animation-duration:' + (6 + r() * 9).toFixed(1) + 's'
+             + ';animation-delay:-' + (r() * 14).toFixed(1) + 's';
+      } else {
+        css += ';opacity:' + (0.34 + r() * 0.66).toFixed(2);
+      }
+      buf.push('<i class="' + cls + '" style="' + css + '">' + g + '</i>');
+    }
+    stars.innerHTML = buf.join('');
+  }
 
   /* --- layout --------------------------------------------- */
   var count = 1;
 
+  /* Which monospace font actually resolved decides the glyph advance, and
+     both disk roundness and the on-screen fit depend on it. Measure once
+     instead of trusting the 0.6 guess. */
+  function measureAspect() {
+    var probe = document.createElement('pre');
+    probe.className = 'cosmos__body';
+    probe.style.cssText = 'position:absolute;visibility:hidden;left:-9999px;top:0;font-size:100px';
+    probe.textContent = new Array(51).join('M');          // 50 glyphs
+    host.appendChild(probe);
+    var w = probe.getBoundingClientRect().width;
+    host.removeChild(probe);
+    return (w > 0) ? (w / 50) / 100 : 0.6;
+  }
+
+  function sizeBodies() {
+    CHAR_ASPECT = measureAspect();
+    for (var i = 0; i < BODIES.length; i++) {
+      var b = BODIES[i];
+      /* Glyph columns that keep the disk circular at this font's advance. */
+      b.cols = Math.round(b.rows * (b.extX / b.extY) / CHAR_ASPECT);
+    }
+  }
+
   function measure() {
-    var vw = window.innerWidth, vh = window.innerHeight;
+    /* clientWidth, not innerWidth: the scrollbar is not usable space. */
+    var vw = document.documentElement.clientWidth, vh = window.innerHeight;
     var docH = document.documentElement.scrollHeight;
     host.style.height = docH + 'px';
 
     count = clamp(Math.round((docH - vh) / vh / 0.8), 1, live.length);
 
-    var base = clamp(Math.min(vw, vh * 1.7) / 108, 6, 13);
+    var base = clamp(Math.min(vw, vh * 1.7) / 108, 6, 13) * SCALE;
     for (var i = 0; i < live.length; i++) {
-      var s = live[i];
+      var s = live[i], p = s.p;
       if (i >= count) { s.el.style.display = 'none'; continue; }
       s.el.style.display = '';
 
-      var fs = base * s.p.sz;
+      var fs = base * p.sz;
+      var w = p.cols * fs * CHAR_ASPECT;
+      /* Never wider than the viewport, whatever the screen. */
+      if (w > vw) { fs *= vw / w; w = vw; }
+
+      /* Hug an edge, but keep the whole body on screen. */
+      var gap = clamp((vw - w) * 0.5, 0, 32);
+      var x = (p.side === 'right') ? vw - w - gap : gap;
+
       s.el.style.fontSize = fs.toFixed(2) + 'px';
-      s.h = s.p.rows * fs;
+      s.el.style.left = Math.round(clamp(x, 0, Math.max(0, vw - w))) + 'px';
+
+      s.h = p.rows * fs;
       /* Spread the bodies evenly down the document so roughly one is in
          view at a time; each then scrolls off with the rest of the page. */
       s.top = Math.round((i + 0.5) / count * docH - s.h / 2);
       s.el.style.top = s.top + 'px';
       s.drawn = null;                     // force a repaint at the new size
     }
+
+    /* ---- the horizon ----
+       Only the shallow band that is actually on screen gets rendered, rather
+       than a full globe four viewports wide that is then clipped away. The
+       frame's extents are derived straight from pixels, so the curve stays a
+       true circular arc. */
+    var E = horizon.p;
+    var R = (E.span * vw) / 2;                       // sphere radius in px
+    /* A floor on glyph size: `base` shrinks on small screens, which would
+       otherwise make the horizon's grid denser on a phone than on a desktop. */
+    var efs = Math.max(base * E.sz, 9);
+    var revealPx = Math.min(E.reveal, vh * 0.30, R);
+
+    E.cols = Math.max(8, Math.round(vw / (efs * CHAR_ASPECT)));
+    E.rows = Math.max(4, Math.round(revealPx / efs));
+    E.extX = (E.cols * efs * CHAR_ASPECT) / 2 / R;
+    E.extY = (E.rows * efs) / 2 / R;
+    E.yc = 1 - E.extY;                               // band's top edge at the apex
+
+    horizon.h = E.rows * efs;
+    horizon.top = Math.round(docH - horizon.h);
+    horizonEl.style.fontSize = efs.toFixed(2) + 'px';
+    horizonEl.style.left = '0px';
+    horizonEl.style.top = horizon.top + 'px';
+    horizon.drawn = null;
   }
 
-  function frame() {
+  /* --- animation ------------------------------------------ */
+  /* Rotation runs on wall-clock time now, not scroll position, so the bodies
+     keep turning while the page sits still. Only bodies near the viewport are
+     drawn, and the angle is quantised so a redraw only happens when a glyph
+     could actually change. */
+  function draw(spun) {
     var y = window.scrollY || window.pageYOffset || 0;
     var vh = window.innerHeight;
     var near = y - vh * 0.5, far = y + vh * 1.5;
 
     for (var i = 0; i < count; i++) {
       var s = live[i];
-      /* Only the bodies near the viewport are worth redrawing. */
       if (s.top + s.h < near || s.top > far) continue;
-
-      var angle = s.p.phase + (reduced ? 0 : y * s.p.spin);
-      /* Quantise so we only redraw when a glyph could actually change. */
-      var q = Math.round(angle * 40) / 40;
+      var q = Math.round((s.p.phase + spun * s.p.rate) * 120) / 120;
       if (q !== s.drawn) {
         s.el.textContent = render(s.p, q);
         s.drawn = q;
       }
     }
+
+    if (horizon.top + horizon.h >= near && horizon.top <= far) {
+      var qe = Math.round((horizon.p.phase + spun * horizon.p.rate) * 240) / 240;
+      if (qe !== horizon.drawn) {
+        horizon.el.textContent = render(horizon.p, qe);
+        horizon.drawn = qe;
+      }
+    }
   }
 
-  var queued = false;
-  function schedule() {
-    if (queued) return;
-    queued = true;
-    requestAnimationFrame(function () { queued = false; frame(); });
+  var spun = 0, last = 0, raf = 0;
+
+  function tick(now) {
+    raf = requestAnimationFrame(tick);
+    if (last) spun += (now - last) / 1000;
+    last = now;
+    draw(spun);
   }
+
+  function start() { if (!raf) { last = 0; raf = requestAnimationFrame(tick); } }
+  function stop() { if (raf) { cancelAnimationFrame(raf); raf = 0; last = 0; } }
+
+  /* A background tab should not be burning frames. */
+  document.addEventListener('visibilitychange', function () {
+    if (document.hidden) stop(); else if (!reduced) start();
+  });
 
   /* Exposed so the bodies can be inspected and tuned outside the page. */
-  window.__cosmos = { render: render, bodies: BODIES };
+  window.__cosmos = { render: render, bodies: BODIES, live: live,
+                     horizon: horizon, measure: measure, draw: draw };
 
+  sizeBodies();
   measure();
-  frame();
-  addEventListener('scroll', schedule, { passive: true });
-  addEventListener('resize', function () { measure(); frame(); });
+
+  draw(0);            /* first paint must not wait on a frame callback */
+
+  if (reduced) {
+    /* No self-rotation, and no animation loop to burn power. Bodies are still
+       drawn as scrolling brings them into range. */
+    var queued = false;
+    addEventListener('scroll', function () {
+      if (queued) return;
+      queued = true;
+      requestAnimationFrame(function () { queued = false; draw(0); });
+    }, { passive: true });
+  } else {
+    start();
+  }
+
+  /* Star placement depends on the document height, so rebuild it after a
+     resize settles rather than on every intermediate event. */
+  function restar() {
+    buildStars(document.documentElement.clientWidth, document.documentElement.scrollHeight);
+  }
+  restar();
+
+  var pending = 0;
+  addEventListener('resize', function () {
+    measure();                                  /* cheap: six elements */
+    clearTimeout(pending);
+    pending = setTimeout(function () { restar(); draw(0); }, 140);
+  });
   /* Images and fonts settling changes the document height. */
-  addEventListener('load', function () { measure(); frame(); });
+  addEventListener('load', function () { measure(); restar(); draw(0); });
 })();
