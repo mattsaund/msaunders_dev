@@ -4,14 +4,20 @@
   X-Frame-Options: SAMEORIGIN
   Permissions-Policy: geolocation=(), microphone=(), camera=()
 
+# CSS and JS revalidate on every load. Their URLs carry a content hash (see
+# stamp_assets in tools/build_pages.py) so they are cheap 304s in practice, but
+# revalidating means a hand edit that skips the stamper can never leave anyone
+# on a stale stylesheet. This site is 45KB of CSS+JS; correctness wins.
 /css/*
-  Cache-Control: public, max-age=604800
+  Cache-Control: public, max-age=0, must-revalidate
 
 /js/*
-  Cache-Control: public, max-age=604800
+  Cache-Control: public, max-age=0, must-revalidate
 
+# Images are the bulk of the bytes and rarely change, so they stay cached, but
+# without `immutable` so a reload can still pick up a replaced file.
 /img/*
-  Cache-Control: public, max-age=2592000, immutable
+  Cache-Control: public, max-age=2592000
 
 /files/*
   Cache-Control: public, max-age=86400

@@ -13,25 +13,17 @@
 <meta property="og:url" content="https://msaunders.dev/projects/">
 <meta property="og:title" content="Projects / Matthew Saunders">
 <meta property="og:description" content="Hardware and software projects by Matthew Saunders: GoDash iOS dash cam, an automated observatory, and a NOAA APT satellite ground station.">
-<script>document.documentElement.classList.add('js');</script>
-<link rel="stylesheet" href="/css/site.css">
+<link rel="stylesheet" href="/css/site.css?v=a2c611e3">
 </head>
 <body>
 <a class="skip" href="#main">Skip to content</a>
 
-<header class="nav">
-  <div class="nav__in">
-    <a class="brand" href="/"><span class="brand__mark">M</span>msaunders<span class="brand__tld">.dev</span></a>
-    <button class="nav__toggle" type="button" aria-expanded="false" aria-controls="nav-links" aria-label="Toggle navigation"><span></span></button>
-    <nav class="nav__links" id="nav-links" aria-label="Primary">
-      <a class="nav__link" href="/">About</a>
-      <a class="nav__link" href="/hobbies/">Hobbies</a>
-      <a class="nav__link" href="/gallery/">Gallery</a>
+<main id="main">
+  <div class="wrap">
+    <nav class="crumb" aria-label="Breadcrumb">
+      <a href="/">msaunders.dev</a><span class="crumb__sep">/</span><span>Projects</span>
     </nav>
   </div>
-</header>
-
-<main id="main">
 
   <section class="hero">
     <div class="wrap">
@@ -47,8 +39,8 @@
   <!-- ---------- SLOT 01 :: FEATURED ---------- -->
   <section class="section" id="godash">
     <div class="wrap">
-      <p class="eyebrow rv"><b>01</b> Featured</p>
-      <a class="card card--link rv" href="/projects/godash/" style="padding:0;border-color:var(--accent-line)">
+      <p class="eyebrow"><b>01</b> Featured</p>
+      <a class="card card--link" href="/projects/godash/" style="padding:0;border-color:var(--accent-line)">
         <div style="display:grid;grid-template-columns:1.15fr .85fr;gap:0" class="feat">
           <div style="padding:clamp(24px,3.4vw,38px)">
             <div style="display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:18px">
@@ -85,8 +77,8 @@
   <!-- ---------- SLOTS 02 / 03 ---------- -->
   <section class="section">
     <div class="wrap">
-      <p class="eyebrow rv"><b>02-03</b> Archive</p>
-      <div class="cols-2 rv">
+      <p class="eyebrow"><b>02-03</b> Archive</p>
+      <div class="cols-2">
 
         <a class="card card--link" href="/projects/observatory/">
           <span class="card__idx">[ 02 ] &nbsp;2023</span>
@@ -120,7 +112,7 @@
 
       </div>
 
-      <div class="note rv" style="margin-top:28px">
+      <div class="note" style="margin-top:28px">
         <span class="note__label">More coming</span>
         More builds, including the solar-powered Deployable Radio Beacon, are being written up.
       </div>
@@ -161,8 +153,8 @@
   </div>
 </footer>
 
-<script src="/js/cosmos.js" defer></script>
-<script src="/js/site.js" defer></script>
+<script src="/js/cosmos.js?v=a1553331" defer></script>
+<script src="/js/site.js?v=bb8646a6" defer></script>
 <script>document.getElementById('yr').textContent=new Date().getFullYear();</script>
 </body>
 </html>

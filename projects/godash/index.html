@@ -13,31 +13,18 @@
 <meta property="og:url" content="https://msaunders.dev/projects/godash/">
 <meta property="og:title" content="GoDash / Matthew Saunders">
 <meta property="og:description" content="GoDash is an iOS dash cam app with a 10-minute loop buffer, live telemetry overlay, crash detection, and split-screen navigation and music modules.">
-<script>document.documentElement.classList.add('js');</script>
-<link rel="stylesheet" href="/css/site.css">
+<link rel="stylesheet" href="/css/site.css?v=a2c611e3">
 </head>
 <body>
 <a class="skip" href="#main">Skip to content</a>
 
-<header class="nav">
-  <div class="nav__in">
-    <a class="brand" href="/"><span class="brand__mark">M</span>msaunders<span class="brand__tld">.dev</span></a>
-    <button class="nav__toggle" type="button" aria-expanded="false" aria-controls="nav-links" aria-label="Toggle navigation"><span></span></button>
-    <nav class="nav__links" id="nav-links" aria-label="Primary">
-      <a class="nav__link" href="/">About</a>
-      <a class="nav__link" href="/hobbies/">Hobbies</a>
-      <a class="nav__link" href="/gallery/">Gallery</a>
-    </nav>
-  </div>
-</header>
-
 <main id="main">
-
   <div class="wrap">
     <nav class="crumb" aria-label="Breadcrumb">
-      <a href="/projects/">Projects</a><span class="crumb__sep">/</span><span>GoDash</span>
+      <a href="/">msaunders.dev</a><span class="crumb__sep">/</span><a href="/projects/">Projects</a><span class="crumb__sep">/</span><span>GoDash</span>
     </nav>
   </div>
+
 
   <section class="hero" style="padding-top:28px">
     <div class="wrap">
@@ -63,7 +50,7 @@
   <!-- ---------- SPEC ---------- -->
   <section class="section section--tight">
     <div class="wrap">
-      <div class="stats rv">
+      <div class="stats">
         <div class="stat"><div class="stat__n">10 min</div><div class="stat__l">Rolling loop buffer</div></div>
         <div class="stat"><div class="stat__n">1080p</div><div class="stat__l">Capture resolution</div></div>
         <div class="stat"><div class="stat__n">5</div><div class="stat__l">Telemetry channels</div></div>
@@ -76,7 +63,7 @@
   <!-- ---------- OVERVIEW ---------- -->
   <section class="section">
     <div class="wrap">
-      <div class="split rv">
+      <div class="split">
         <div class="split__label"><p class="eyebrow"><b>01</b> Overview</p></div>
         <div>
           <div class="prose">
@@ -114,7 +101,7 @@
   <!-- ---------- FEATURES ---------- -->
   <section class="section">
     <div class="wrap">
-      <div class="split rv">
+      <div class="split">
         <div class="split__label"><p class="eyebrow"><b>02</b> Features</p></div>
         <div class="cols-2" style="gap:1px;background:var(--line);border:1px solid var(--line)">
           <div class="card" style="border:0">
@@ -173,7 +160,7 @@
   <!-- ---------- HOW IT WORKS ---------- -->
   <section class="section">
     <div class="wrap">
-      <div class="split rv">
+      <div class="split">
         <div class="split__label"><p class="eyebrow"><b>03</b> How it works</p></div>
         <div class="prose">
           <h3>The recording pipeline</h3>
@@ -213,11 +200,11 @@
   <!-- ---------- SCREENS ---------- -->
   <section class="section">
     <div class="wrap">
-      <p class="eyebrow rv"><b>04</b> In the car</p>
-      <p class="lede rv" style="margin-bottom:32px">
+      <p class="eyebrow"><b>04</b> In the car</p>
+      <p class="lede" style="margin-bottom:32px">
         Shot on a hands-free mount during real drives. Select an image to enlarge.
       </p>
-      <div class="shots rv">
+      <div class="shots">
         <figure class="shot" data-zoom>
           <img src="/img/godash/incar-home.jpg" width="640" height="1385" loading="lazy" decoding="async" alt="GoDash home layout with navigation and music modules on a dash mount">
           <figcaption>Home: maps + music</figcaption>
@@ -257,8 +244,8 @@
   <!-- ---------- PROMO ---------- -->
   <section class="section">
     <div class="wrap">
-      <p class="eyebrow rv"><b>05</b> Press kit</p>
-      <div class="promos rv">
+      <p class="eyebrow"><b>05</b> Press kit</p>
+      <div class="promos">
         <img src="/img/godash/promo-telemetry.jpg" width="800" height="1000" loading="lazy" decoding="async" alt="GoDash promotional image highlighting the live telemetry readout">
         <img src="/img/godash/promo-music.jpg" width="800" height="1000" loading="lazy" decoding="async" alt="GoDash promotional image highlighting the music module">
         <img src="/img/godash/promo-clips.jpg" width="800" height="1000" loading="lazy" decoding="async" alt="GoDash promotional image highlighting the saved clips library">
@@ -269,7 +256,7 @@
   <!-- ---------- GET IT ---------- -->
   <section class="section">
     <div class="wrap">
-      <div class="card rv" style="border-color:var(--accent-line);display:grid;grid-template-columns:1fr auto;gap:clamp(20px,4vw,44px);align-items:center" id="get">
+      <div class="card" style="border-color:var(--accent-line);display:grid;grid-template-columns:1fr auto;gap:clamp(20px,4vw,44px);align-items:center" id="get">
         <div>
           <p class="eyebrow" style="margin-bottom:16px"><b>&rarr;</b> Get GoDash</p>
           <h2 class="h-lg" style="margin-bottom:12px">Free on the App Store</h2>
@@ -333,8 +320,8 @@
   </div>
 </footer>
 
-<script src="/js/cosmos.js" defer></script>
-<script src="/js/site.js" defer></script>
+<script src="/js/cosmos.js?v=a1553331" defer></script>
+<script src="/js/site.js?v=bb8646a6" defer></script>
 <script>document.getElementById('yr').textContent=new Date().getFullYear();</script>
 </body>
 </html>

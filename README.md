@@ -52,7 +52,14 @@ run it to propagate:
 python3 tools/build_pages.py
 ```
 
-If you'd rather stop using it, delete `tools/` and edit the HTML directly.
+It also stamps a content hash onto every CSS/JS URL (`site.css?v=f78bfe39`).
+That is what lets a returning visitor pick up a new stylesheet instead of the
+one their browser cached. **Run it before you push if you edited css/ or js/**,
+even if you only hand-edited `index.html`. `_headers` makes CSS/JS revalidate
+every load as a backstop, so forgetting is survivable, not silent.
+
+If you'd rather stop using it, delete `tools/` and edit the HTML directly, but
+then drop the long cache in `_headers` too.
 
 ## The ASCII planetarium
 

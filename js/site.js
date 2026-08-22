@@ -1,46 +1,6 @@
-/* msaunders.dev : nav toggle, scroll reveal, image lightbox */
+/* msaunders.dev : image lightbox */
 (function () {
   'use strict';
-
-  /* --- mobile nav ----------------------------------------- */
-  var toggle = document.querySelector('.nav__toggle');
-  var links  = document.getElementById('nav-links');
-
-  function setNav(open) {
-    if (!toggle || !links) return;
-    toggle.setAttribute('aria-expanded', String(open));
-    links.hidden = !open;
-  }
-
-  function syncNav() {
-    if (!links) return;
-    if (window.innerWidth > 720) { links.hidden = false; if (toggle) toggle.setAttribute('aria-expanded', 'false'); }
-    else if (toggle && toggle.getAttribute('aria-expanded') !== 'true') { links.hidden = true; }
-  }
-
-  if (toggle && links) {
-    toggle.addEventListener('click', function () {
-      setNav(toggle.getAttribute('aria-expanded') !== 'true');
-    });
-    window.addEventListener('resize', syncNav);
-    syncNav();
-  }
-
-  /* --- scroll reveal -------------------------------------- */
-  var targets = document.querySelectorAll('.rv');
-  var reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-
-  if (!targets.length) { /* nothing to do */ }
-  else if (reduced || !('IntersectionObserver' in window)) {
-    targets.forEach(function (el) { el.classList.add('in'); });
-  } else {
-    var io = new IntersectionObserver(function (entries) {
-      entries.forEach(function (e) {
-        if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); }
-      });
-    }, { rootMargin: '0px 0px -8% 0px', threshold: 0.05 });
-    targets.forEach(function (el) { io.observe(el); });
-  }
 
   /* --- lightbox ------------------------------------------- */
   var zoomables = document.querySelectorAll('[data-zoom]');

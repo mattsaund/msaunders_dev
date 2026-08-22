@@ -374,7 +374,7 @@
     if (vw < 860 || gutter < 60) { stars.textContent = ''; return; }
 
     var r = rng(0x5EEDB0);
-    var n = clamp(Math.round(2 * gutter * docH / 6200), 0, 340);
+    var n = clamp(Math.round(2 * gutter * docH / 3200), 0, 560);
     var buf = [];
 
     for (var i = 0; i < n; i++) {
@@ -383,20 +383,25 @@
       var x = onRight ? (vw - inset) : inset;
       var y = r() * docH;
       var g = STAR_GLYPHS.charAt((r() * STAR_GLYPHS.length) | 0);
-      var twinkle = r() < 0.26;
+      /* Most of the field twinkles. Real skies do have steady stars, so a
+         minority stay fixed and give the eye something to rest against. */
+      var twinkle = r() < 0.62;
       var cls = 'star';
-      if (twinkle) cls += ' star--tw';
+      if (twinkle) cls += (r() < 0.6) ? ' star--blink' : ' star--shimmer';
       if (r() < 0.13) cls += ' star--blue';
 
       var css = 'left:' + x.toFixed(0) + 'px;top:' + y.toFixed(0) + 'px;'
               + 'font-size:' + (9 + (r() * 5 | 0)) + 'px';
-      /* Fixed stars carry their brightness inline; twinkling ones let the
-         keyframes own opacity, staggered so they do not pulse in unison. */
+      var peak = (0.38 + r() * 0.62).toFixed(2);
       if (twinkle) {
-        css += ';animation-duration:' + (6 + r() * 9).toFixed(1) + 's'
-             + ';animation-delay:-' + (r() * 14).toFixed(1) + 's';
+        /* Period and phase both randomised; the negative delay drops each star
+           somewhere mid-cycle at load so they never start in unison. */
+        var dur = 3.4 + r() * 8.0;
+        css += ';--tw:' + peak
+             + ';animation-duration:' + dur.toFixed(1) + 's'
+             + ';animation-delay:-' + (r() * dur).toFixed(1) + 's';
       } else {
-        css += ';opacity:' + (0.34 + r() * 0.66).toFixed(2);
+        css += ';opacity:' + peak;
       }
       buf.push('<i class="' + cls + '" style="' + css + '">' + g + '</i>');
     }
@@ -429,13 +434,31 @@
     }
   }
 
+  /* Where the drifting bodies sit: one near the top of the page, then one at
+     the top of every other section. Anchoring to real landmarks instead of
+     splitting the document evenly keeps both the count and the positions
+     stable; the old viewport-derived count silently dropped from three bodies
+     to two on a taller window. */
+  var TOP_INSET = 40;
+
+  function anchors() {
+    var out = [TOP_INSET];
+    var secs = document.querySelectorAll('main .section');
+    var y = window.scrollY || window.pageYOffset || 0;
+    for (var k = 1; k < secs.length; k += 2) {
+      out.push(Math.round(secs[k].getBoundingClientRect().top + y));
+    }
+    return out;
+  }
+
   function measure() {
     /* clientWidth, not innerWidth: the scrollbar is not usable space. */
     var vw = document.documentElement.clientWidth, vh = window.innerHeight;
     var docH = document.documentElement.scrollHeight;
     host.style.height = docH + 'px';
 
-    count = clamp(Math.round((docH - vh) / vh / 0.8), 1, live.length);
+    var spots = anchors();
+    count = Math.min(spots.length, live.length);
 
     var base = clamp(Math.min(vw, vh * 1.7) / 108, 6, 13) * SCALE;
     for (var i = 0; i < live.length; i++) {
@@ -456,9 +479,7 @@
       s.el.style.left = Math.round(clamp(x, 0, Math.max(0, vw - w))) + 'px';
 
       s.h = p.rows * fs;
-      /* Spread the bodies evenly down the document so roughly one is in
-         view at a time; each then scrolls off with the rest of the page. */
-      s.top = Math.round((i + 0.5) / count * docH - s.h / 2);
+      s.top = Math.max(0, spots[i]);
       s.el.style.top = s.top + 'px';
       s.drawn = null;                     // force a repaint at the new size
     }

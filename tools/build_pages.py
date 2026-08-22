@@ -8,7 +8,7 @@ Run it after editing NAV/FOOT or any page body below:
 
     python3 tools/build_pages.py
 """
-import os, re
+import hashlib, os, re
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # Projects is reachable from the About page and the project writeups, not the top nav.
@@ -20,23 +20,62 @@ with open(os.path.join(ROOT, "index.html"), encoding="utf-8") as f:
 FOOT = re.search(r'<footer class="foot">.*?</footer>', _idx, re.S).group(0)
 
 
-def nav(active):
-    links = "\n".join(
-        '      <a class="nav__link" href="{}"{}>{}</a>'.format(
-            href, ' aria-current="page"' if label == active else "", label)
-        for label, href in TABS)
-    return f'''<header class="nav">
-  <div class="nav__in">
-    <a class="brand" href="/"><span class="brand__mark">M</span>msaunders<span class="brand__tld">.dev</span></a>
-    <button class="nav__toggle" type="button" aria-expanded="false" aria-controls="nav-links" aria-label="Toggle navigation"><span></span></button>
-    <nav class="nav__links" id="nav-links" aria-label="Primary">
-{links}
-    </nav>
-  </div>
-</header>'''
+def crumb(trail):
+    """Top-of-page breadcrumb. With the nav bar gone this is the only way back
+    to the root from a sub-page, so every generated page carries one."""
+    parts = ['<a href="/">msaunders.dev</a>']
+    for label, href in trail:
+        parts.append('<span class="crumb__sep">/</span>')
+        parts.append('<a href="{}">{}</a>'.format(href, label) if href else "<span>{}</span>".format(label))
+    return ('  <div class="wrap">\n'
+            '    <nav class="crumb" aria-label="Breadcrumb">\n      '
+            + "".join(parts)
+            + '\n    </nav>\n  </div>')
 
 
-def page(path, *, title, desc, active, body, canonical, noindex=False):
+ASSETS = ("css/site.css", "js/site.js", "js/cosmos.js")
+
+
+def stamp_assets():
+    """Append a content hash to every CSS/JS URL in every page.
+
+    Without a version in the URL, a browser that cached an asset under the old
+    long max-age keeps serving it against freshly deployed HTML until its TTL
+    expires. Changing the header alone cannot evict what is already cached, but
+    changing the URL can, so the hash is what actually rescues a stale visitor.
+    """
+    vers = {}
+    for a in ASSETS:
+        with open(os.path.join(ROOT, a), "rb") as fh:
+            vers[a] = hashlib.md5(fh.read()).hexdigest()[:8]
+
+    pat = re.compile(
+        r'(?P<attr>href|src)="/(?P<path>' + "|".join(a.replace(".", r"\.") for a in ASSETS)
+        + r')(?:\?v=[0-9a-f]+)?"')
+
+    def sub(m):
+        return '{}="/{}?v={}"'.format(m.group("attr"), m.group("path"), vers[m.group("path")])
+
+    touched = 0
+    for root, _dirs, files in os.walk(ROOT):
+        if os.sep + ".git" in root or os.sep + "assets" in root:
+            continue
+        for f in files:
+            if not f.endswith(".html"):
+                continue
+            full = os.path.join(root, f)
+            with open(full, encoding="utf-8") as fh:
+                before = fh.read()
+            after = pat.sub(sub, before)
+            if after != before:
+                with open(full, "w", encoding="utf-8") as fh:
+                    fh.write(after)
+                touched += 1
+    print("  stamped {} page(s): {}".format(
+        touched, "  ".join("{}={}".format(a.split("/")[-1], v) for a, v in vers.items())))
+
+
+def page(path, *, title, desc, body, canonical, trail=(), noindex=False):
     html = f'''<!doctype html>
 <html lang="en">
 <head>
@@ -52,15 +91,13 @@ def page(path, *, title, desc, active, body, canonical, noindex=False):
 <meta property="og:url" content="{canonical}">
 <meta property="og:title" content="{title}">
 <meta property="og:description" content="{desc}">
-<script>document.documentElement.classList.add('js');</script>
 <link rel="stylesheet" href="/css/site.css">
 </head>
 <body>
 <a class="skip" href="#main">Skip to content</a>
 
-{nav(active)}
-
 <main id="main">
+{crumb(trail) if trail else ""}
 {body}
 </main>
 
@@ -97,8 +134,8 @@ PROJECTS = """
   <!-- ---------- SLOT 01 :: FEATURED ---------- -->
   <section class="section" id="godash">
     <div class="wrap">
-      <p class="eyebrow rv"><b>01</b> Featured</p>
-      <a class="card card--link rv" href="/projects/godash/" style="padding:0;border-color:var(--accent-line)">
+      <p class="eyebrow"><b>01</b> Featured</p>
+      <a class="card card--link" href="/projects/godash/" style="padding:0;border-color:var(--accent-line)">
         <div style="display:grid;grid-template-columns:1.15fr .85fr;gap:0" class="feat">
           <div style="padding:clamp(24px,3.4vw,38px)">
             <div style="display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:18px">
@@ -135,8 +172,8 @@ PROJECTS = """
   <!-- ---------- SLOTS 02 / 03 ---------- -->
   <section class="section">
     <div class="wrap">
-      <p class="eyebrow rv"><b>02-03</b> Archive</p>
-      <div class="cols-2 rv">
+      <p class="eyebrow"><b>02-03</b> Archive</p>
+      <div class="cols-2">
 
         <a class="card card--link" href="/projects/observatory/">
           <span class="card__idx">[ 02 ] &nbsp;2023</span>
@@ -170,7 +207,7 @@ PROJECTS = """
 
       </div>
 
-      <div class="note rv" style="margin-top:28px">
+      <div class="note" style="margin-top:28px">
         <span class="note__label">More coming</span>
         More builds, including the solar-powered Deployable Radio Beacon, are being written up.
       </div>
@@ -187,11 +224,6 @@ PROJECTS = """
 #  PROJECTS / GoDash
 # ==================================================================
 GODASH = """
-  <div class="wrap">
-    <nav class="crumb" aria-label="Breadcrumb">
-      <a href="/projects/">Projects</a><span class="crumb__sep">/</span><span>GoDash</span>
-    </nav>
-  </div>
 
   <section class="hero" style="padding-top:28px">
     <div class="wrap">
@@ -217,7 +249,7 @@ GODASH = """
   <!-- ---------- SPEC ---------- -->
   <section class="section section--tight">
     <div class="wrap">
-      <div class="stats rv">
+      <div class="stats">
         <div class="stat"><div class="stat__n">10 min</div><div class="stat__l">Rolling loop buffer</div></div>
         <div class="stat"><div class="stat__n">1080p</div><div class="stat__l">Capture resolution</div></div>
         <div class="stat"><div class="stat__n">5</div><div class="stat__l">Telemetry channels</div></div>
@@ -230,7 +262,7 @@ GODASH = """
   <!-- ---------- OVERVIEW ---------- -->
   <section class="section">
     <div class="wrap">
-      <div class="split rv">
+      <div class="split">
         <div class="split__label"><p class="eyebrow"><b>01</b> Overview</p></div>
         <div>
           <div class="prose">
@@ -268,7 +300,7 @@ GODASH = """
   <!-- ---------- FEATURES ---------- -->
   <section class="section">
     <div class="wrap">
-      <div class="split rv">
+      <div class="split">
         <div class="split__label"><p class="eyebrow"><b>02</b> Features</p></div>
         <div class="cols-2" style="gap:1px;background:var(--line);border:1px solid var(--line)">
           <div class="card" style="border:0">
@@ -327,7 +359,7 @@ GODASH = """
   <!-- ---------- HOW IT WORKS ---------- -->
   <section class="section">
     <div class="wrap">
-      <div class="split rv">
+      <div class="split">
         <div class="split__label"><p class="eyebrow"><b>03</b> How it works</p></div>
         <div class="prose">
           <h3>The recording pipeline</h3>
@@ -367,11 +399,11 @@ GODASH = """
   <!-- ---------- SCREENS ---------- -->
   <section class="section">
     <div class="wrap">
-      <p class="eyebrow rv"><b>04</b> In the car</p>
-      <p class="lede rv" style="margin-bottom:32px">
+      <p class="eyebrow"><b>04</b> In the car</p>
+      <p class="lede" style="margin-bottom:32px">
         Shot on a hands-free mount during real drives. Select an image to enlarge.
       </p>
-      <div class="shots rv">
+      <div class="shots">
         <figure class="shot" data-zoom>
           <img src="/img/godash/incar-home.jpg" width="640" height="1385" loading="lazy" decoding="async" alt="GoDash home layout with navigation and music modules on a dash mount">
           <figcaption>Home: maps + music</figcaption>
@@ -411,8 +443,8 @@ GODASH = """
   <!-- ---------- PROMO ---------- -->
   <section class="section">
     <div class="wrap">
-      <p class="eyebrow rv"><b>05</b> Press kit</p>
-      <div class="promos rv">
+      <p class="eyebrow"><b>05</b> Press kit</p>
+      <div class="promos">
         <img src="/img/godash/promo-telemetry.jpg" width="800" height="1000" loading="lazy" decoding="async" alt="GoDash promotional image highlighting the live telemetry readout">
         <img src="/img/godash/promo-music.jpg" width="800" height="1000" loading="lazy" decoding="async" alt="GoDash promotional image highlighting the music module">
         <img src="/img/godash/promo-clips.jpg" width="800" height="1000" loading="lazy" decoding="async" alt="GoDash promotional image highlighting the saved clips library">
@@ -423,7 +455,7 @@ GODASH = """
   <!-- ---------- GET IT ---------- -->
   <section class="section">
     <div class="wrap">
-      <div class="card rv" style="border-color:var(--accent-line);display:grid;grid-template-columns:1fr auto;gap:clamp(20px,4vw,44px);align-items:center" id="get">
+      <div class="card" style="border-color:var(--accent-line);display:grid;grid-template-columns:1fr auto;gap:clamp(20px,4vw,44px);align-items:center" id="get">
         <div>
           <p class="eyebrow" style="margin-bottom:16px"><b>&rarr;</b> Get GoDash</p>
           <h2 class="h-lg" style="margin-bottom:12px">Free on the App Store</h2>
@@ -463,11 +495,6 @@ GODASH = """
 #  PROJECTS / Observatory (slot 02)
 # ==================================================================
 OBSERVATORY = """
-  <div class="wrap">
-    <nav class="crumb" aria-label="Breadcrumb">
-      <a href="/projects/">Projects</a><span class="crumb__sep">/</span><span>Observatory</span>
-    </nav>
-  </div>
 
   <section class="hero" style="padding-top:28px">
     <div class="wrap">
@@ -487,7 +514,7 @@ OBSERVATORY = """
 
   <section class="section section--tight">
     <div class="wrap">
-      <div class="stats rv">
+      <div class="stats">
         <div class="stat"><div class="stat__n">4.5&Prime;</div><div class="stat__l">Spherical primary</div></div>
         <div class="stat"><div class="stat__n">269&times;</div><div class="stat__l">Max magnification</div></div>
         <div class="stat"><div class="stat__n">1.6&deg;</div><div class="stat__l">Field of view</div></div>
@@ -498,7 +525,7 @@ OBSERVATORY = """
 
   <section class="section">
     <div class="wrap">
-      <div class="split rv">
+      <div class="split">
         <div class="split__label"><p class="eyebrow"><b>01</b> Overview</p></div>
         <div>
           <div class="prose">
@@ -536,7 +563,7 @@ OBSERVATORY = """
 
   <section class="section">
     <div class="wrap">
-      <div class="note rv">
+      <div class="note">
         <span class="note__label">Slot reserved</span>
         The full build log is being written: mirror figuring, frame geometry, drive calibration,
         first-light images. Astrophotography from this scope will appear in the
@@ -558,11 +585,6 @@ OBSERVATORY = """
 #  PROJECTS / APT decoder (slot 03)
 # ==================================================================
 APT = """
-  <div class="wrap">
-    <nav class="crumb" aria-label="Breadcrumb">
-      <a href="/projects/">Projects</a><span class="crumb__sep">/</span><span>APT Decoder</span>
-    </nav>
-  </div>
 
   <section class="hero" style="padding-top:28px">
     <div class="wrap">
@@ -582,7 +604,7 @@ APT = """
 
   <section class="section section--tight">
     <div class="wrap">
-      <div class="stats rv">
+      <div class="stats">
         <div class="stat"><div class="stat__n">APT</div><div class="stat__l">Automatic picture transmission</div></div>
         <div class="stat"><div class="stat__n">QFH</div><div class="stat__l">Quadrifilar helix antenna</div></div>
         <div class="stat"><div class="stat__n">SDR</div><div class="stat__l">Software defined radio</div></div>
@@ -593,7 +615,7 @@ APT = """
 
   <section class="section">
     <div class="wrap">
-      <div class="split rv">
+      <div class="split">
         <div class="split__label"><p class="eyebrow"><b>01</b> Overview</p></div>
         <div>
           <div class="prose">
@@ -633,7 +655,7 @@ APT = """
 
   <section class="section">
     <div class="wrap">
-      <div class="note rv">
+      <div class="note">
         <span class="note__label">Slot reserved</span>
         The full writeup is being written: antenna geometry and SWR tuning, pass-prediction and
         trigger logic, and a set of decoded passes.
@@ -666,7 +688,7 @@ HOBBIES = """
 
   <section class="section">
     <div class="wrap">
-      <div class="empty rv">
+      <div class="empty">
         <div class="empty__icon">&hellip;</div>
         <h2>Section under construction</h2>
         <p>
@@ -675,7 +697,7 @@ HOBBIES = """
         </p>
       </div>
 
-      <div class="cols-3 rv" style="margin-top:30px">
+      <div class="cols-3" style="margin-top:30px">
         <div class="card"><span class="card__idx">[ 01 ]</span><h2 class="card__title h-md">Astrophotography</h2><p class="card__body">Deep-sky imaging, long exposures, and the gear behind them.</p><span class="status status--soon"><i class="dot"></i>Pending</span></div>
         <div class="card"><span class="card__idx">[ 02 ]</span><h2 class="card__title h-md">Aerospace</h2><p class="card__body">Launches, orbital mechanics, and the programs pushing the boundary.</p><span class="status status--soon"><i class="dot"></i>Pending</span></div>
         <div class="card"><span class="card__idx">[ 03 ]</span><h2 class="card__title h-md">Computer building</h2><p class="card__body">Custom systems, thermals, and the newest silicon.</p><span class="status status--soon"><i class="dot"></i>Pending</span></div>
@@ -705,7 +727,7 @@ GALLERY = """
 
   <section class="section">
     <div class="wrap">
-      <div class="empty rv">
+      <div class="empty">
         <div class="empty__icon">&#9633;</div>
         <h2>No images yet</h2>
         <p>
@@ -716,7 +738,7 @@ GALLERY = """
       </div>
 
       <!-- Template entry. Duplicate one of these per image.
-      <div class="shots rv" style="margin-top:30px">
+      <div class="shots" style="margin-top:30px">
         <figure class="shot" data-zoom>
           <img src="/img/gallery/example.jpg" width="1200" height="800" loading="lazy" decoding="async" alt="Describe the image">
           <figcaption>Caption, date</figcaption>
@@ -753,29 +775,30 @@ if __name__ == "__main__":
     print("building pages...")
     page("projects/index.html", title="Projects / Matthew Saunders",
          desc="Hardware and software projects by Matthew Saunders: GoDash iOS dash cam, an automated observatory, and a NOAA APT satellite ground station.",
-         active=None, body=PROJECTS, canonical="https://msaunders.dev/projects/")
+         body=PROJECTS, canonical="https://msaunders.dev/projects/", trail=[("Projects", None)])
 
     page("projects/godash/index.html", title="GoDash / Matthew Saunders",
          desc="GoDash is an iOS dash cam app with a 10-minute loop buffer, live telemetry overlay, crash detection, and split-screen navigation and music modules.",
-         active=None, body=GODASH, canonical="https://msaunders.dev/projects/godash/")
+         body=GODASH, canonical="https://msaunders.dev/projects/godash/", trail=[("Projects", "/projects/"), ("GoDash", None)])
 
     page("projects/observatory/index.html", title="Mobile Computerized Automated Observatory / Matthew Saunders",
          desc="A car-portable Newtonian reflector with a motorised Raspberry Pi driven base that tracks celestial objects for hour-long exposures.",
-         active=None, body=OBSERVATORY, canonical="https://msaunders.dev/projects/observatory/")
+         body=OBSERVATORY, canonical="https://msaunders.dev/projects/observatory/", trail=[("Projects", "/projects/"), ("Observatory", None)])
 
     page("projects/apt-decoder/index.html", title="NOAA Satellite APT Decoder / Matthew Saunders",
          desc="A custom SDR ground station and quadrifilar helix antenna that automatically captures and decodes APT downlinks from NOAA weather satellites.",
-         active=None, body=APT, canonical="https://msaunders.dev/projects/apt-decoder/")
+         body=APT, canonical="https://msaunders.dev/projects/apt-decoder/", trail=[("Projects", "/projects/"), ("APT Decoder", None)])
 
     page("hobbies/index.html", title="Hobbies / Matthew Saunders",
          desc="Astrophotography, aerospace, computer building, camping, hiking, climbing, music, and film.",
-         active="Hobbies", body=HOBBIES, canonical="https://msaunders.dev/hobbies/")
+         body=HOBBIES, canonical="https://msaunders.dev/hobbies/", trail=[("Hobbies", None)])
 
     page("gallery/index.html", title="Gallery / Matthew Saunders",
          desc="Astrophotography and hardware build photography by Matthew Saunders.",
-         active="Gallery", body=GALLERY, canonical="https://msaunders.dev/gallery/")
+         body=GALLERY, canonical="https://msaunders.dev/gallery/", trail=[("Gallery", None)])
 
     page("404.html", title="404 / Matthew Saunders",
-         desc="Page not found.", active=None, body=NOTFOUND,
-         canonical="https://msaunders.dev/404.html", noindex=True)
+         desc="Page not found.", body=NOTFOUND,
+         canonical="https://msaunders.dev/404.html", noindex=True, trail=[("404", None)])
+    stamp_assets()
     print("done.")
