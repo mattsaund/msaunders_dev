@@ -490,33 +490,6 @@
   host.appendChild(horizonEl);
   var horizon = { p: EARTH, el: horizonEl, drawn: null, top: 0, h: 0 };
 
-  /* A figure standing at the pole. Drawn once and never rotated: the pole is
-     the one point on a spinning body that does not travel, so leaving it fixed
-     is also the physically honest thing to do.
-     The face is escapes, not literal characters, so this file stays pure ASCII
-     and cannot be mangled by a bad charset guess. Three of its code points are
-     combining marks with zero advance width, so the head measures 8 cells, not
-     11 -- which is what the body below is centred against. */
-  /* Just the eyes and mouth; the round head is drawn around them below, so the
-     face no longer needs its own parentheses. Six cells wide: the three
-     combining marks carry zero advance width. */
-  var LENNY = " \u0361\u00b0 \u035c\u0296 \u0361\u00b0";
-  /* Nine cells across. Underscores sit low in their own line box, so a row of
-     them reads as the edge of the box below it: that is what draws the top of
-     the head without spending a row on it, and what lets the arms meet the
-     torso on one continuous line. Everything is centred on column 4, which is
-     where the mouth lands. */
-  var MARKER = [
-    " _______ ",
-    "|       |",
-    "|" + LENNY + " |",
-    "|_______|",
-    "    |    ",
-    "  \\_|_/  ",
-    "    |    ",
-    "   / \\   "
-  ].join("\n");
-
   /* The copyright line lives on the globe's last row. */
   var note = document.querySelector('.foot__note');
 
@@ -535,11 +508,6 @@
              + lines[i].slice(start + w);
     return lines.join('\n');
   }
-
-  var markerEl = document.createElement('pre');
-  markerEl.className = 'cosmos__body cosmos__marker';
-  markerEl.textContent = MARKER;
-  host.appendChild(markerEl);
 
   document.body.insertBefore(host, document.body.firstChild);
 
@@ -715,15 +683,6 @@
     horizonEl.style.left = '0px';
     horizonEl.style.top = horizon.top + 'px';
     horizon.drawn = null;
-
-    /* Feet on the apex, centred on the pole. */
-    var mrows = MARKER.split('\n').length;
-    /* Eight rows now, so it needs less magnification than the bare face did. */
-    var mfs = efs * 1.15;
-    markerEl.style.fontSize = mfs.toFixed(2) + 'px';
-    markerEl.style.left = '50%';
-    markerEl.style.transform = 'translateX(-50%)';
-    markerEl.style.top = Math.round(horizon.top - mrows * mfs) + 'px';
   }
 
   /* --- animation ------------------------------------------ */

@@ -14,8 +14,8 @@ projects/index.html           Projects index: 3 slots, GoDash featured
 projects/godash/              GoDash writeup (full)
 projects/observatory/         Mobile Computerized Automated Observatory (stub)
 projects/apt-decoder/         NOAA APT ground station (stub)
-hobbies/index.html            Placeholder: reserved slots
-gallery/index.html            Placeholder: grid + lightbox wired, awaiting images
+misc/index.html               Hobbies + gallery, one page. Currently serving a
+                              holding screen: see "Hidden pages" below.
 404.html                      Not found
 
 css/site.css                  Design tokens + every component
@@ -30,6 +30,22 @@ robots.txt, sitemap.xml
 assets/                       Original source media (not linked from the site)
 tools/build_pages.py          Optional page generator: see below
 ```
+
+## Hidden pages
+
+**Misc is hidden.** `/misc/` serves an "Under construction" holding screen and
+carries `noindex`. The real page is not deleted: its body is still `MISC` in
+`tools/build_pages.py`, alongside `MISC_SOON`, which is what gets emitted.
+
+To bring it back:
+
+1. Set `MISC_LIVE = True` near the top of `tools/build_pages.py`.
+2. Run `python3 tools/build_pages.py`.
+3. Add `<url><loc>https://msaunders.dev/misc/</loc><priority>0.5</priority></url>`
+   back to `sitemap.xml`.
+
+The Misc button on the About page stays visible either way, and `/hobbies/` and
+`/gallery/` keep redirecting to `/misc/`.
 
 ## Cloudflare Pages settings
 
@@ -129,7 +145,8 @@ House style: no em dashes, no en dashes, plain hyphens only. Copy stays terse.
 ## Adding a gallery image
 
 1. Put the file in `img/gallery/`.
-2. Add a `<figure class="shot" data-zoom>` block to `gallery/index.html`
-   (a commented template is already in the file).
+2. Add a `<figure class="shot" data-zoom>` block to `MISC` in
+   `tools/build_pages.py` (a commented template is already in there), then
+   rebuild. Nothing shows until `MISC_LIVE` is `True`: see "Hidden pages".
 
 The lightbox and responsive grid pick it up automatically.

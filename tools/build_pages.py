@@ -14,6 +14,12 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # Projects is reachable from the About page and the project writeups, not the top nav.
 TABS = [("About", "/"), ("Misc", "/misc/")]
 
+# Misc is finished enough to build but not to show, so /misc/ serves the holding
+# screen instead and carries noindex. The real body is still MISC below and is
+# still the thing this script would emit: flip this to True and rebuild to
+# publish it (and put /misc/ back in sitemap.xml).
+MISC_LIVE = False
+
 SOCIAL_SVG = {}
 with open(os.path.join(ROOT, "index.html"), encoding="utf-8") as f:
     _idx = f.read()
@@ -736,6 +742,26 @@ MISC = """
 
 
 # ==================================================================
+#  MISC holding screen  (served while MISC_LIVE is False)
+# ==================================================================
+MISC_SOON = """
+  <section class="hero">
+    <div class="wrap">
+      <p class="eyebrow"><b>//</b> Off the clock</p>
+      <h1 class="h-xl">Under construction<span class="caret">_</span></h1>
+      <p class="lede">
+        Hobbies and the photo gallery are being rebuilt into one page. Back soon.
+      </p>
+      <div class="btn-row" style="margin-top:30px">
+        <a class="btn btn--primary" href="/">Back to start</a>
+        <a class="btn" href="/projects/">Projects</a>
+      </div>
+    </div>
+  </section>
+"""
+
+
+# ==================================================================
 #  404
 # ==================================================================
 NOTFOUND = """
@@ -775,8 +801,11 @@ if __name__ == "__main__":
          body=APT, canonical="https://msaunders.dev/projects/apt-decoder/", trail=[("Projects", "/projects/"), ("APT Decoder", None)])
 
     page("misc/index.html", title="Misc / Matthew Saunders",
-         desc="Astrophotography, aerospace, computer building, camping, hiking, climbing, music and film, plus the photographs that come out of them.",
-         body=MISC, canonical="https://msaunders.dev/misc/", trail=[("Misc", None)])
+         desc=("Astrophotography, aerospace, computer building, camping, hiking, climbing, music and film, "
+               "plus the photographs that come out of them.") if MISC_LIVE else "Under construction.",
+         body=MISC if MISC_LIVE else MISC_SOON,
+         canonical="https://msaunders.dev/misc/", trail=[("Misc", None)],
+         noindex=not MISC_LIVE)
 
     page("404.html", title="404 / Matthew Saunders",
          desc="Page not found.", body=NOTFOUND,

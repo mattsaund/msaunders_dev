@@ -484,9 +484,6 @@ main { min-height: 60vh; }
 }
 /* The horizon globe spans the full width at the foot of the page. */
 .cosmos__horizon { width: 100%; }
-/* The figure at the pole: a touch brighter than the surface so it reads as
-   something standing on it rather than more terrain. */
-.cosmos__marker { color: #4a7ca6; }
 
 /* Starfield. Scattered only in the margins either side of the content
    column, so no star ever sits behind body copy. */
