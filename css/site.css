@@ -35,6 +35,8 @@
   --wrap: 1120px;
   --nav-h: 56px;
   --pad: clamp(20px, 5vw, 48px);
+  --split-label: 200px;      /* sticky section-label column; the timeline rail
+                                is positioned off this, so keep them in sync */
 
   --r: 3px;
 }
@@ -276,9 +278,31 @@ main { min-height: 60vh; }
 .cols-3 { display: grid; gap: clamp(16px, 2.5vw, 24px); grid-template-columns: repeat(3, 1fr); }
 @media (max-width: 860px) { .cols-2, .cols-3 { grid-template-columns: 1fr; } }
 
-.split { display: grid; grid-template-columns: 200px 1fr; gap: clamp(24px, 4vw, 48px); align-items: start; }
+.split { display: grid; grid-template-columns: var(--split-label) 1fr; gap: clamp(24px, 4vw, 48px); align-items: start; }
 @media (max-width: 860px) { .split { grid-template-columns: 1fr; gap: 20px; } }
 .split__label { position: sticky; top: calc(var(--nav-h) + 28px); }
+
+/* Sections whose content is a timeline share ONE rail. Each .tl still draws its
+   own border, but that only spans the list; this runs the full height of the
+   section including its padding, and because sections stack flush the rails join
+   into a single unbroken line down the page.
+   The gap is closed to 0 so the label's trailing rule meets the rail head on,
+   which also shifts the rail and its content left by the old gap width. */
+.section--rail { position: relative; }
+.section--rail .split { gap: 0; }
+.section--rail::before {
+  content: "";
+  position: absolute; top: 0; bottom: 0; width: 1px;
+  left: calc(max(0px, 50% - var(--wrap) / 2) + var(--pad) + var(--split-label));
+  background: var(--line);
+  pointer-events: none;
+}
+@media (max-width: 860px) {
+  /* Single column here, so .tl's own border is the rail. */
+  .section--rail::before { display: none; }
+  .section--rail .split { gap: 20px; }
+}
+
 /* Secondary link sitting under a section label. */
 .split__link {
   display: inline-flex; align-items: center; gap: 7px;
@@ -334,7 +358,8 @@ main { min-height: 60vh; }
   content: ""; position: absolute; left: -28px; top: 7px;
   width: 7px; height: 7px; background: var(--bg); border: 1px solid var(--line-3);
 }
-.tl__item--now::before { background: var(--accent); border-color: var(--accent); }
+.tl__item--now::before,
+.tl > .tl__item:first-child::before { background: var(--accent); border-color: var(--accent); }
 .tl__when {
   font: 400 11.5px/1 var(--mono); letter-spacing: .08em; text-transform: uppercase;
   color: var(--accent); margin-bottom: 7px; display: block;
