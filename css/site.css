@@ -35,8 +35,16 @@
   --wrap: 1120px;
   --nav-h: 56px;
   --pad: clamp(20px, 5vw, 48px);
-  --split-label: 200px;      /* sticky section-label column; the timeline rail
-                                is positioned off this, so keep them in sync */
+  --section-pad: clamp(28px, 4vw, 44px);   /* applied top AND bottom, so the
+                                              gap between two sections is twice
+                                              this */
+  --node: 7px;               /* timeline node square */
+  --node-top: 7px;           /* its offset below the item's top edge */
+  --split-label: 176px;      /* sticky section-label column; the timeline rail
+                                is positioned off this, so keep them in sync.
+                                Floor is ~170px: "04 Certifications" is the
+                                widest label and needs 160px plus the flex gap,
+                                below which its connector rule vanishes. */
 
   --r: 3px;
 }
@@ -91,29 +99,10 @@ hr { border: 0; border-top: 1px solid var(--line); margin: 0; }
   padding: 0 var(--pad);
   position: relative;
 }
-/* Technical-drawing side rails.
-   These hang off <main> and <footer> rather than each .wrap, so they run
-   unbroken from the nav to the bottom of the page instead of restarting at
-   every section's padding. With the horizontal dividers gone they are the
-   only structure left, so they have to be continuous. */
-main::before, main::after,
-.foot::before, .foot::after {
-  content: "";
-  position: absolute; top: 0; bottom: 0; width: 1px;
-  background: var(--line);
-  pointer-events: none;
-}
-main::before, .foot::before { left:  max(0px, calc(50% - var(--wrap) / 2)); }
-main::after,  .foot::after  { right: max(0px, calc(50% - var(--wrap) / 2)); }
-
-@media (max-width: 720px) {
-  main::before, main::after, .foot::before, .foot::after { display: none; }
-}
-
 main { min-height: 60vh; }
 
-.section { padding: clamp(48px, 8vw, 88px) 0; }
-.section--tight { padding: clamp(32px, 5vw, 56px) 0; }
+.section { padding: var(--section-pad) 0; }
+.section--tight { padding: calc(var(--section-pad) * 0.7) 0; }
 
 /* --- nav --------------------------------------------------- */
 .nav {
@@ -192,6 +181,7 @@ main { min-height: 60vh; }
   color: var(--fg-3);
   display: flex; align-items: center; gap: 10px;
   margin: 0 0 22px;
+  white-space: nowrap;
 }
 .eyebrow b { color: var(--accent); font-weight: 400; }
 .eyebrow::after { content: ""; flex: 1; height: 1px; background: var(--line); }
@@ -288,8 +278,17 @@ main { min-height: 60vh; }
    into a single unbroken line down the page.
    The gap is closed to 0 so the label's trailing rule meets the rail head on,
    which also shifts the rail and its content left by the old gap width. */
-.section--rail { position: relative; }
+.section--rail { position: relative; padding-top: 0; }
+/* every rail section except the first keeps its normal top padding */
+.section--rail ~ .section--rail { padding-top: var(--section-pad); }
 .section--rail .split { gap: 0; }
+/* Give the label row the node's own height and let the existing
+   align-items:center do the work: the number, the title and the connector rule
+   all end up centred on the first node's centre line, with no magic offsets
+   and no dependence on the label's font size. */
+.section--rail .eyebrow {
+  height: calc(var(--node-top) * 2 + var(--node));
+}
 .section--rail::before {
   content: "";
   position: absolute; top: 0; bottom: 0; width: 1px;
@@ -355,8 +354,9 @@ main { min-height: 60vh; }
 .tl__item { position: relative; padding: 0 0 30px; }
 .tl__item:last-child { padding-bottom: 0; }
 .tl__item::before {
-  content: ""; position: absolute; left: -28px; top: 7px;
-  width: 7px; height: 7px; background: var(--bg); border: 1px solid var(--line-3);
+  content: ""; position: absolute; left: -28px; top: var(--node-top);
+  width: var(--node); height: var(--node);
+  background: var(--bg); border: 1px solid var(--line-3);
 }
 .tl__item--now::before,
 .tl > .tl__item:first-child::before { background: var(--accent); border-color: var(--accent); }
