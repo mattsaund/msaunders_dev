@@ -105,7 +105,6 @@ def page(path, *, title, desc, body, canonical, trail=(), noindex=False):
 
 <script src="/js/cosmos.js" defer></script>
 <script src="/js/site.js" defer></script>
-<script>document.getElementById('yr').textContent=new Date().getFullYear();</script>
 </body>
 </html>
 '''
@@ -157,7 +156,7 @@ PROJECTS = """
               <li class="tag">MapKit</li>
               <li class="tag">MusicKit</li>
             </ul>
-            <span class="btn btn--primary" style="pointer-events:none">Read the writeup <span class="btn__arr">&rarr;</span></span>
+            <span class="btn btn--primary" style="pointer-events:none">Read the writeup</span>
           </div>
           <div style="border-left:1px solid var(--line);background:var(--bg-3);display:grid;place-items:center;padding:clamp(20px,3vw,32px);overflow:hidden">
             <img src="/img/godash/card-hero.jpg" width="900" height="787" loading="lazy" decoding="async"
@@ -240,8 +239,8 @@ GODASH = """
         apps at 70&nbsp;mph.
       </p>
       <div class="btn-row" style="margin-top:30px">
-        <a class="btn btn--primary" href="https://apps.apple.com/us/app/godash-dashcam-app/id6792043434" target="_blank" rel="noopener">Download on the App Store <span class="btn__arr">&rarr;</span></a>
-        <a class="btn" href="https://godash.us/" target="_blank" rel="noopener">godash.us <span class="btn__arr">&rarr;</span></a>
+        <a class="btn btn--primary" href="https://apps.apple.com/us/app/godash-dashcam-app/id6792043434" target="_blank" rel="noopener">Download on the App Store</a>
+        <a class="btn" href="https://godash.us/" target="_blank" rel="noopener">godash.us</a>
       </div>
     </div>
   </section>
@@ -464,8 +463,8 @@ GODASH = """
             overlays, and crash detection. Requires iOS&nbsp;17 or later.
           </p>
           <div class="btn-row">
-            <a class="btn btn--primary" href="https://apps.apple.com/us/app/godash-dashcam-app/id6792043434" target="_blank" rel="noopener">App Store <span class="btn__arr">&rarr;</span></a>
-            <a class="btn" href="https://godash.us/" target="_blank" rel="noopener">godash.us <span class="btn__arr">&rarr;</span></a>
+            <a class="btn btn--primary" href="https://apps.apple.com/us/app/godash-dashcam-app/id6792043434" target="_blank" rel="noopener">App Store</a>
+            <a class="btn" href="https://godash.us/" target="_blank" rel="noopener">godash.us</a>
           </div>
         </div>
         <div style="text-align:center">
@@ -480,8 +479,8 @@ GODASH = """
 
   <div class="wrap">
     <div class="pager">
-      <a class="btn" href="/projects/"><span class="btn__arr">&larr;</span> All projects</a>
-      <a class="btn" href="/projects/observatory/">Next: Observatory <span class="btn__arr">&rarr;</span></a>
+      <a class="btn" href="/projects/"> All projects</a>
+      <a class="btn" href="/projects/observatory/">Next: Observatory</a>
     </div>
   </div>
 
@@ -574,8 +573,8 @@ OBSERVATORY = """
 
   <div class="wrap">
     <div class="pager">
-      <a class="btn" href="/projects/godash/"><span class="btn__arr">&larr;</span> GoDash</a>
-      <a class="btn" href="/projects/apt-decoder/">Next: APT Decoder <span class="btn__arr">&rarr;</span></a>
+      <a class="btn" href="/projects/godash/"> GoDash</a>
+      <a class="btn" href="/projects/apt-decoder/">Next: APT Decoder</a>
     </div>
   </div>
 """
@@ -665,8 +664,8 @@ APT = """
 
   <div class="wrap">
     <div class="pager">
-      <a class="btn" href="/projects/observatory/"><span class="btn__arr">&larr;</span> Observatory</a>
-      <a class="btn" href="/projects/">All projects <span class="btn__arr">&rarr;</span></a>
+      <a class="btn" href="/projects/observatory/"> Observatory</a>
+      <a class="btn" href="/projects/">All projects</a>
     </div>
   </div>
 """
@@ -760,8 +759,8 @@ NOTFOUND = """
       <h1 class="h-xl">Signal lost<span class="caret">_</span></h1>
       <p class="lede">That page does not exist, or it moved.</p>
       <div class="btn-row" style="margin-top:30px">
-        <a class="btn btn--primary" href="/">Back to start <span class="btn__arr">&rarr;</span></a>
-        <a class="btn" href="/projects/">Projects <span class="btn__arr">&rarr;</span></a>
+        <a class="btn btn--primary" href="/">Back to start</a>
+        <a class="btn" href="/projects/">Projects</a>
       </div>
     </div>
   </section>

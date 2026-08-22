@@ -2,6 +2,40 @@
 (function () {
   'use strict';
 
+  /* --- typed name ----------------------------------------- */
+  /* The full name stays in the markup, so it is what ships in the HTML and
+     what a screen reader announces via aria-label; the typing only controls
+     what is painted. If this script never runs, the name is simply there. */
+  var name = document.getElementById('typed');
+  if (name) {
+    var full = name.textContent;
+    name.setAttribute('aria-label', full);
+
+    var caret = document.createElement('span');
+    caret.className = 'caret';
+    caret.setAttribute('aria-hidden', 'true');
+    caret.textContent = '_';
+
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      name.appendChild(caret);
+    } else {
+      var out = document.createElement('span');
+      out.setAttribute('aria-hidden', 'true');
+      name.textContent = '';
+      name.appendChild(out);
+      name.appendChild(caret);
+
+      var i = 0;
+      (function step() {
+        out.textContent = full.slice(0, ++i);
+        if (i < full.length) {
+          /* Slight jitter so it reads as typing rather than a ticker. */
+          setTimeout(step, 45 + Math.random() * 55);
+        }
+      })();
+    }
+  }
+
   /* --- lightbox ------------------------------------------- */
   var zoomables = document.querySelectorAll('[data-zoom]');
   if (!zoomables.length) return;

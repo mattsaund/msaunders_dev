@@ -70,8 +70,29 @@ body {
 img, svg { max-width: 100%; display: block; }
 /* width/height attrs reserve layout space; never let them fix the rendered size */
 img { height: auto; }
-a { color: var(--accent); text-decoration: none; }
+/* Underline marks anything clickable. Buttons and social chips opt out below:
+   their box already says "press me", and a rule inside one reads as noise. */
+a {
+  color: var(--accent);
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+  text-decoration-color: currentColor;
+}
 a:hover { color: var(--accent-hi); }
+.btn, .social, .brand { text-decoration: none; }
+/* A whole card can be a link. Underlining every descendant would rule through
+   its body copy and tag chips, so the card opts out and its title carries the
+   affordance instead. */
+.card--link { text-decoration: none; }
+.card--link .card__title {
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+  text-decoration-color: var(--accent-line);
+  transition: color .18s, text-decoration-color .18s;
+}
+.card--link:hover .card__title { text-decoration-color: var(--accent); }
 h1, h2, h3, h4 { margin: 0; font-weight: 500; line-height: 1.2; letter-spacing: -0.01em; }
 p { margin: 0 0 1em; }
 p:last-child { margin-bottom: 0; }
@@ -149,7 +170,16 @@ main { min-height: 60vh; }
 .hero h1 { margin-bottom: 16px; }
 .hero .socials { margin-bottom: 30px; }
 .hero .btn-row { margin-top: 28px; }
-.hero h1 .caret { color: var(--accent); }
+/* Terminal caret: blinks while the name types and keeps blinking after. */
+.caret {
+  color: var(--accent);
+  animation: caret-blink 1.05s steps(1, end) infinite;
+}
+@keyframes caret-blink {
+  0%, 49%   { opacity: 1; }
+  50%, 100% { opacity: 0; }
+}
+@media (prefers-reduced-motion: reduce) { .caret { animation: none; } }
 .hero__role {
   font: 400 clamp(13px, 1.6vw, 15px)/1.5 var(--mono);
   color: var(--accent); letter-spacing: .02em; margin-bottom: 24px;
@@ -167,8 +197,6 @@ main { min-height: 60vh; }
 .btn:hover { color: var(--accent); border-color: var(--accent-line); background: var(--accent-bg); }
 .btn--primary { border-color: var(--accent-line); background: var(--accent-bg); color: var(--accent); }
 .btn--primary:hover { border-color: var(--accent); background: #112538; color: var(--accent-hi); }
-.btn__arr { color: var(--fg-3); transition: transform .15s, color .15s; }
-.btn:hover .btn__arr { transform: translateX(3px); color: var(--accent); }
 .btn-row { display: flex; flex-wrap: wrap; gap: 10px; }
 
 /* --- tags / chips ------------------------------------------ */
@@ -242,8 +270,6 @@ main { min-height: 60vh; }
   color: var(--accent);
 }
 .split__link:hover { color: var(--accent-hi); }
-.split__link span { transition: transform .15s; }
-.split__link:hover span { transform: translateX(3px); }
 @media (max-width: 860px) { .split__label { position: static; } }
 
 /* --- cards ------------------------------------------------- */
@@ -313,15 +339,11 @@ main { min-height: 60vh; }
 /* Project entries: the title links out to its own writeup. */
 .tl__what a {
   color: inherit;
-  display: inline-flex; align-items: baseline; gap: 9px;
-  transition: color .15s;
+  transition: color .15s, text-decoration-color .15s;
+  text-decoration-color: var(--accent-line);
 }
+.tl__what a:hover { text-decoration-color: var(--accent); }
 .tl__what a:hover { color: var(--accent); }
-.tl__arr {
-  color: var(--fg-3); font-size: .8em;
-  transition: transform .15s, color .15s;
-}
-.tl__what a:hover .tl__arr { transform: translateX(3px); color: var(--accent); }
 .tl__tags { margin: 11px 0 12px; }
 
 /* --- figures / media --------------------------------------- */
@@ -398,10 +420,23 @@ main { min-height: 60vh; }
 .stat__l { font: 400 11px/1.4 var(--mono); letter-spacing: .1em; text-transform: uppercase; color: var(--fg-3); margin-top: 9px; }
 
 /* --- footer ------------------------------------------------ */
-/* Deep bottom padding leaves the horizon globe its own clear band. */
-.foot { padding: 56px 0 clamp(140px, 22vh, 250px); }
-.foot__in { display: flex; flex-wrap: wrap; gap: 24px; justify-content: space-between; align-items: flex-start; }
-.foot__note { font: 400 11.5px/1.7 var(--mono); color: var(--fg-3); letter-spacing: .04em; }
+/* The bottom of the page is a scene: the last content, then a gap, then the
+   lander and flag standing on the pole, then the globe itself. The deep TOP
+   padding reserves that gap; the shallow bottom padding drops the copyright
+   line onto the globe's surface near the very bottom, clear of the lander. */
+/* Sized against viewport WIDTH, not height: the scene it reserves room for
+   (lander plus globe) is drawn in glyphs whose size scales with width, so
+   a vh-based gap drifted out of step with the art it was making room for. */
+.foot { padding: clamp(260px, 24vw, 360px) 0 0; }
+/* Just the copyright now, centred so it sits over the middle of the horizon. */
+/* The copyright occupies the globe's last glyph row. cosmos.js sets its
+   font-size and line-height to the globe's row height so it shares that grid
+   exactly, and blanks the glyphs underneath it. Letter-spacing must stay 0 or
+   the character count no longer maps to columns. */
+.foot__note {
+  font: 400 11.5px/1 var(--mono); color: #4b545e; letter-spacing: 0;
+  text-align: center; margin: 0;
+}
 .socials { display: flex; flex-wrap: wrap; gap: 8px; }
 .social {
   display: inline-flex; align-items: center; gap: 8px;
@@ -445,6 +480,9 @@ main { min-height: 60vh; }
 }
 /* The horizon globe spans the full width at the foot of the page. */
 .cosmos__horizon { width: 100%; }
+/* The figure at the pole: a touch brighter than the surface so it reads as
+   something standing on it rather than more terrain. */
+.cosmos__marker { color: #4a7ca6; }
 
 /* Starfield. Scattered only in the margins either side of the content
    column, so no star ever sits behind body copy. */

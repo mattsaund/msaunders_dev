@@ -119,37 +119,50 @@
     return clamp(a, 0.12, 1.15);
   }
 
-  /* Continents as body-frame unit vectors with a cosine radius, roughly
-     where the real ones are, so the globe reads as Earth rather than noise. */
   function place(latDeg, lonDeg, radDeg) {
     var la = latDeg * Math.PI / 180, lo = lonDeg * Math.PI / 180, c = Math.cos(la);
     return { x: c * Math.cos(lo), y: Math.sin(la), z: c * Math.sin(lo),
              c: Math.cos(radDeg * Math.PI / 180) };
   }
 
-  var LAND = [
-    place(  8,   20, 30),   // Africa
-    place( 50,   15, 16),   // Europe
-    place( 48,   95, 34),   // Asia
-    place( 24,   78, 13),   // India
-    place( 45, -100, 27),   // North America
-    place(-12,  -58, 22),   // South America
-    place(-25,  134, 16),   // Australia
-    place( 72,  -40, 11)    // Greenland
-  ];
-
-  function texEarth(bx, by, bz, la, lo) {
-    var a = 0.38;                                   // ocean
-    for (var i = 0; i < LAND.length; i++) {
-      var c = LAND[i], d = bx * c.x + by * c.y + bz * c.z;
-      /* Ramp hard at the edge so coastlines stay crisp instead of blurring. */
-      if (d > c.c) a += 0.55 * Math.min(1, (d - c.c) / (1 - c.c) * 3.4);
+  /* The horizon body is seen pole-on, and only a shallow cap of it is ever on
+     screen, so scattering features over the whole sphere would waste almost all
+     of them. These are biased hard toward the pole. r()*r() clusters near zero,
+     which here means near the top. */
+  function polarField(seed, n, minDeg, spanDeg, radMin, radSpan) {
+    var r = rng(seed), out = [];
+    for (var i = 0; i < n; i++) {
+      var lat = 90 - (minDeg + r() * r() * spanDeg);
+      var lon = r() * 360;
+      var rad = radMin + r() * r() * radSpan;
+      var f = place(lat, lon, rad);
+      f.rim = Math.cos(rad * 0.70 * Math.PI / 180);
+      f.deep = 0.30 + r() * 0.55;
+      out.push(f);
     }
-    var pl = Math.abs(la);
-    if (pl > 1.32) a = 1.18;                        // ice caps
-    else if (pl > 1.14) a += 0.46 * (pl - 1.14) / 0.18;
-    a += 0.07 * Math.sin(lo * 6.0 + la * 4.0);      // weather
-    return clamp(a, 0.14, 1.18);
+    return out;
+  }
+
+  var CRATERS = polarField(48271, 44, 0, 32, 2.5, 13.0);
+  var BASINS  = polarField(90210, 5, 3, 26, 10.0, 16.0);
+
+  function texMoonscape(bx, by, bz, la, lo) {
+    var a = 0.54, i, c, d;
+    /* Broad dark basins first, so crater rims can still sit bright on top. */
+    for (i = 0; i < BASINS.length; i++) {
+      c = BASINS[i]; d = bx * c.x + by * c.y + bz * c.z;
+      if (d > c.c) a -= 0.22 * (d - c.c) / (1 - c.c);
+    }
+    for (i = 0; i < CRATERS.length; i++) {
+      c = CRATERS[i]; d = bx * c.x + by * c.y + bz * c.z;
+      if (d > c.c) a += (d < c.rim) ? 0.48 : -0.46 * c.deep;
+    }
+    /* Mottling with a low latitude coefficient: a high one banded the surface
+       into horizontal stripes, because near a pole a band of latitude is a
+       ring that reads as a straight line across the screen. */
+    a += 0.05 * Math.sin(lo * 5.0 + la * 6.0);
+    a += 0.03 * Math.sin(lo * 11.0 - la * 3.0);
+    return clamp(a, 0.10, 1.20);
   }
 
   function texUranus(bx, by, bz, la, lo) {
@@ -206,10 +219,14 @@
      tilt is 60 degrees so the visible apex sits near 30 degrees latitude
      (not the pole, where the surface would just swirl) and the rotation
      reads as a clean rightward drift. Negative rate == drifting right. */
+  /* Seen from directly over its north pole: tilt 0 puts the rotation axis
+     straight up the screen, so the apex of the visible cap IS the pole and the
+     surface wheels around it. A smaller span than a true horizon shot keeps the
+     cap off the extreme limb, where the texture would smear into stripes. */
   var EARTH = {
-    name: 'earth', tex: texEarth, pin: true,
-    span: 4.0, reveal: 250, sz: 1.00,
-    tilt: 1.05, roll: 0, rate: -0.011, amb: 0.22, gain: 1.75, phase: 0.6
+    name: 'moonscape', tex: texMoonscape, pin: true,
+    span: 2.2, reveal: 200, sz: 1.00,
+    tilt: 0, roll: 0, rate: 0.030, amb: 0.20, gain: 1.70, phase: 0.6
   };
 
   /* --- renderer ------------------------------------------- */
@@ -355,6 +372,55 @@
   host.appendChild(horizonEl);
   var horizon = { p: EARTH, el: horizonEl, drawn: null, top: 0, h: 0 };
 
+  /* A figure standing at the pole. Drawn once and never rotated: the pole is
+     the one point on a spinning body that does not travel, so leaving it fixed
+     is also the physically honest thing to do.
+     The face is escapes, not literal characters, so this file stays pure ASCII
+     and cannot be mangled by a bad charset guess. Three of its code points are
+     combining marks with zero advance width, so the head measures 8 cells, not
+     11 -- which is what the body below is centred against. */
+  /* Just the eyes and mouth; the round head is drawn around them below, so the
+     face no longer needs its own parentheses. Six cells wide: the three
+     combining marks carry zero advance width. */
+  var LENNY = " \u0361\u00b0 \u035c\u0296 \u0361\u00b0";
+  /* Nine cells across and five rows tall reads as round at this cell aspect
+     (glyphs are about 0.6 as wide as they are tall). Everything is centred on
+     column 4, which is where the mouth lands. */
+  var MARKER = [
+    "  .---.  ",
+    " /     \\ ",
+    "|" + LENNY + " |",
+    " \\     / ",
+    "  '---'  ",
+    "  \\ | /  ",
+    "    |    ",
+    "   / \\   "
+  ].join("\n");
+
+  /* The copyright line lives on the globe's last row. */
+  var note = document.querySelector('.foot__note');
+
+  /* Blank the glyphs the copyright covers, rather than letting it sit on top of
+     terrain whose brightness changes as the body turns. */
+  function punch(text, cols) {
+    if (!note) return text;
+    /* A character is no longer a whole column, so scale before padding. */
+    var w = Math.ceil(note.textContent.trim().length * NOTE_SCALE) + 4;
+    if (w >= cols) return text;
+    var lines = text.split('\n');
+    var i = lines.length - 1;
+    var start = Math.floor((cols - w) / 2);
+    lines[i] = lines[i].slice(0, start)
+             + new Array(w + 1).join(' ')
+             + lines[i].slice(start + w);
+    return lines.join('\n');
+  }
+
+  var markerEl = document.createElement('pre');
+  markerEl.className = 'cosmos__body cosmos__marker';
+  markerEl.textContent = MARKER;
+  host.appendChild(markerEl);
+
   document.body.insertBefore(host, document.body.firstChild);
 
   /* --- starfield ------------------------------------------- */
@@ -364,6 +430,18 @@
   function wrapWidth() {
     var v = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--wrap'));
     return (isFinite(v) && v > 0) ? v : 1120;
+  }
+
+  /* Document y of the globe's limb at a given x, or docH if there is no
+     horizon there. Stars below this line would sit "inside" the planet. */
+  function limbY(x, vw, docH) {
+    var E = horizon.p;
+    if (!E.cols) return docH;                 // not laid out yet
+    var R = (E.span * vw) / 2;
+    var dx = Math.abs(x - vw / 2);
+    if (dx >= R) return docH;
+    /* Depth of the sphere's surface below its apex at this horizontal offset. */
+    return horizon.top + (R - Math.sqrt(R * R - dx * dx));
   }
 
   function buildStars(vw, docH) {
@@ -382,6 +460,8 @@
       var inset = 8 + r() * (gutter - 18);
       var x = onRight ? (vw - inset) : inset;
       var y = r() * docH;
+      /* Sky only: skip anything that would land on the globe. */
+      if (y > limbY(x, vw, docH)) continue;
       var g = STAR_GLYPHS.charAt((r() * STAR_GLYPHS.length) | 0);
       /* Most of the field twinkles. Real skies do have steady stars, so a
          minority stay fixed and give the eye something to rest against. */
@@ -440,6 +520,7 @@
      stable; the old viewport-derived count silently dropped from three bodies
      to two on a taller window. */
   var TOP_INSET = 40;
+  var NOTE_SCALE = 0.74;           // copyright size as a fraction of a globe cell
 
   function anchors() {
     var out = [TOP_INSET];
@@ -502,12 +583,27 @@
     E.extY = (E.rows * efs) / 2 / R;
     E.yc = 1 - E.extY;                               // band's top edge at the apex
 
+    /* Same cell size as the globe, so one character is one column. */
+    if (note) {
+      note.style.fontSize = (efs * NOTE_SCALE).toFixed(2) + 'px';
+      note.style.lineHeight = efs.toFixed(2) + 'px';
+    }
+
     horizon.h = E.rows * efs;
     horizon.top = Math.round(docH - horizon.h);
     horizonEl.style.fontSize = efs.toFixed(2) + 'px';
     horizonEl.style.left = '0px';
     horizonEl.style.top = horizon.top + 'px';
     horizon.drawn = null;
+
+    /* Feet on the apex, centred on the pole. */
+    var mrows = MARKER.split('\n').length;
+    /* Eight rows now, so it needs less magnification than the bare face did. */
+    var mfs = efs * 1.15;
+    markerEl.style.fontSize = mfs.toFixed(2) + 'px';
+    markerEl.style.left = '50%';
+    markerEl.style.transform = 'translateX(-50%)';
+    markerEl.style.top = Math.round(horizon.top - mrows * mfs) + 'px';
   }
 
   /* --- animation ------------------------------------------ */
@@ -533,7 +629,7 @@
     if (horizon.top + horizon.h >= near && horizon.top <= far) {
       var qe = Math.round((horizon.p.phase + spun * horizon.p.rate) * 240) / 240;
       if (qe !== horizon.drawn) {
-        horizon.el.textContent = render(horizon.p, qe);
+        horizon.el.textContent = punch(render(horizon.p, qe), horizon.p.cols);
         horizon.drawn = qe;
       }
     }
