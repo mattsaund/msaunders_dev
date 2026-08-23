@@ -287,7 +287,10 @@
      extX/extY : half-width and half-height of the frame, in planet radii.
                  A tilted ring system is wide and flat, so these have to be
                  set independently or the frame is mostly empty sky.
-     rows      : glyph rows; cols is derived so the disk stays circular.
+     rows      : glyph rows; cols is derived so the disk stays circular. Each
+                 body carries roughly twice the rows its on-screen size needs,
+                 with sz halved to match: the extra glyphs go into detail, not
+                 into a bigger disk.
      tilt      : pole tipped toward the viewer (rad)
      roll      : pole tipped within the view plane (rad)
      rate      : radians of rotation per second (sign = direction). One turn
@@ -297,36 +300,36 @@
                  always fully on screen. Vertical position is assigned from
                  the document height so the bodies space themselves.        */
   var BODIES = [
-    { name: 'saturn', tex: texSaturn, rows: 19, extX: 2.45, extY: 1.20, sz: 1.00,
+    { name: 'saturn', tex: texSaturn, rows: 38, extX: 2.45, extY: 1.20, sz: 0.50,
       tilt: 0.46, roll: -0.16, rate: 0.105, amb: 0.17, phase: 0.4,
       rings: { inner: 1.28, outer: 2.30, gaps: [[1.68, 1.78], [2.04, 2.09]] },
       side: 'right' },
 
     /* Rows are up from the 17 the old cratered moon used, with sz cut to match,
        so the extra glyphs go into detail rather than making the body bigger. */
-    { name: 'ice', tex: texIce, rows: 27, extX: 1.14, extY: 1.14, sz: 0.78,
+    { name: 'ice', tex: texIce, rows: 54, extX: 1.14, extY: 1.14, sz: 0.39,
       tilt: 0.28, roll: 0.10, rate: -0.062, amb: 0.16, phase: 1.9,
       side: 'left' },
 
-    { name: 'asteroid', tex: texRock, rock: true, rows: 30, extX: 1.20, extY: 1.20, sz: 1.12,
+    { name: 'asteroid', tex: texRock, rock: true, rows: 60, extX: 1.20, extY: 1.20, sz: 0.56,
       tilt: 0.55, roll: 0.35, rate: 0.085, amb: 0.15, phase: 1.1,
       side: 'right' },
 
-    { name: 'mars', tex: texMars, rows: 16, extX: 1.16, extY: 1.16, sz: 1.05,
+    { name: 'mars', tex: texMars, rows: 32, extX: 1.16, extY: 1.16, sz: 0.525,
       tilt: 0.34, roll: -0.28, rate: 0.110, amb: 0.15, phase: 0.9,
       side: 'left' },
 
     /* Uranus rolls onto its side, so its rings stand up vertically. */
-    { name: 'uranus', tex: texUranus, rows: 26, extX: 1.10, extY: 2.10, sz: 0.95,
+    { name: 'uranus', tex: texUranus, rows: 52, extX: 1.10, extY: 2.10, sz: 0.475,
       tilt: 0.52, roll: 1.5708, rate: -0.085, amb: 0.20, phase: 3.4,
       rings: { inner: 1.44, outer: 2.02, gaps: [[1.63, 1.69]] },
       side: 'right' },
 
-    { name: 'neptune', tex: texNeptune, rows: 18, extX: 1.14, extY: 1.14, sz: 1.00,
+    { name: 'neptune', tex: texNeptune, rows: 36, extX: 1.14, extY: 1.14, sz: 0.50,
       tilt: -0.30, roll: 0.22, rate: 0.095, amb: 0.18, phase: 5.1,
       side: 'left' },
 
-    { name: 'jupiter', tex: texJupiter, rows: 21, extX: 1.12, extY: 1.12, sz: 1.10,
+    { name: 'jupiter', tex: texJupiter, rows: 42, extX: 1.12, extY: 1.12, sz: 0.55,
       tilt: 0.10, roll: 0.06, rate: 0.140, amb: 0.19, phase: 2.7,
       side: 'right' }
   ];
@@ -722,7 +725,10 @@
     E.extY = (E.rows * efs) / 2 / R;
     E.yc = 1 - E.extY;                               // band's top edge at the apex
 
-    /* Same cell size as the globe, so one character is one column. */
+    /* Same cell size as the globe, so one character is one column. This is
+       what ties the two together: the copyright occupies exactly one glyph row,
+       which is why the horizon's rows cannot be made finer than legible text
+       without breaking the line out of its punched gap. */
     if (note) {
       note.style.fontSize = (efs * NOTE_SCALE).toFixed(2) + 'px';
       note.style.lineHeight = efs.toFixed(2) + 'px';
