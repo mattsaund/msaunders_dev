@@ -52,6 +52,19 @@
     return out;
   }
 
+  /* A plane through the centre cuts the sphere in a great circle, so
+     |dot(p, n)| is the angular distance from that line. Two dot products give a
+     feature that runs the whole way round the body, which no blob can do. */
+  function greatCircles(seed, n, wMin, wSpan) {
+    var r = rng(seed), out = [], i;
+    for (i = 0; i < n; i++) {
+      var y = r() * 2 - 1, ph = r() * Math.PI * 2, s = Math.sqrt(1 - y * y);
+      out.push({ x: s * Math.cos(ph), y: y, z: s * Math.sin(ph),
+                 w: wMin + r() * wSpan });
+    }
+    return out;
+  }
+
   /* --- surface textures ----------------------------------- *
      Each takes a body-frame unit vector (bx,by,bz) plus the
      latitude/longitude already derived from it, and returns an
@@ -59,22 +72,41 @@
 
   /* Feature radii are in radians of arc. Anything under ~0.14 rad lands
      inside a single glyph at these grid sizes and just reads as noise. */
-  var MOON_CRATERS = features(20260821, 15, 0.15, 0.20);
-  var MOON_MARIA   = features(70719, 4, 0.44, 0.26);
 
-  function texMoon(bx, by, bz) {
-    var a = 0.86, i, c, d;
-    for (i = 0; i < MOON_MARIA.length; i++) {
-      c = MOON_MARIA[i];
+  /* An ice crust: bright, and cut by fractures that run pole to pole and cross
+     each other. Bands and blobs both read as "somewhere on the surface"; a line
+     that wraps the whole body is what makes the rotation legible. */
+  /* Widths are in radians of arc, and the body spans ~2 rad across ~43 columns,
+     so a column is ~0.047 rad. Anything thinner than that falls between glyphs
+     and reads as noise instead of a line, which is what a first pass at 0.017
+     did. These run one to two columns wide. */
+  var ICE_CRACKS = greatCircles(20260823, 8, 0.046, 0.042);
+  var ICE_CHAOS  = features(51509, 8, 0.19, 0.24);
+  var ICE_SPOTS  = features(99013, 12, 0.05, 0.07);
+
+  function texIce(bx, by, bz, la, lo) {
+    var a = 1.00, i, c, d;
+    /* Mottled chaos terrain, dulling the plates between the fractures. */
+    for (i = 0; i < ICE_CHAOS.length; i++) {
+      c = ICE_CHAOS[i];
       d = bx * c.x + by * c.y + bz * c.z;
-      if (d > c.c) a -= 0.40 * (d - c.c) / (1 - c.c);
+      if (d > c.c) a -= 0.16 * (d - c.c) / (1 - c.c);
     }
-    for (i = 0; i < MOON_CRATERS.length; i++) {
-      c = MOON_CRATERS[i];
+    /* Each fracture is dark, with a raised shoulder either side of it. */
+    for (i = 0; i < ICE_CRACKS.length; i++) {
+      c = ICE_CRACKS[i];
+      d = Math.abs(bx * c.x + by * c.y + bz * c.z);
+      if (d < c.w) a -= 0.60 * (1 - 0.45 * d / c.w);
+      else if (d < c.w * 1.8) a += 0.14 * (1 - (d - c.w) / (c.w * 0.8));
+    }
+    /* Fresh impacts: small and bright against the crust. */
+    for (i = 0; i < ICE_SPOTS.length; i++) {
+      c = ICE_SPOTS[i];
       d = bx * c.x + by * c.y + bz * c.z;
-      if (d > c.c) a += (d < c.rim) ? 0.22 : -0.26;   // bright rim, dark floor
+      if (d > c.c) a += 0.26 * (d - c.c) / (1 - c.c);
     }
-    return clamp(a, 0.12, 1.12);
+    a += 0.03 * Math.sin(lo * 8.0 + la * 5.0);       // fine grain
+    return clamp(a, 0.10, 1.22);
   }
 
   function texSaturn(bx, by, bz, la, lo) {
@@ -270,8 +302,10 @@
       rings: { inner: 1.28, outer: 2.30, gaps: [[1.68, 1.78], [2.04, 2.09]] },
       side: 'right' },
 
-    { name: 'moon', tex: texMoon, rows: 17, extX: 1.14, extY: 1.14, sz: 1.20,
-      tilt: 0.18, roll: 0.10, rate: -0.075, amb: 0.13, phase: 1.9,
+    /* Rows are up from the 17 the old cratered moon used, with sz cut to match,
+       so the extra glyphs go into detail rather than making the body bigger. */
+    { name: 'ice', tex: texIce, rows: 27, extX: 1.14, extY: 1.14, sz: 0.78,
+      tilt: 0.28, roll: 0.10, rate: -0.062, amb: 0.16, phase: 1.9,
       side: 'left' },
 
     { name: 'asteroid', tex: texRock, rock: true, rows: 30, extX: 1.20, extY: 1.20, sz: 1.12,
@@ -493,19 +527,41 @@
   /* The copyright line lives on the globe's last row. */
   var note = document.querySelector('.foot__note');
 
+  /* Columns of the globe's last row the copyright covers, worked out in
+     measure() from where the line actually lands. */
+  var noteFrom = 0, noteTo = 0;
+
+  /* Where the copyright sits, in globe columns. Measured rather than predicted:
+     a count derived from the character count assumes the glyph advance scales
+     with font-size, which stops being true at the sizes this drops to on a
+     narrow screen, and is wrong outright when a browser enforces a minimum font
+     size. Measuring also keeps the gap centred on the line instead of on the
+     viewport, so page zoom cannot slide one off the other. */
+  function noteSpan(colPx, cols) {
+    noteFrom = noteTo = 0;
+    if (!note || !colPx) return;
+    var rng = document.createRange();
+    rng.selectNodeContents(note);
+    var b = rng.getBoundingClientRect();
+    if (!b.width) return;
+    /* Inclusive start, exclusive end. The start floors, so the column the line
+       begins in is always cleared and no terrain can crowd the leading glyph.
+       The end rounds: this is an advance box, so its right edge sits a sliver
+       past the last letter's ink, and ceil() spent a whole blank column on a
+       column the text merely grazed. */
+    noteFrom = clamp(Math.floor(b.left / colPx), 0, cols);
+    noteTo   = clamp(Math.round(b.right / colPx), 0, cols);
+  }
+
   /* Blank the glyphs the copyright covers, rather than letting it sit on top of
      terrain whose brightness changes as the body turns. */
   function punch(text, cols) {
-    if (!note) return text;
-    /* A character is no longer a whole column, so scale before padding. */
-    var w = Math.ceil(note.textContent.trim().length * NOTE_SCALE) + 4;
-    if (w >= cols) return text;
+    if (noteTo <= noteFrom) return text;
     var lines = text.split('\n');
     var i = lines.length - 1;
-    var start = Math.floor((cols - w) / 2);
-    lines[i] = lines[i].slice(0, start)
-             + new Array(w + 1).join(' ')
-             + lines[i].slice(start + w);
+    lines[i] = lines[i].slice(0, noteFrom)
+             + new Array(noteTo - noteFrom + 1).join(' ')
+             + lines[i].slice(noteTo);
     return lines.join('\n');
   }
 
@@ -676,6 +732,9 @@
       note.style.fontSize = (efs * NOTE_SCALE).toFixed(2) + 'px';
       note.style.lineHeight = efs.toFixed(2) + 'px';
     }
+    /* Read the line back after sizing it: this is what the gap is cut from. */
+    noteSpan(efs * CHAR_ASPECT, E.cols);
+    horizon.drawn = null;
 
     horizon.h = E.rows * efs;
     horizon.top = Math.round(docH - horizon.h);
