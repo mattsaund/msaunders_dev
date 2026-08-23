@@ -14,5 +14,10 @@
 /js/*
   Cache-Control: public, max-age=0, must-revalidate
 
+# The cosmos.js tool, copied in from its own repo. Its URLs carry no content
+# hash, so revalidate rather than risk serving a stale build after a re-sync.
+/cosmos/*
+  Cache-Control: public, max-age=0, must-revalidate
+
 /files/*
   Cache-Control: public, max-age=86400
