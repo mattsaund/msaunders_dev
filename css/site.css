@@ -16,7 +16,7 @@
 
   /* ASCII planetarium ink, faint enough to sit behind body copy */
   --space:     #243c50;
-  --star:      #2b4a62;   /* starfield sits in the margins, so a touch brighter */
+  --star:      #2b4a62;   /* a touch brighter than --space: panels dim it anyway */
 
   --fg:        #e7eaef;
   --fg-2:      #98a2b0;
@@ -51,6 +51,11 @@
                                 them in sync. Floor is ~170px: "~/ Certifications"
                                 is the widest label and needs 160px plus the flex
                                 gap, below which its rule vanishes. */
+
+  /* Content panels floating over the planetarium: dark enough to carry body
+     copy, open enough that the art still reads through them. */
+  --panel:     rgba(0, 0, 0, 0.62);
+  --panel-pad: clamp(20px, 2.6vw, 30px);
 
   --r: 3px;
 }
@@ -136,6 +141,16 @@ hr { border: 0; border-top: 1px solid var(--line); margin: 0; }
 main { min-height: 60vh; }
 
 .section { padding: var(--section-pad) 0; }
+/* Every section carries its own panel rather than the page sitting on one flat
+   sheet of black, so the starfield and the planets show between the panels as
+   well as through them. The body stays pure black underneath; these only dim
+   what is behind them. */
+.section > .wrap,
+.hero > .wrap {
+  background: var(--panel);
+  padding-top: var(--panel-pad);
+  padding-bottom: var(--panel-pad);
+}
 
 /* --- type helpers ------------------------------------------ */
 .eyebrow {
@@ -509,8 +524,8 @@ main { min-height: 60vh; }
 /* The horizon globe spans the full width at the foot of the page. */
 .cosmos__horizon { width: 100%; }
 
-/* Starfield. Scattered only in the margins either side of the content
-   column, so no star ever sits behind body copy. */
+/* Starfield, scattered across the whole page. The section panels dim whatever
+   sits behind them, so a star under body copy reads as sky rather than noise. */
 .stars { position: absolute; inset: 0; pointer-events: none; }
 .star {
   position: absolute;

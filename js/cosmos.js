@@ -571,11 +571,6 @@
   /* Weighted toward '.' so the field reads as depth rather than confetti. */
   var STAR_GLYPHS = "....*+,'`x.*.:.";
 
-  function wrapWidth() {
-    var v = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--wrap'));
-    return (isFinite(v) && v > 0) ? v : 1120;
-  }
-
   /* Document y of the globe's limb at a given x, or docH if there is no
      horizon there. Stars below this line would sit "inside" the planet. */
   function limbY(x, vw, docH) {
@@ -589,27 +584,27 @@
   }
 
   function buildStars(vw, docH) {
-    /* Only the margins either side of the content column get stars, so they
-       never end up sitting behind body copy. Below this width there is no
-       margin worth using. */
-    var gutter = (vw - wrapWidth()) / 2;
-    if (vw < 860 || gutter < 60) { stars.textContent = ''; return; }
-
+    /* The whole page, not just the margins. The field used to be confined to
+       the gutters so no star sat behind body copy; the section panels now dim
+       whatever is behind them, so a star under text reads as sky rather than
+       as noise, and the gutter-only field no longer has to exist. That also
+       retires the width floor: there is no longer a margin to run out of. */
     var r = rng(0x5EEDB0);
-    var n = clamp(Math.round(2 * gutter * docH / 3200), 0, 560);
+    var n = clamp(Math.round(vw * docH / 3200), 0, 1200);
     var buf = [];
 
     for (var i = 0; i < n; i++) {
-      var onRight = r() < 0.5;
-      var inset = 8 + r() * (gutter - 18);
-      var x = onRight ? (vw - inset) : inset;
+      var x = 8 + r() * Math.max(0, vw - 16);
       var y = r() * docH;
       /* Sky only: skip anything that would land on the globe. */
       if (y > limbY(x, vw, docH)) continue;
       var g = STAR_GLYPHS.charAt((r() * STAR_GLYPHS.length) | 0);
-      /* Most of the field twinkles. Real skies do have steady stars, so a
-         minority stay fixed and give the eye something to rest against. */
-      var twinkle = r() < 0.62;
+      /* A minority twinkles. The fraction is down from 0.62 now the field
+         covers the whole page rather than two gutters: each animated star is a
+         composited layer, and at the old fraction a desktop page carried ~780
+         of them. A third of a four-times-larger field still leaves nearly twice
+         as many twinkling as before, and real skies are mostly steady anyway. */
+      var twinkle = r() < 0.32;
       var cls = 'star';
       if (twinkle) cls += (r() < 0.6) ? ' star--blink' : ' star--shimmer';
       if (r() < 0.13) cls += ' star--blue';
