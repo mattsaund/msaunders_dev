@@ -72,7 +72,9 @@
     if (!img) return;
     lbImg.src = img.currentSrc || img.src;
     lbImg.alt = img.alt || '';
-    lbCap.textContent = cap ? cap.textContent : (img.alt || '');
+    /* No figcaption means no caption: alt text is for assistive tech, not
+       a visible fallback subtitle. */
+    lbCap.textContent = cap ? cap.textContent : '';
     lb.hidden = false;
     document.body.style.overflow = 'hidden';
     last = fig;

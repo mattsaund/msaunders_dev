@@ -58,6 +58,14 @@ html { -webkit-text-size-adjust: 100%; scroll-behavior: smooth; scroll-padding-t
 
 body {
   margin: 0;
+  /* Sticky footer: on a page shorter than the viewport the copyright would
+     otherwise sit part way up the screen while the horizon globe, positioned
+     off scrollHeight, stays at the bottom. They share a glyph row, so they have
+     to end at the same place. .skip, .cosmos and the lightbox are all out of
+     flow, so they are not flex items. */
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
   background: var(--bg);
   color: var(--fg);
   font-family: var(--sans);
@@ -291,6 +299,38 @@ main { min-height: 60vh; }
 }
 .card__title { font-family: var(--mono); font-size: 17px; margin-bottom: 8px; transition: color .18s; }
 .card__body { color: var(--fg-2); font-size: 14px; margin-bottom: 16px; }
+
+/* --- project cards ----------------------------------------- */
+/* The /projects/ stack: every entry gets the same full-width box, listed in
+   order. Cards with artwork split into copy + media; cards without one run the
+   copy the full width, so adding a project is one block either way. */
+.pstack { display: grid; gap: clamp(20px, 3vw, 32px); }
+.pcard { padding: 0; }
+.pcard__grid { display: grid; grid-template-columns: 1.15fr .85fr; }
+.pcard__grid--solo { grid-template-columns: 1fr; }
+/* With the pills, tagline, tags and button gone the copy is much shorter than
+   the artwork beside it, so centre it in its column rather than stranding it
+   at the top of a tall box. */
+.pcard__main {
+  padding: clamp(24px, 3.4vw, 38px);
+  display: flex; flex-direction: column; justify-content: center;
+}
+.pcard .card__title { margin-bottom: 12px; }
+.pcard__main .card__body { font-size: 14.5px; max-width: 52ch; }
+/* Body copy is the last thing in the box now, so it leaves no gap. */
+.pcard__main .card__body:last-child { margin-bottom: 0; }
+/* No media panel, so the copy is not competing with an image for room. */
+.pcard__grid--solo .card__body { max-width: 68ch; }
+.pcard__media {
+  border-left: 1px solid var(--line); background: var(--bg-3);
+  display: grid; place-items: center;
+  padding: clamp(20px, 3vw, 32px); overflow: hidden;
+}
+.pcard__media img { border: 1px solid var(--line); width: 100%; max-width: 420px; }
+@media (max-width: 860px) {
+  .pcard__grid { grid-template-columns: 1fr; }
+  .pcard__media { border-left: 0; border-top: 1px solid var(--line); }
+}
 
 /* --- data list (key/value) --------------------------------- */
 .kv { display: grid; grid-template-columns: minmax(120px, 170px) 1fr; border-top: 1px solid var(--line); }
@@ -531,6 +571,8 @@ main { min-height: 60vh; }
 /* Content rides above the planetarium. */
 body { position: relative; }
 main, .foot, .skip { position: relative; z-index: 1; }
+main { flex: 1 0 auto; }
+.foot { flex: 0 0 auto; }
 
 @media (max-width: 720px) {
   .cosmos__body { color: #1a2c3a; }   /* quieter where copy is denser */

@@ -20,6 +20,18 @@ TABS = [("About", "/"), ("Misc", "/misc/")]
 # publish it (and put /misc/ back in sitemap.xml).
 MISC_LIVE = False
 
+# Same idea for the projects index: two projects do not need a page of their own
+# yet, so /projects/ is not emitted and the writeups link back to the About page
+# instead. The PROJECTS body below is untouched. Flip this to True and rebuild to
+# bring the page back (and put /projects/ back in sitemap.xml).
+PROJECTS_LIVE = False
+
+# Where a writeup's "back" button and breadcrumb point, given the above.
+PROJ_CRUMB = [("Projects", "/projects/")] if PROJECTS_LIVE else []
+BACKLINK = ('<a class="btn" href="/projects/">All projects</a>' if PROJECTS_LIVE
+            else '<a class="btn" href="/">Back to start</a>')
+PROJECTS_BTN = '<a class="btn" href="/projects/">Projects</a>' if PROJECTS_LIVE else ''
+
 SOCIAL_SVG = {}
 with open(os.path.join(ROOT, "index.html"), encoding="utf-8") as f:
     _idx = f.read()
@@ -83,6 +95,11 @@ def stamp_assets():
 
 
 def page(path, *, title, desc, body, canonical, trail=(), noindex=False):
+    body = body.replace("__BACKLINK__", BACKLINK)
+    # When there is no index to link to, take the whole line with it rather
+    # than leaving a blank one inside the button row.
+    body = (body.replace("__PROJECTS_BTN__", PROJECTS_BTN) if PROJECTS_BTN
+            else re.sub(r"\n *__PROJECTS_BTN__", "", body))
     html = f'''<!doctype html>
 <html lang="en">
 <head>
@@ -128,87 +145,44 @@ def page(path, *, title, desc, body, canonical, trail=(), noindex=False):
 PROJECTS = """
   <section class="hero">
     <div class="wrap">
-      <p class="eyebrow"><b>//</b> Index</p>
       <h1 class="h-xl">Projects</h1>
-      <p class="lede">
-        Hardware and software I have designed, built, and shipped. Each entry gets a full
-        writeup: what it does, how it works, what I learned.
-      </p>
     </div>
   </section>
 
-  <!-- ---------- SLOT 01 :: FEATURED ---------- -->
-  <section class="section" id="godash">
-    <div class="wrap">
-      <p class="eyebrow"><b>01</b> Featured</p>
-      <a class="card card--link" href="/projects/godash/" style="padding:0;border-color:var(--accent-line)">
-        <div style="display:grid;grid-template-columns:1.15fr .85fr;gap:0" class="feat">
-          <div style="padding:clamp(24px,3.4vw,38px)">
-            <div style="display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:18px">
-              <span class="status status--live"><i class="dot"></i>Live on the App Store</span>
-              <span class="status"><i class="dot"></i>iOS 17+</span>
-            </div>
-            <h2 class="h-lg card__title" style="margin-bottom:12px">GoDash</h2>
-            <p class="mono" style="color:var(--accent);font-size:14px;margin-bottom:16px">Your whole drive on one dashboard.</p>
-            <p class="card__body" style="font-size:14.5px;max-width:52ch">
-              Turns an iPhone on a car mount into an instrumented dash cam. Records a rolling
-              10&#8209;minute loop, burns live telemetry into the footage, and runs Apple&nbsp;Maps and
-              Apple&nbsp;Music in split modules so you never switch apps while driving.
-            </p>
-            <ul class="tags" style="margin-bottom:24px">
-              <li class="tag tag--accent">Swift</li>
-              <li class="tag tag--accent">SwiftUI</li>
-              <li class="tag">AVFoundation</li>
-              <li class="tag">CoreMotion</li>
-              <li class="tag">MapKit</li>
-              <li class="tag">MusicKit</li>
-            </ul>
-            <span class="btn btn--primary" style="pointer-events:none">Read the writeup</span>
-          </div>
-          <div style="border-left:1px solid var(--line);background:var(--bg-3);display:grid;place-items:center;padding:clamp(20px,3vw,32px);overflow:hidden">
-            <img src="/img/godash/card-hero.jpg" width="900" height="787" loading="lazy" decoding="async"
-                 alt="Two iPhones running GoDash: one showing the music module over a live speed and telemetry readout, the other showing turn-by-turn navigation"
-                 style="border:1px solid var(--line);width:100%;max-width:420px">
-          </div>
-        </div>
-      </a>
-    </div>
-  </section>
-
-  <!-- ---------- SLOTS 02 / 03 ---------- -->
   <section class="section">
     <div class="wrap">
-      <p class="eyebrow"><b>02-03</b> Archive</p>
-      <div class="cols-2">
+      <div class="pstack">
 
-        <a class="card card--link" href="/projects/observatory/">
-          <span class="card__idx">[ 02 ] &nbsp;2023</span>
-          <h2 class="card__title h-md">Mobile Computerized Automated Observatory</h2>
-          <p class="card__body">
-            Newtonian reflector on an aluminium extrusion frame with a 4.5&#8209;inch spherical
-            primary. A Raspberry&nbsp;Pi and base motors track celestial objects across the sky.
-            269&times; magnification, car&#8209;portable, hour&#8209;long exposures.
-          </p>
-          <ul class="tags" style="margin-bottom:18px">
-            <li class="tag">C</li><li class="tag">Python</li><li class="tag">Embedded</li>
-            <li class="tag">Tesseract</li><li class="tag">Linux</li>
-          </ul>
-          <span class="status status--wip"><i class="dot"></i>Writeup in progress</span>
+        <!-- ---------- GoDash ---------- -->
+        <a class="card card--link pcard" href="/projects/godash/" id="godash">
+          <div class="pcard__grid">
+            <div class="pcard__main">
+              <h2 class="h-lg card__title">GoDash</h2>
+              <p class="card__body">
+                Turns an iPhone on a car mount into an instrumented dash cam. Records a rolling
+                10&#8209;minute loop, burns live telemetry into the footage, and runs Apple&nbsp;Maps and
+                Apple&nbsp;Music in split modules so you never switch apps while driving.
+              </p>
+            </div>
+            <div class="pcard__media">
+              <img src="/img/godash/card-hero.jpg" width="900" height="787" loading="lazy" decoding="async"
+                   alt="Two iPhones running GoDash: one showing the music module over a live speed and telemetry readout, the other showing turn-by-turn navigation">
+            </div>
+          </div>
         </a>
 
-        <a class="card card--link" href="/projects/apt-decoder/">
-          <span class="card__idx">[ 03 ] &nbsp;2023</span>
-          <h2 class="card__title h-md">NOAA Satellite APT Signal Decoder</h2>
-          <p class="card__body">
-            Custom ground station and quadrifilar helix antenna. Listens for APT downlinks from
-            passing NOAA weather satellites, captures the pass automatically, and decodes it into
-            visible and infrared images of Earth.
-          </p>
-          <ul class="tags" style="margin-bottom:18px">
-            <li class="tag">C</li><li class="tag">Python</li><li class="tag">SDR</li>
-            <li class="tag">Networking</li><li class="tag">Soldering</li>
-          </ul>
-          <span class="status status--wip"><i class="dot"></i>Writeup in progress</span>
+        <!-- ---------- Observatory ---------- -->
+        <a class="card card--link pcard" href="/projects/observatory/" id="observatory">
+          <div class="pcard__grid pcard__grid--solo">
+            <div class="pcard__main">
+              <h2 class="h-lg card__title">Mobile Computerized Automated Observatory</h2>
+              <p class="card__body">
+                Newtonian reflector on an aluminium extrusion frame with a 4.5&#8209;inch spherical
+                primary. A Raspberry&nbsp;Pi and base motors track celestial objects across the sky.
+                269&times; magnification, car&#8209;portable, hour&#8209;long exposures.
+              </p>
+            </div>
+          </div>
         </a>
 
       </div>
@@ -219,10 +193,6 @@ PROJECTS = """
       </div>
     </div>
   </section>
-
-  <style>
-    @media (max-width: 860px) { .feat { grid-template-columns: 1fr !important; } .feat > div:last-child { border-left: 0 !important; border-top: 1px solid var(--line); } }
-  </style>
 """
 
 
@@ -233,34 +203,15 @@ GODASH = """
 
   <section class="hero" style="padding-top:28px">
     <div class="wrap">
-      <div style="display:flex;flex-wrap:wrap;gap:10px;margin-bottom:22px">
-        <span class="status status--live"><i class="dot"></i>Live on the App Store</span>
-        <span class="status"><i class="dot"></i>Requires iOS 17+</span>
-        <span class="status"><i class="dot"></i>Actively developed</span>
-      </div>
-      <h1 class="h-xl" style="margin-bottom:14px">GoDash</h1>
-      <p class="hero__role">Your whole drive on one dashboard.</p>
+      <h1 class="h-xl">GoDash</h1>
       <p class="lede">
         An iOS app I designed and built. It turns an iPhone in a hands-free car mount into a dash
         cam that also handles navigation, music, and live vehicle telemetry, without switching
         apps at 70&nbsp;mph.
       </p>
       <div class="btn-row" style="margin-top:30px">
-        <a class="btn btn--primary" href="https://apps.apple.com/us/app/godash-dashcam-app/id6792043434" target="_blank" rel="noopener">Download on the App Store</a>
-        <a class="btn" href="https://godash.us/" target="_blank" rel="noopener">godash.us</a>
-      </div>
-    </div>
-  </section>
-
-  <!-- ---------- SPEC ---------- -->
-  <section class="section section--tight">
-    <div class="wrap">
-      <div class="stats">
-        <div class="stat"><div class="stat__n">10 min</div><div class="stat__l">Rolling loop buffer</div></div>
-        <div class="stat"><div class="stat__n">1080p</div><div class="stat__l">Capture resolution</div></div>
-        <div class="stat"><div class="stat__n">5</div><div class="stat__l">Telemetry channels</div></div>
-        <div class="stat"><div class="stat__n">2</div><div class="stat__l">Simultaneous modules</div></div>
-        <div class="stat"><div class="stat__n">0</div><div class="stat__l">Data leaving device</div></div>
+        <a class="btn" href="https://apps.apple.com/us/app/godash-dashcam-app/id6792043434" target="_blank" rel="noopener">App Store</a>
+        <a class="btn" href="https://godash.us/" target="_blank" rel="noopener">Website</a>
       </div>
     </div>
   </section>
@@ -285,200 +236,66 @@ GODASH = """
               distance, sampled live and burned into saved footage.
             </p>
             <p>
-              Free with basic recording. <strong>GoDash Pro</strong> unlocks higher resolution, longer
-              loops, the telemetry overlay, and crash detection.
+              Capture runs off the rear camera through AVFoundation into a fixed-length ring of video
+              segments. Old segments are discarded as new ones are written, so storage stays bounded no
+              matter how long the drive is. A save stitches the ring into one clip: the ten minutes
+              leading up to the moment you wanted them.
+            </p>
+            <p>
+              CoreMotion supplies acceleration for g-force, CoreLocation supplies speed, heading, and
+              altitude. Samples are timestamped against the capture clock so the overlay lines up with
+              the frame it describes instead of drifting across a long clip.
+            </p>
+            <p>
+              The interface is a stack of resizable modules, not a set of screens. Navigation and music
+              each render at full or compact height, and any pairing is reachable in one gesture. This is
+              the part I have iterated on most. The target: a driver can restore the layout they want by
+              feel, without reading the screen.
+            </p>
+            <p>
+              A motion threshold on sustained deceleration and impact-scale acceleration flags an
+              event. The buffer around it is locked and written out immediately, before the ring can
+              overwrite the segments that matter.
             </p>
           </div>
 
-          <dl class="kv" style="margin-top:34px">
-            <dt>Role</dt><dd>Sole designer and developer</dd>
-            <dt>Platform</dt><dd>iPhone, iOS 17+</dd>
-            <dt>Language</dt><dd><span class="mono">Swift</span> &middot; <span class="mono">SwiftUI</span></dd>
-            <dt>Frameworks</dt><dd>AVFoundation &middot; CoreMotion &middot; CoreLocation &middot; MapKit &middot; MusicKit &middot; Photos</dd>
-            <dt>Status</dt><dd>Shipped, in active development</dd>
-            <dt>Privacy</dt><dd>Recordings, telemetry, and account details stay on device</dd>
-          </dl>
         </div>
       </div>
     </div>
   </section>
 
-  <!-- ---------- FEATURES ---------- -->
+  <!-- ---------- GALLERY ---------- -->
   <section class="section">
     <div class="wrap">
       <div class="split">
-        <div class="split__label"><p class="eyebrow"><b>02</b> Features</p></div>
-        <div class="cols-2" style="gap:1px;background:var(--line);border:1px solid var(--line)">
-          <div class="card" style="border:0">
-            <span class="card__idx">[ REC ]</span>
-            <h3 class="card__title h-md">Loop recording</h3>
-            <p class="card__body">
-              A rolling buffer holds up to ten minutes of driving. One tap writes it to the device
-              as a permanent clip. No scrubbing, no file management, no waiting until you get home.
-            </p>
-          </div>
-          <div class="card" style="border:0">
-            <span class="card__idx">[ TELEM ]</span>
-            <h3 class="card__title h-md">Live telemetry overlay</h3>
-            <p class="card__body">
-              Speed, g-force, heading, altitude, and trip distance are sampled while you drive and
-              composited onto saved clips, so the footage carries its own context.
-            </p>
-          </div>
-          <div class="card" style="border:0">
-            <span class="card__idx">[ NAV ]</span>
-            <h3 class="card__title h-md">Turn-by-turn navigation</h3>
-            <p class="card__body">
-              Apple&nbsp;Maps directions run in a module, not another app. Full-height for the route,
-              collapsed to one instruction card when you do not need it.
-            </p>
-          </div>
-          <div class="card" style="border:0">
-            <span class="card__idx">[ AUDIO ]</span>
-            <h3 class="card__title h-md">Apple Music, in place</h3>
-            <p class="card__body">
-              Browse, play, and skip without leaving the recording session. Pairs with navigation
-              so both are on screen at once.
-            </p>
-          </div>
-          <div class="card" style="border:0">
-            <span class="card__idx">[ SAFETY ]</span>
-            <h3 class="card__title h-md">Crash detection</h3>
-            <p class="card__body">
-              Motion thresholds for collisions and hard braking preserve the footage from before,
-              during, and after the event, saved without you touching the phone.
-            </p>
-          </div>
-          <div class="card" style="border:0">
-            <span class="card__idx">[ LIB ]</span>
-            <h3 class="card__title h-md">Clips &amp; export</h3>
-            <p class="card__body">
-              Saved clips are organised chronologically, with in-app playback and one-step export
-              to Photos.
-            </p>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- ---------- HOW IT WORKS ---------- -->
-  <section class="section">
-    <div class="wrap">
-      <div class="split">
-        <div class="split__label"><p class="eyebrow"><b>03</b> How it works</p></div>
-        <div class="prose">
-          <h3>The recording pipeline</h3>
-          <p>
-            Capture runs off the rear camera through AVFoundation into a fixed-length ring of video
-            segments. Old segments are discarded as new ones are written, so storage stays bounded no
-            matter how long the drive is. A save stitches the ring into one clip: the ten minutes
-            leading up to the moment you wanted them.
-          </p>
-
-          <h3>Telemetry</h3>
-          <p>
-            CoreMotion supplies acceleration for g-force, CoreLocation supplies speed, heading, and
-            altitude. Samples are timestamped against the capture clock so the overlay lines up with
-            the frame it describes instead of drifting across a long clip.
-          </p>
-
-          <h3>The module system</h3>
-          <p>
-            The interface is a stack of resizable modules, not a set of screens. Navigation and music
-            each render at full or compact height, and any pairing is reachable in one gesture. This is
-            the part I have iterated on most. The target: a driver can restore the layout they want by
-            feel, without reading the screen.
-          </p>
-
-          <h3>Crash detection</h3>
-          <p>
-            A motion threshold on sustained deceleration and impact-scale acceleration flags an
-            event. The buffer around it is locked and written out immediately, before the ring can
-            overwrite the segments that matter.
-          </p>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- ---------- SCREENS ---------- -->
-  <section class="section">
-    <div class="wrap">
-      <p class="eyebrow"><b>04</b> In the car</p>
-      <p class="lede" style="margin-bottom:32px">
-        Shot on a hands-free mount during real drives. Select an image to enlarge.
-      </p>
-      <div class="shots">
-        <figure class="shot" data-zoom>
-          <img src="/img/godash/incar-home.jpg" width="640" height="1385" loading="lazy" decoding="async" alt="GoDash home layout with navigation and music modules on a dash mount">
-          <figcaption>Home: maps + music</figcaption>
-        </figure>
-        <figure class="shot" data-zoom>
-          <img src="/img/godash/incar-maps-music.jpg" width="640" height="1385" loading="lazy" decoding="async" alt="Split view showing turn-by-turn navigation above the music player">
-          <figcaption>Split: navigation + player</figcaption>
-        </figure>
-        <figure class="shot" data-zoom>
-          <img src="/img/godash/incar-maps-telemetry.jpg" width="640" height="1385" loading="lazy" decoding="async" alt="Navigation module above the live telemetry readout showing speed and g-force">
-          <figcaption>Navigation + telemetry</figcaption>
-        </figure>
-        <figure class="shot" data-zoom>
-          <img src="/img/godash/incar-music-telemetry.jpg" width="640" height="1385" loading="lazy" decoding="async" alt="Music module above the live telemetry readout">
-          <figcaption>Music + telemetry</figcaption>
-        </figure>
-        <figure class="shot" data-zoom>
-          <img src="/img/godash/incar-maps-minimusic.jpg" width="640" height="1385" loading="lazy" decoding="async" alt="Full height navigation with the music module collapsed to a compact bar">
-          <figcaption>Full nav, compact music</figcaption>
-        </figure>
-        <figure class="shot" data-zoom>
-          <img src="/img/godash/incar-minimaps-music.jpg" width="640" height="1385" loading="lazy" decoding="async" alt="Compact navigation instruction card above a full height music module">
-          <figcaption>Compact nav, full music</figcaption>
-        </figure>
-        <figure class="shot" data-zoom>
-          <img src="/img/godash/screen-clips.jpg" width="640" height="1385" loading="lazy" decoding="async" alt="Saved clips library listed chronologically">
-          <figcaption>Clips library</figcaption>
-        </figure>
-        <figure class="shot" data-zoom>
-          <img src="/img/godash/screen-telemetry-overlay.jpg" width="640" height="1385" loading="lazy" decoding="async" alt="Saved clip playing back with speed, g-force, heading and altitude burned into the frame">
-          <figcaption>Saved clip: overlay</figcaption>
-        </figure>
-      </div>
-    </div>
-  </section>
-
-  <!-- ---------- PROMO ---------- -->
-  <section class="section">
-    <div class="wrap">
-      <p class="eyebrow"><b>05</b> Press kit</p>
-      <div class="promos">
-        <img src="/img/godash/promo-telemetry.jpg" width="800" height="1000" loading="lazy" decoding="async" alt="GoDash promotional image highlighting the live telemetry readout">
-        <img src="/img/godash/promo-music.jpg" width="800" height="1000" loading="lazy" decoding="async" alt="GoDash promotional image highlighting the music module">
-        <img src="/img/godash/promo-clips.jpg" width="800" height="1000" loading="lazy" decoding="async" alt="GoDash promotional image highlighting the saved clips library">
-      </div>
-    </div>
-  </section>
-
-  <!-- ---------- GET IT ---------- -->
-  <section class="section">
-    <div class="wrap">
-      <div class="card" style="border-color:var(--accent-line);display:grid;grid-template-columns:1fr auto;gap:clamp(20px,4vw,44px);align-items:center" id="get">
+        <div class="split__label"><p class="eyebrow"><b>02</b> Gallery</p></div>
         <div>
-          <p class="eyebrow" style="margin-bottom:16px"><b>&rarr;</b> Get GoDash</p>
-          <h2 class="h-lg" style="margin-bottom:12px">Free on the App Store</h2>
-          <p class="muted" style="font-size:14.5px;max-width:46ch;margin-bottom:22px">
-            Basic recording is free. GoDash Pro unlocks higher resolution, longer loops, telemetry
-            overlays, and crash detection. Requires iOS&nbsp;17 or later.
-          </p>
-          <div class="btn-row">
-            <a class="btn btn--primary" href="https://apps.apple.com/us/app/godash-dashcam-app/id6792043434" target="_blank" rel="noopener">App Store</a>
-            <a class="btn" href="https://godash.us/" target="_blank" rel="noopener">godash.us</a>
+          <div class="shots">
+            <figure class="shot" data-zoom>
+              <img src="/img/godash/incar-home.jpg" width="640" height="1385" loading="lazy" decoding="async" alt="GoDash home layout with navigation and music modules on a dash mount">
+            </figure>
+            <figure class="shot" data-zoom>
+              <img src="/img/godash/incar-maps-music.jpg" width="640" height="1385" loading="lazy" decoding="async" alt="Split view showing turn-by-turn navigation above the music player">
+            </figure>
+            <figure class="shot" data-zoom>
+              <img src="/img/godash/incar-maps-telemetry.jpg" width="640" height="1385" loading="lazy" decoding="async" alt="Navigation module above the live telemetry readout showing speed and g-force">
+            </figure>
+            <figure class="shot" data-zoom>
+              <img src="/img/godash/incar-music-telemetry.jpg" width="640" height="1385" loading="lazy" decoding="async" alt="Music module above the live telemetry readout">
+            </figure>
+            <figure class="shot" data-zoom>
+              <img src="/img/godash/incar-maps-minimusic.jpg" width="640" height="1385" loading="lazy" decoding="async" alt="Full height navigation with the music module collapsed to a compact bar">
+            </figure>
+            <figure class="shot" data-zoom>
+              <img src="/img/godash/incar-minimaps-music.jpg" width="640" height="1385" loading="lazy" decoding="async" alt="Compact navigation instruction card above a full height music module">
+            </figure>
+            <figure class="shot" data-zoom>
+              <img src="/img/godash/screen-clips.jpg" width="640" height="1385" loading="lazy" decoding="async" alt="Saved clips library listed chronologically">
+            </figure>
+            <figure class="shot" data-zoom>
+              <img src="/img/godash/screen-telemetry-overlay.jpg" width="640" height="1385" loading="lazy" decoding="async" alt="Saved clip playing back with speed, g-force, heading and altitude burned into the frame">
+            </figure>
           </div>
-        </div>
-        <div style="text-align:center">
-          <img src="/img/godash/qr-appstore.jpg" width="320" height="320" loading="lazy" decoding="async"
-               alt="QR code linking to GoDash on the App Store"
-               style="width:132px;border:1px solid var(--line-2)">
-          <p class="mono dim" style="font-size:11px;letter-spacing:.1em;text-transform:uppercase;margin-top:10px">Scan to install</p>
         </div>
       </div>
     </div>
@@ -486,14 +303,10 @@ GODASH = """
 
   <div class="wrap">
     <div class="pager">
-      <a class="btn" href="/projects/"> All projects</a>
+      __BACKLINK__
       <a class="btn" href="/projects/observatory/">Next: Observatory</a>
     </div>
   </div>
-
-  <style>
-    @media (max-width: 620px) { #get { grid-template-columns: 1fr !important; } }
-  </style>
 """
 
 
@@ -504,12 +317,7 @@ OBSERVATORY = """
 
   <section class="hero" style="padding-top:28px">
     <div class="wrap">
-      <div style="display:flex;flex-wrap:wrap;gap:10px;margin-bottom:22px">
-        <span class="status status--wip"><i class="dot"></i>Full writeup in progress</span>
-        <span class="status"><i class="dot"></i>Built 2023</span>
-      </div>
-      <h1 class="h-xl" style="margin-bottom:14px">Mobile Computerized<br>Automated Observatory</h1>
-      <p class="hero__role">A car-portable Newtonian reflector that finds and tracks the sky on its own.</p>
+      <h1 class="h-xl">Mobile Computerized<br>Automated Observatory</h1>
       <p class="lede">
         A ground-up telescope build: aluminium extrusion frame, 4.5&#8209;inch spherical primary
         mirror, motorised base, and a Raspberry&nbsp;Pi running plate-solving software that holds a
@@ -518,17 +326,7 @@ OBSERVATORY = """
     </div>
   </section>
 
-  <section class="section section--tight">
-    <div class="wrap">
-      <div class="stats">
-        <div class="stat"><div class="stat__n">4.5&Prime;</div><div class="stat__l">Spherical primary</div></div>
-        <div class="stat"><div class="stat__n">269&times;</div><div class="stat__l">Max magnification</div></div>
-        <div class="stat"><div class="stat__n">1.6&deg;</div><div class="stat__l">Field of view</div></div>
-        <div class="stat"><div class="stat__n">24 MP</div><div class="stat__l">6000 &times; 4000 sensor</div></div>
-      </div>
-    </div>
-  </section>
-
+  <!-- ---------- OVERVIEW ---------- -->
   <section class="section">
     <div class="wrap">
       <div class="split">
@@ -539,7 +337,8 @@ OBSERVATORY = """
               The goal: an instrument capable of serious deep-sky imaging that still fits in a car
               and can be set up by one person in the dark. The optical tube is a Newtonian reflector on
               a custom aluminium extrusion frame, chosen for stiffness per kilogram and because the
-              geometry can be re-squared with a hex key instead of rebuilt.
+              geometry can be re-squared with a hex key instead of rebuilt. The 4.5&#8209;inch spherical
+              primary reaches 269&times; magnification across a 1.6&deg; field.
             </p>
             <p>
               Tracking runs on <strong>Pi&nbsp;Finder</strong> on a Raspberry&nbsp;Pi, driving motors
@@ -549,31 +348,36 @@ OBSERVATORY = """
             <p>
               Imaging goes through a Sony&nbsp;ZV&#8209;E10: a 6000&nbsp;&times;&nbsp;4000 frame with
               exposure stacking over long sessions. Tesseract reads instrument displays in the capture
-              pipeline.
+              pipeline. The full build log, covering mirror figuring, frame geometry, drive
+              calibration, and first light, is still being written.
             </p>
           </div>
-
-          <dl class="kv" style="margin-top:34px">
-            <dt>Role</dt><dd>Design, fabrication, and software</dd>
-            <dt>Optics</dt><dd>Newtonian reflector, 4.5&#8209;inch spherical primary</dd>
-            <dt>Frame</dt><dd>Aluminium extrusion, field-serviceable</dd>
-            <dt>Mount</dt><dd>Motorised base, Raspberry Pi controlled</dd>
-            <dt>Camera</dt><dd>Sony ZV&#8209;E10, 6000 &times; 4000, multi-hour exposures</dd>
-            <dt>Stack</dt><dd><span class="mono">C</span> &middot; <span class="mono">Python</span> &middot; Embedded &middot; Tesseract &middot; Linux</dd>
-            <dt>Transport</dt><dd>Fits in a car, single-person setup</dd>
-          </dl>
         </div>
       </div>
     </div>
   </section>
 
+  <!-- ---------- GALLERY ---------- -->
   <section class="section">
     <div class="wrap">
-      <div class="note">
-        <span class="note__label">Slot reserved</span>
-        The full build log is being written: mirror figuring, frame geometry, drive calibration,
-        first-light images. Astrophotography from this scope will appear in the
-        <a href="/misc/">Misc</a>.
+      <div class="split">
+        <div class="split__label"><p class="eyebrow"><b>02</b> Gallery</p></div>
+        <div>
+          <div class="empty">
+            <div class="empty__icon">&#9633;</div>
+            <h2>No images yet</h2>
+            <p>Build photographs and first-light frames go here.</p>
+          </div>
+
+          <!-- Drop files in /img/observatory/, then replace the block above with
+               this grid. One figure per image; captions are optional.
+          <div class="shots">
+            <figure class="shot" data-zoom>
+              <img src="/img/observatory/example.jpg" width="1200" height="800" loading="lazy" decoding="async" alt="Describe the image">
+            </figure>
+          </div>
+          -->
+        </div>
       </div>
     </div>
   </section>
@@ -581,98 +385,7 @@ OBSERVATORY = """
   <div class="wrap">
     <div class="pager">
       <a class="btn" href="/projects/godash/"> GoDash</a>
-      <a class="btn" href="/projects/apt-decoder/">Next: APT Decoder</a>
-    </div>
-  </div>
-"""
-
-
-# ==================================================================
-#  PROJECTS / APT decoder (slot 03)
-# ==================================================================
-APT = """
-
-  <section class="hero" style="padding-top:28px">
-    <div class="wrap">
-      <div style="display:flex;flex-wrap:wrap;gap:10px;margin-bottom:22px">
-        <span class="status status--wip"><i class="dot"></i>Full writeup in progress</span>
-        <span class="status"><i class="dot"></i>Built 2023</span>
-      </div>
-      <h1 class="h-xl" style="margin-bottom:14px">NOAA Satellite<br>APT Signal Decoder</h1>
-      <p class="hero__role">Catches weather satellite passes and turns them into pictures of Earth.</p>
-      <p class="lede">
-        A purpose-built receiver and quadrifilar helix antenna. It listens for APT downlinks from
-        passing NOAA weather satellites, starts capturing the moment a pass begins, and decodes the
-        audio into visible and infrared imagery.
-      </p>
-    </div>
-  </section>
-
-  <section class="section section--tight">
-    <div class="wrap">
-      <div class="stats">
-        <div class="stat"><div class="stat__n">APT</div><div class="stat__l">Automatic picture transmission</div></div>
-        <div class="stat"><div class="stat__n">QFH</div><div class="stat__l">Quadrifilar helix antenna</div></div>
-        <div class="stat"><div class="stat__n">SDR</div><div class="stat__l">Software defined radio</div></div>
-        <div class="stat"><div class="stat__n">Auto</div><div class="stat__l">Unattended pass capture</div></div>
-      </div>
-    </div>
-  </section>
-
-  <section class="section">
-    <div class="wrap">
-      <div class="split">
-        <div class="split__label"><p class="eyebrow"><b>01</b> Overview</p></div>
-        <div>
-          <div class="prose">
-            <p>
-              NOAA's polar-orbiting weather satellites broadcast an analogue APT signal continuously
-              as they pass overhead. Anyone with the right antenna can receive it. The hard parts are
-              antenna polarisation, catching the pass at the right moment, and sampling cleanly enough
-              that the decoder has something to work with.
-            </p>
-            <p>
-              The antenna is a <strong>quadrifilar helix</strong>, built for circular polarisation and
-              a wide hemispherical pattern so a satellite stays in the beam horizon to horizon without
-              steering. Behind it, a Raspberry&nbsp;Pi and an SDR sit in a 3D-printed enclosure that
-              handles capture unattended.
-            </p>
-            <p>
-              On signal detect the receiver starts recording and processes at the correct sample
-              rate. The audio goes to <strong>WXtoImg</strong>, which decodes it into imagery, overlays
-              coastlines and boundaries, and combines sensor channels into visible and infrared
-              composites.
-            </p>
-          </div>
-
-          <dl class="kv" style="margin-top:34px">
-            <dt>Role</dt><dd>Design, fabrication, and software</dd>
-            <dt>Antenna</dt><dd>Custom quadrifilar helix, circular polarisation</dd>
-            <dt>Receiver</dt><dd>Software defined radio + Raspberry Pi</dd>
-            <dt>Enclosure</dt><dd>3D printed, weather-tolerant</dd>
-            <dt>Capture</dt><dd>Automatic trigger on signal detect, correct-rate resampling</dd>
-            <dt>Decoding</dt><dd>WXtoImg, landmass overlay, visible / IR composites</dd>
-            <dt>Stack</dt><dd><span class="mono">C</span> &middot; <span class="mono">Python</span> &middot; Embedded &middot; Linux &middot; Networking &middot; Soldering</dd>
-          </dl>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <section class="section">
-    <div class="wrap">
-      <div class="note">
-        <span class="note__label">Slot reserved</span>
-        The full writeup is being written: antenna geometry and SWR tuning, pass-prediction and
-        trigger logic, and a set of decoded passes.
-      </div>
-    </div>
-  </section>
-
-  <div class="wrap">
-    <div class="pager">
-      <a class="btn" href="/projects/observatory/"> Observatory</a>
-      <a class="btn" href="/projects/">All projects</a>
+      __BACKLINK__
     </div>
   </div>
 """
@@ -747,14 +460,9 @@ MISC = """
 MISC_SOON = """
   <section class="hero">
     <div class="wrap">
-      <p class="eyebrow"><b>//</b> Off the clock</p>
       <h1 class="h-xl">Under construction<span class="caret">_</span></h1>
-      <p class="lede">
-        Hobbies and the photo gallery are being rebuilt into one page. Back soon.
-      </p>
       <div class="btn-row" style="margin-top:30px">
-        <a class="btn btn--primary" href="/">Back to start</a>
-        <a class="btn" href="/projects/">Projects</a>
+        <a class="btn" href="/">Home</a>
       </div>
     </div>
   </section>
@@ -772,7 +480,7 @@ NOTFOUND = """
       <p class="lede">That page does not exist, or it moved.</p>
       <div class="btn-row" style="margin-top:30px">
         <a class="btn btn--primary" href="/">Back to start</a>
-        <a class="btn" href="/projects/">Projects</a>
+        __PROJECTS_BTN__
       </div>
     </div>
   </section>
@@ -784,21 +492,18 @@ NOTFOUND = """
 # ==================================================================
 if __name__ == "__main__":
     print("building pages...")
-    page("projects/index.html", title="Projects / Matthew Saunders",
-         desc="Hardware and software projects by Matthew Saunders: GoDash iOS dash cam, an automated observatory, and a NOAA APT satellite ground station.",
-         body=PROJECTS, canonical="https://msaunders.dev/projects/", trail=[("Projects", None)])
+    if PROJECTS_LIVE:
+        page("projects/index.html", title="Projects / Matthew Saunders",
+             desc="Hardware and software projects by Matthew Saunders: GoDash, an iOS dash cam app, and a car-portable computerized automated observatory.",
+             body=PROJECTS, canonical="https://msaunders.dev/projects/", trail=[("Projects", None)])
 
     page("projects/godash/index.html", title="GoDash / Matthew Saunders",
          desc="GoDash is an iOS dash cam app with a 10-minute loop buffer, live telemetry overlay, crash detection, and split-screen navigation and music modules.",
-         body=GODASH, canonical="https://msaunders.dev/projects/godash/", trail=[("Projects", "/projects/"), ("GoDash", None)])
+         body=GODASH, canonical="https://msaunders.dev/projects/godash/", trail=PROJ_CRUMB + [("GoDash", None)])
 
     page("projects/observatory/index.html", title="Mobile Computerized Automated Observatory / Matthew Saunders",
          desc="A car-portable Newtonian reflector with a motorised Raspberry Pi driven base that tracks celestial objects for hour-long exposures.",
-         body=OBSERVATORY, canonical="https://msaunders.dev/projects/observatory/", trail=[("Projects", "/projects/"), ("Observatory", None)])
-
-    page("projects/apt-decoder/index.html", title="NOAA Satellite APT Decoder / Matthew Saunders",
-         desc="A custom SDR ground station and quadrifilar helix antenna that automatically captures and decodes APT downlinks from NOAA weather satellites.",
-         body=APT, canonical="https://msaunders.dev/projects/apt-decoder/", trail=[("Projects", "/projects/"), ("APT Decoder", None)])
+         body=OBSERVATORY, canonical="https://msaunders.dev/projects/observatory/", trail=PROJ_CRUMB + [("Observatory", None)])
 
     page("misc/index.html", title="Misc / Matthew Saunders",
          desc=("Astrophotography, aerospace, computer building, camping, hiking, climbing, music and film, "

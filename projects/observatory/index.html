@@ -13,7 +13,7 @@
 <meta property="og:url" content="https://msaunders.dev/projects/observatory/">
 <meta property="og:title" content="Mobile Computerized Automated Observatory / Matthew Saunders">
 <meta property="og:description" content="A car-portable Newtonian reflector with a motorised Raspberry Pi driven base that tracks celestial objects for hour-long exposures.">
-<link rel="stylesheet" href="/css/site.css?v=8dd78609">
+<link rel="stylesheet" href="/css/site.css?v=8f327d2c">
 </head>
 <body>
 <a class="skip" href="#main">Skip to content</a>
@@ -21,19 +21,14 @@
 <main id="main">
   <div class="wrap">
     <nav class="crumb" aria-label="Breadcrumb">
-      <a href="/">msaunders.dev</a><span class="crumb__sep">/</span><a href="/projects/">Projects</a><span class="crumb__sep">/</span><span>Observatory</span>
+      <a href="/">msaunders.dev</a><span class="crumb__sep">/</span><span>Observatory</span>
     </nav>
   </div>
 
 
   <section class="hero" style="padding-top:28px">
     <div class="wrap">
-      <div style="display:flex;flex-wrap:wrap;gap:10px;margin-bottom:22px">
-        <span class="status status--wip"><i class="dot"></i>Full writeup in progress</span>
-        <span class="status"><i class="dot"></i>Built 2023</span>
-      </div>
-      <h1 class="h-xl" style="margin-bottom:14px">Mobile Computerized<br>Automated Observatory</h1>
-      <p class="hero__role">A car-portable Newtonian reflector that finds and tracks the sky on its own.</p>
+      <h1 class="h-xl">Mobile Computerized<br>Automated Observatory</h1>
       <p class="lede">
         A ground-up telescope build: aluminium extrusion frame, 4.5&#8209;inch spherical primary
         mirror, motorised base, and a Raspberry&nbsp;Pi running plate-solving software that holds a
@@ -42,17 +37,7 @@
     </div>
   </section>
 
-  <section class="section section--tight">
-    <div class="wrap">
-      <div class="stats">
-        <div class="stat"><div class="stat__n">4.5&Prime;</div><div class="stat__l">Spherical primary</div></div>
-        <div class="stat"><div class="stat__n">269&times;</div><div class="stat__l">Max magnification</div></div>
-        <div class="stat"><div class="stat__n">1.6&deg;</div><div class="stat__l">Field of view</div></div>
-        <div class="stat"><div class="stat__n">24 MP</div><div class="stat__l">6000 &times; 4000 sensor</div></div>
-      </div>
-    </div>
-  </section>
-
+  <!-- ---------- OVERVIEW ---------- -->
   <section class="section">
     <div class="wrap">
       <div class="split">
@@ -63,7 +48,8 @@
               The goal: an instrument capable of serious deep-sky imaging that still fits in a car
               and can be set up by one person in the dark. The optical tube is a Newtonian reflector on
               a custom aluminium extrusion frame, chosen for stiffness per kilogram and because the
-              geometry can be re-squared with a hex key instead of rebuilt.
+              geometry can be re-squared with a hex key instead of rebuilt. The 4.5&#8209;inch spherical
+              primary reaches 269&times; magnification across a 1.6&deg; field.
             </p>
             <p>
               Tracking runs on <strong>Pi&nbsp;Finder</strong> on a Raspberry&nbsp;Pi, driving motors
@@ -73,31 +59,36 @@
             <p>
               Imaging goes through a Sony&nbsp;ZV&#8209;E10: a 6000&nbsp;&times;&nbsp;4000 frame with
               exposure stacking over long sessions. Tesseract reads instrument displays in the capture
-              pipeline.
+              pipeline. The full build log, covering mirror figuring, frame geometry, drive
+              calibration, and first light, is still being written.
             </p>
           </div>
-
-          <dl class="kv" style="margin-top:34px">
-            <dt>Role</dt><dd>Design, fabrication, and software</dd>
-            <dt>Optics</dt><dd>Newtonian reflector, 4.5&#8209;inch spherical primary</dd>
-            <dt>Frame</dt><dd>Aluminium extrusion, field-serviceable</dd>
-            <dt>Mount</dt><dd>Motorised base, Raspberry Pi controlled</dd>
-            <dt>Camera</dt><dd>Sony ZV&#8209;E10, 6000 &times; 4000, multi-hour exposures</dd>
-            <dt>Stack</dt><dd><span class="mono">C</span> &middot; <span class="mono">Python</span> &middot; Embedded &middot; Tesseract &middot; Linux</dd>
-            <dt>Transport</dt><dd>Fits in a car, single-person setup</dd>
-          </dl>
         </div>
       </div>
     </div>
   </section>
 
+  <!-- ---------- GALLERY ---------- -->
   <section class="section">
     <div class="wrap">
-      <div class="note">
-        <span class="note__label">Slot reserved</span>
-        The full build log is being written: mirror figuring, frame geometry, drive calibration,
-        first-light images. Astrophotography from this scope will appear in the
-        <a href="/misc/">Misc</a>.
+      <div class="split">
+        <div class="split__label"><p class="eyebrow"><b>02</b> Gallery</p></div>
+        <div>
+          <div class="empty">
+            <div class="empty__icon">&#9633;</div>
+            <h2>No images yet</h2>
+            <p>Build photographs and first-light frames go here.</p>
+          </div>
+
+          <!-- Drop files in /img/observatory/, then replace the block above with
+               this grid. One figure per image; captions are optional.
+          <div class="shots">
+            <figure class="shot" data-zoom>
+              <img src="/img/observatory/example.jpg" width="1200" height="800" loading="lazy" decoding="async" alt="Describe the image">
+            </figure>
+          </div>
+          -->
+        </div>
       </div>
     </div>
   </section>
@@ -105,7 +96,7 @@
   <div class="wrap">
     <div class="pager">
       <a class="btn" href="/projects/godash/"> GoDash</a>
-      <a class="btn" href="/projects/apt-decoder/">Next: APT Decoder</a>
+      <a class="btn" href="/">Back to start</a>
     </div>
   </div>
 
@@ -118,6 +109,6 @@
 </footer>
 
 <script src="/js/cosmos.js?v=452399cf" defer></script>
-<script src="/js/site.js?v=3cf8f9b2" defer></script>
+<script src="/js/site.js?v=3e848376" defer></script>
 </body>
 </html>
