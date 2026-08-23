@@ -7,7 +7,7 @@
    frame assets. The bodies are pinned to document coordinates, so
    they scroll up and off the page with everything else, and they
    turn on their own clock: a slow constant rotation independent of
-   scrolling. A scattered ASCII starfield fills the side margins.
+   scrolling. A scattered ASCII starfield covers the whole page.
    ============================================================ */
 (function () {
   'use strict';

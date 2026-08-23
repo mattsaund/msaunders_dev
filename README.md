@@ -6,24 +6,28 @@ dependencies, no external requests. Cloudflare Pages serves the repo root as-is.
 ## Structure
 
 ```
-index.html                    The whole site: hero, education, certifications,
-                              skills, projects, future plans. Projects are
-                              portfolio entries that link straight out to their
-                              own sites; they have no pages here.
-misc/index.html               Hobbies + gallery, one page. Currently serving a
-                              holding screen: see "Hidden pages" below.
-404.html                      Not found
+Everything in the repo root is deployed. Only index.html is written by hand;
+the other two pages are generated and say so in a comment at the top.
 
-css/site.css                  Design tokens + every component
-js/site.js                    Typed name, section label travel, image lightbox
-js/cosmos.js                  ASCII planetarium: background art
-files/                        Resume PDF
+```
+index.html          hand-written   The whole site: hero, education,
+                                   certifications, skills, projects, future
+                                   plans. Projects are portfolio entries that
+                                   link straight out to their own sites.
+misc/index.html     generated      Hobbies + gallery. Currently serving a
+                                   holding screen: see "Hidden pages".
+404.html            generated      Not found
+
+css/site.css                       Design tokens + every component
+js/site.js                         Typed name, section label travel, lightbox
+js/cosmos.js                       ASCII planetarium: background art
+files/                             The resume PDF, linked from the hero
 favicon.svg / favicon.png
-_headers                      Cloudflare Pages cache + security headers
+_headers                           Cache + security headers
+_redirects                         301s for pages that have been retired
 robots.txt, sitemap.xml
 
-assets/                       Original source media (not linked from the site)
-tools/build_pages.py          Optional page generator: see below
+tools/build_pages.py               Page generator + asset stamper: see below
 ```
 
 ## Hidden pages
@@ -90,14 +94,19 @@ clipped, and a `gain` multiplier lifts it out of permanent limb shadow, which
 otherwise squashed the whole surface into two ramp levels. It redraws about
 2.6 times a second, which amortises to 0.02 ms per frame.
 
-A scattered ASCII starfield fills the margins either side of the content column.
-Positions are seeded deterministically, so it is the same field on every visit,
-and it is confined to the gutters so no star ever sits behind body copy. It
-disappears below 860px wide, where there are no gutters left to use. About a
-quarter of the stars twinkle on staggered CSS keyframes. Scroll position drives the rotation, so the planets spin as you move down
-the page and unwind if you scroll back up. The bodies are pinned to document
-coordinates, spaced evenly down the page, so they scroll up and off with
-everything else. Every page starts on a different body.
+A scattered ASCII starfield covers the whole page. Positions are seeded
+deterministically, so it is the same field on every visit. It used to be
+confined to the gutters either side of the content column, and to hide entirely
+below 860px where there were no gutters left; the section panels dim whatever is
+behind them, so a star under body copy now reads as sky and neither restriction
+is needed. About a third twinkle on staggered CSS keyframes: that fraction is
+down from two thirds, because each animated star is a composited layer and the
+field is four times larger than the gutters-only one.
+
+The drifting bodies are pinned to document coordinates, anchored to real section
+tops rather than a share of the page height, so they scroll up and off with
+everything else. Every page starts on a different body, chosen by hashing its
+path.
 
 Worst-case render is ~0.14 ms a frame (Saturn, 65x19 glyphs) and only bodies
 near the viewport are redrawn, so the whole effect costs nothing measurable. It
@@ -124,9 +133,18 @@ Pure black (`#000`), by design. Colours, spacing, and type live as CSS custom
 properties at the top of `css/site.css`: change `--accent` to reskin the whole
 site. No gradients anywhere.
 
-There are no horizontal dividers. The page reads as one continuous surface, and
-the only structure is a pair of hairline side rails hung off `<main>` and
-`<footer>` so they run unbroken from the nav to the bottom.
+Each section sits in its own panel: a `--panel` fill (black at 62%) over the
+planetarium, outlined with the same `--line` hairline as the timeline rail, so
+the art shows through the panels and at full strength between them. Three tokens
+drive the whole rhythm and nothing else sets section spacing:
+
+- `--panel-pad` the inset on all four sides, so a title sits as far from the
+  left edge of its box as from the top
+- `--panel-gap` the distance between one panel and the next
+- `--panel` the fill
+
+The footer deliberately has no panel: a box there would sit over the horizon
+globe and cut the copyright out of the row it is punched into.
 
 House style: no em dashes, no en dashes, plain hyphens only. Copy stays terse.
 

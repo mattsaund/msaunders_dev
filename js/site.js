@@ -1,4 +1,13 @@
-/* msaunders.dev : image lightbox */
+/* ============================================================
+   msaunders.dev : page behaviour
+
+   Three unrelated jobs, all presentation only. Nothing here is
+   required to read the page: the name, the section labels and the
+   images all work with the script absent.
+     1. the typed name in the hero
+     2. holding each sticky section label level with its last entry
+     3. a lightbox for anything marked [data-zoom]
+   ============================================================ */
 (function () {
   'use strict';
 

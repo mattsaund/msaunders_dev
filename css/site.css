@@ -1,14 +1,16 @@
 /* ============================================================
    msaunders.dev : core stylesheet
-   Dark, hairline-ruled, monospace-forward. No gradients.
+
+   Dark, hairline-ruled, monospace-forward. No gradients. The page
+   is a stack of semi-transparent panels over an ASCII planetarium
+   drawn by js/cosmos.js, so most colours are tokens at the top and
+   most spacing comes from --panel-pad and --panel-gap.
    ============================================================ */
 
 /* --- tokens ------------------------------------------------ */
 :root {
   --bg:        #000000;
   --bg-2:      #060709;
-  --bg-3:      #0b0d10;
-  --bg-4:      #12151a;
 
   --line:      #171b21;
   --line-2:    #232931;
@@ -54,10 +56,6 @@
   --panel:     rgba(0, 0, 0, 0.62);
   --panel-pad: clamp(20px, 2.6vw, 30px);
   --panel-gap: clamp(14px, 1.6vw, 20px);  /* between one panel and the next */
-  /* How far .tl__when is lifted out of flow: its own 11.5px line box plus
-     its 7px bottom margin. A panel whose first entry carries one has to
-     add this back, or that label starts above every other section's. */
-  --tl-lift: 18.5px;
 
   --r: 3px;
 }
@@ -99,18 +97,7 @@ a {
   text-decoration-color: currentColor;
 }
 a:hover { color: var(--accent-hi); }
-.btn, .social, .brand { text-decoration: none; }
-/* A whole card can be a link. Underlining every descendant would rule through
-   its body copy and tag chips, so the card opts out and its title carries the
-   affordance instead. */
-.card--link .card__title {
-  text-decoration: underline;
-  text-decoration-thickness: 1px;
-  text-underline-offset: 3px;
-  text-decoration-color: var(--accent-line);
-  transition: color .18s, text-decoration-color .18s;
-}
-.card--link:hover .card__title { text-decoration-color: var(--accent); }
+.btn, .social { text-decoration: none; }
 h1, h2, h3, h4 { margin: 0; font-weight: 500; line-height: 1.2; letter-spacing: -0.01em; }
 p { margin: 0 0 1em; }
 p:last-child { margin-bottom: 0; }
@@ -143,10 +130,14 @@ hr { border: 0; border-top: 1px solid var(--line); margin: 0; }
 main { min-height: 60vh; }
 
 .section { padding: 0; }
-/* Every section carries its own panel rather than the page sitting on one flat
-   sheet of black, so the starfield and the planets show between the panels as
-   well as through them. The body stays pure black underneath; these only dim
-   what is behind them. */
+/* --- section panels ---------------------------------------- */
+/* The page's main structure. Every section carries its own panel rather than
+   the whole page sitting on one flat sheet of black, so the starfield and the
+   planets show between the panels as well as through them. The body stays pure
+   black underneath; a panel only dims what is behind it, which is why a star
+   under body copy reads as sky instead of noise.
+   Spacing comes entirely from --panel-pad (inset, equal on all four sides) and
+   --panel-gap (between panels). Nothing else sets section spacing. */
 .section > .wrap,
 .hero > .wrap {
   background: var(--panel);
@@ -156,13 +147,6 @@ main { min-height: 60vh; }
      horizontal --pad, which is still what the footer and breadcrumb use. */
   padding: var(--panel-pad);
   margin-bottom: var(--panel-gap);
-}
-/* A section that leads with a lifted date label starts its first line --tl-lift
-   higher than the rest, which the panel border makes obvious. Give that padding
-   back. Both columns move together, so the label stays on its entry's line.
-   Without :has() support this just reverts to the tighter top. */
-.section--rail:has(> .wrap .tl__item:first-child > .tl__when) > .wrap {
-  padding-top: calc(var(--panel-pad) + var(--tl-lift));
 }
 
 /* --- type helpers ------------------------------------------ */
@@ -263,15 +247,13 @@ main { min-height: 60vh; }
   padding: 5px 9px; border: 1px solid var(--line-2); color: var(--fg-2);
   border-radius: var(--r); background: var(--bg-2);
 }
-.status--live .dot { background: var(--accent); }
-.status--wip .dot { background: var(--fg-3); }
 .status--soon { color: var(--fg-3); }
 
 /* --- grid helpers ------------------------------------------ */
 .grid { display: grid; gap: 1px; background: var(--line); border: 1px solid var(--line); }
 .grid > * { background: var(--bg); }
 .cols-3 { display: grid; gap: clamp(16px, 2.5vw, 24px); grid-template-columns: repeat(3, 1fr); }
-@media (max-width: 860px) { .cols-2, .cols-3 { grid-template-columns: 1fr; } }
+@media (max-width: 860px) { .cols-3 { grid-template-columns: 1fr; } }
 
 .split { display: grid; grid-template-columns: var(--split-label) 1fr; gap: clamp(24px, 4vw, 48px); align-items: start; }
 @media (max-width: 860px) { .split { grid-template-columns: 1fr; gap: 20px; } }
@@ -323,7 +305,6 @@ main { min-height: 60vh; }
   position: relative;
   transition: border-color .18s, background-color .18s;
 }
-.card--link:hover .card__title { color: var(--accent); }
 .card__idx {
   font: 400 11px/1 var(--mono); color: var(--fg-3); letter-spacing: .1em;
   margin-bottom: 14px; display: block;
@@ -331,28 +312,11 @@ main { min-height: 60vh; }
 .card__title { font-family: var(--mono); font-size: 17px; margin-bottom: 8px; transition: color .18s; }
 .card__body { color: var(--fg-2); font-size: 14px; margin-bottom: 16px; }
 
-/* --- project cards ----------------------------------------- */
-/* The /projects/ stack: every entry gets the same full-width box, listed in
-   order. Cards with artwork split into copy + media; cards without one run the
-   copy the full width, so adding a project is one block either way. */
-/* With the pills, tagline, tags and button gone the copy is much shorter than
-   the artwork beside it, so centre it in its column rather than stranding it
-   at the top of a tall box. */
-.pcard .card__title { margin-bottom: 12px; }
-.pcard__main .card__body { font-size: 14.5px; max-width: 52ch; }
-/* Body copy is the last thing in the box now, so it leaves no gap. */
-.pcard__main .card__body:last-child { margin-bottom: 0; }
-/* No media panel, so the copy is not competing with an image for room. */
-.pcard__grid--solo .card__body { max-width: 68ch; }
-
-/* --- data list (key/value) --------------------------------- */
-.kv > dd .mono { color: var(--fg); }
-
 /* --- timeline ---------------------------------------------- */
 .tl { list-style: none; margin: 0; padding: 0 0 0 var(--tl-indent); }
-/* flow-root, so .tl__when's negative top margin shifts the content inside
-   the item instead of collapsing through its top edge and dragging the
-   whole item (node square included) up with it. */
+/* flow-root keeps an entry's child margins inside it. Nothing currently relies
+   on that, but the rail segment is positioned off this box, so margins escaping
+   it would move the line. */
 .tl__item {
   position: relative; display: flow-root;
   /* 30px plus the .45em every li carries: folding it in keeps the gap between
@@ -391,14 +355,6 @@ main { min-height: 60vh; }
    It sits outside the <a> in linked entries, so it never picks up the underline. */
 .tl__what::before { content: "/"; color: var(--accent); }
 .tl__what::after { content: ">"; color: var(--accent); }
-.tl__when {
-  font: 400 11.5px/1 var(--mono); letter-spacing: .08em; text-transform: uppercase;
-  color: var(--accent); margin-bottom: 7px; display: block;
-  /* Lift the date clear of the flow (its own line box plus its margin) so the
-     heading below it starts at the item's top edge, on the node's line. Items
-     with no date already start with their heading and need no correction. */
-  margin-top: calc(var(--tl-lift) * -1);
-}
 .tl__what { font-family: var(--mono); font-size: 15.5px; margin-bottom: 3px; }
 .tl__where { font-size: 13.5px; color: var(--fg-2); margin-bottom: 10px; font-family: var(--mono); }
 .tl__desc { font-size: 14px; color: var(--fg-2); }
@@ -406,7 +362,7 @@ main { min-height: 60vh; }
    other section's, so exclude them: .tl__desc ul out-specifies .tags. */
 .tl__desc ul:not(.tags) { margin: 0; padding-left: 1.1em; }
 
-/* Project entries: the title links out to its own writeup. */
+/* Project entries: the title links out to the project's own site. */
 .tl__what a {
   color: inherit;
   transition: color .15s, text-decoration-color .15s;
@@ -476,18 +432,14 @@ main { min-height: 60vh; }
 .empty h2 { font-family: var(--mono); font-size: 18px; margin-bottom: 10px; }
 .empty p { color: var(--fg-2); font-size: 14px; max-width: 46ch; margin-inline: auto; }
 
-/* --- stats ------------------------------------------------- */
-
 /* --- footer ------------------------------------------------ */
-/* The bottom of the page is a scene: the last content, then a gap, then the
-   lander and flag standing on the pole, then the globe itself. The deep TOP
-   padding reserves that gap; the shallow bottom padding drops the copyright
-   line onto the globe's surface near the very bottom, clear of the lander. */
-/* Sized against viewport WIDTH, not height: the scene it reserves room for
-   (lander plus globe) is drawn in glyphs whose size scales with width, so
-   a vh-based gap drifted out of step with the art it was making room for. */
+/* The bottom of the page is a scene: the last panel, a wide gap, then the
+   horizon globe rising into it. This deep TOP padding is what reserves the gap.
+   Sized against viewport WIDTH, not height: the globe is drawn in glyphs whose
+   size scales with width, so a vh-based gap drifted out of step with the art it
+   was making room for. The footer takes no panel of its own, or the box would
+   sit over the globe and cut the copyright out of its row. */
 .foot { padding: clamp(260px, 24vw, 360px) 0 0; }
-/* Just the copyright now, centred so it sits over the middle of the horizon. */
 /* The copyright occupies the globe's last glyph row. cosmos.js sets its
    font-size and line-height to the globe's row height so it shares that grid
    exactly, and blanks the glyphs underneath it. Letter-spacing must stay 0 or
@@ -515,8 +467,6 @@ main { min-height: 60vh; }
 .crumb a { color: var(--fg-3); }
 .crumb a:hover { color: var(--accent); }
 .crumb__sep { color: var(--line-3); }
-
-/* --- pager ------------------------------------------------- */
 
 /* --- ASCII planetarium ------------------------------------- */
 /* Sits in document space, not the viewport, so the bodies scroll up and
