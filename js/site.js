@@ -21,9 +21,23 @@
       name.appendChild(caret);
     } else {
       var INTRO = 'msaunders.dev';
+      var DOT = INTRO.indexOf('.');
       var out = document.createElement('span');
       out.setAttribute('aria-hidden', 'true');
-      out.textContent = INTRO;
+
+      /* The domain's dot takes the accent, so the intro is painted as markup
+         rather than text. INTRO is a literal with no markup characters in it,
+         which is what makes composing it this way safe. */
+      var showIntro = function (n) {
+        if (n > DOT) {
+          out.innerHTML = INTRO.slice(0, DOT)
+                        + '<span class="typed__dot">.</span>'
+                        + INTRO.slice(DOT + 1, n);
+        } else {
+          out.textContent = INTRO.slice(0, n);
+        }
+      };
+      showIntro(INTRO.length);
       name.textContent = '';
       name.appendChild(out);
       name.appendChild(caret);
@@ -37,7 +51,7 @@
       };
 
       var erase = function (n) {
-        out.textContent = INTRO.slice(0, n);
+        showIntro(n);
         if (n > 0) setTimeout(function () { erase(n - 1); }, 38);
         else setTimeout(function () { type(1); }, 260);
       };
@@ -45,6 +59,65 @@
       setTimeout(function () { erase(INTRO.length - 1); }, 2000);
     }
   }
+
+  /* --- section label travel --------------------------------- */
+  /* A sticky label is bounded by its grid area, which runs to the bottom of the
+     list beside it. That lets the label drift past the last entry's title and
+     come to rest level with a tag row or a stray line of body copy. Shortening
+     the area with a bottom margin stops it level with that title instead.
+
+     The tail below the last title differs per section, so it has to be measured.
+     This is presentation only: with no JS the label simply travels the whole
+     section, which is what it did before. Below the split's breakpoint the label
+     is its own grid row, where a bottom margin would push the content down, so
+     the margin is cleared there. */
+  var wide = window.matchMedia('(min-width: 861px)');
+
+  function labelStops() {
+    var secs = document.querySelectorAll('.section--rail');
+    for (var i = 0; i < secs.length; i++) {
+      var label = secs[i].querySelector('.split__label');
+      var list = secs[i].querySelector('.tl');
+      if (!label || !list) continue;
+
+      label.style.marginBottom = '';
+      if (!wide.matches) continue;
+
+      var items = list.querySelectorAll('.tl__item');
+      var title = items.length && items[items.length - 1].querySelector('.tl__what');
+      if (!title) continue;
+
+      var eyebrow = label.querySelector('.eyebrow');
+      if (!eyebrow) continue;
+
+      /* Measure against the column beside the label, not the list inside it:
+         the last li's bottom margin escapes the ol, so the list ends ~7px above
+         the grid area that actually bounds the sticky label. */
+      var col = label.nextElementSibling;
+      if (!col) continue;
+
+      var r = title.getBoundingClientRect();
+      var tail = col.getBoundingClientRect().bottom - (r.top + r.height / 2);
+
+      /* The margin stops the label's BOX at the target line, but what should
+         land there is the label's text, which sits above the box's bottom edge
+         by its own trailing margin. Take that offset back off. */
+      var lab = label.getBoundingClientRect();
+      var eb = eyebrow.getBoundingClientRect();
+      var inset = lab.bottom - (eb.top + eb.height / 2);
+
+      var stop = tail - inset;
+      if (stop > 0) label.style.marginBottom = Math.round(stop) + 'px';
+    }
+  }
+
+  labelStops();
+
+  var reflow;
+  window.addEventListener('resize', function () {
+    clearTimeout(reflow);
+    reflow = setTimeout(labelStops, 120);
+  });
 
   /* --- lightbox ------------------------------------------- */
   var zoomables = document.querySelectorAll('[data-zoom]');

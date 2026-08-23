@@ -14,10 +14,5 @@
 /js/*
   Cache-Control: public, max-age=0, must-revalidate
 
-# Images are the bulk of the bytes and rarely change, so they stay cached, but
-# without `immutable` so a reload can still pick up a replaced file.
-/img/*
-  Cache-Control: public, max-age=2592000
-
 /files/*
   Cache-Control: public, max-age=86400

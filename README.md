@@ -6,17 +6,17 @@ dependencies, no external requests. Cloudflare Pages serves the repo root as-is.
 ## Structure
 
 ```
-index.html                    About  (landing page, built from the academic resume)
-projects/godash/              GoDash writeup (full)
-projects/observatory/         Mobile Computerized Automated Observatory (stub)
+index.html                    The whole site: hero, education, certifications,
+                              skills, projects, future plans. Projects are
+                              portfolio entries that link straight out to their
+                              own sites; they have no pages here.
 misc/index.html               Hobbies + gallery, one page. Currently serving a
                               holding screen: see "Hidden pages" below.
 404.html                      Not found
 
 css/site.css                  Design tokens + every component
-js/site.js                    Mobile nav, scroll reveal, image lightbox
-js/cosmos.js                  ASCII planetarium: scroll-driven background art
-img/godash/                   Web-optimised GoDash media (source: assets/)
+js/site.js                    Typed name, section label travel, image lightbox
+js/cosmos.js                  ASCII planetarium: background art
 files/                        Resume PDF
 favicon.svg / favicon.png
 _headers                      Cloudflare Pages cache + security headers
@@ -26,43 +26,14 @@ assets/                       Original source media (not linked from the site)
 tools/build_pages.py          Optional page generator: see below
 ```
 
-## Project writeups
-
-Every project page follows one shape. Copy an existing body constant in
-`tools/build_pages.py` (`GODASH`, `OBSERVATORY`) when adding one:
-
-1. **Hero:** `h1` and a `lede`. No status pills, no tagline under the title.
-   Optional row of plain `.btn` links named for where they go ("App Store",
-   "Website"), never `btn--primary`.
-2. **`01 Overview`:** one unbroken block of `.prose` paragraphs. No `h3`
-   subheadings, no `.kv` spec table, no stat boxes.
-3. **`02 Gallery`:** a `.shots` grid, nothing else. No intro line, no
-   `figcaption`. The lightbox shows a caption only when a figure has one.
-
-Both sections use the `.split` layout, and a pager closes the page. The site is
-there to explain and show the work, not to sell it, so badges, feature grids,
-press kits, and download cards stay off.
-
 ## Hidden pages
 
-Two pages are built but not published. Both are flags at the top of
-`tools/build_pages.py`; flipping one to `True` and rebuilding brings the page
-back, and each also wants its `sitemap.xml` line restored.
-
-**Misc** (`MISC_LIVE`). `/misc/` serves an "Under construction" holding screen
+**Misc is hidden** (`MISC_LIVE` at the top of `tools/build_pages.py`). Flip it to
+`True`, rebuild, and restore its `sitemap.xml` line to publish it. `/misc/` serves an "Under construction" holding screen
 and carries `noindex`. The real page is still the `MISC` body; `MISC_SOON` is
 what gets emitted instead. The Misc button on the About page stays visible either
 way, and `/hobbies/` and `/gallery/` keep redirecting to `/misc/`.
 Sitemap line: `<url><loc>https://msaunders.dev/misc/</loc><priority>0.5</priority></url>`
-
-**Projects index** (`PROJECTS_LIVE`). Two projects did not need a page of their
-own yet, so `/projects/` is not emitted at all and redirects to `/`. The
-`PROJECTS` body is untouched. While it is off, each writeup's breadcrumb drops
-the Projects hop and its pager says "Back to start" instead of "All projects",
-via `PROJ_CRUMB`, `BACKLINK`, and `PROJECTS_BTN`. Turning it back on also means
-restoring the "View all projects" link in the About page's Projects section, and
-dropping the `/projects/` rules from `_redirects`.
-Sitemap line: `<url><loc>https://msaunders.dev/projects/</loc><priority>0.9</priority></url>`
 
 ## Cloudflare Pages settings
 
@@ -161,7 +132,7 @@ House style: no em dashes, no en dashes, plain hyphens only. Copy stays terse.
 
 ## Adding a gallery image
 
-1. Put the file in `img/gallery/`.
+1. Create `img/gallery/` and put the file in it.
 2. Add a `<figure class="shot" data-zoom>` block to `MISC` in
    `tools/build_pages.py` (a commented template is already in there), then
    rebuild. Nothing shows until `MISC_LIVE` is `True`: see "Hidden pages".

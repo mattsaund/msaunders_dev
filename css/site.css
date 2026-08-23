@@ -37,16 +37,13 @@
   --section-pad: clamp(28px, 4vw, 44px);   /* applied top AND bottom, so the
                                               gap between two sections is twice
                                               this */
-  --node: 7px;               /* timeline node square */
-  /* Offset that centres the node on a heading's line box
-     (15.5px at line-height 1.2), so the square lands on the white
-     title rather than on the date above it. */
-  --node-top: calc(15.5px * 1.2 / 2 - var(--node) / 2);
+  --tl-line: calc(15.5px * 1.2);   /* an item title's line box: the marker and
+                                      the section label both centre on it */
   --split-label: 176px;      /* sticky section-label column; the timeline rail
-                                is positioned off this, so keep them in sync.
-                                Floor is ~170px: "04 Certifications" is the
-                                widest label and needs 160px plus the flex gap,
-                                below which its connector rule vanishes. */
+                                is positioned off this plus --rail-gap, so keep
+                                them in sync. Floor is ~170px: "~/ Certifications"
+                                is the widest label and needs 160px plus the flex
+                                gap, below which its rule vanishes. */
 
   --r: 3px;
 }
@@ -92,7 +89,6 @@ a:hover { color: var(--accent-hi); }
 /* A whole card can be a link. Underlining every descendant would rule through
    its body copy and tag chips, so the card opts out and its title carries the
    affordance instead. */
-.card--link { text-decoration: none; }
 .card--link .card__title {
   text-decoration: underline;
   text-decoration-thickness: 1px;
@@ -133,7 +129,6 @@ hr { border: 0; border-top: 1px solid var(--line); margin: 0; }
 main { min-height: 60vh; }
 
 .section { padding: var(--section-pad) 0; }
-.section--tight { padding: calc(var(--section-pad) * 0.7) 0; }
 
 /* --- type helpers ------------------------------------------ */
 .eyebrow {
@@ -148,35 +143,19 @@ main { min-height: 60vh; }
 .eyebrow::after { content: ""; flex: 1; height: 1px; background: var(--line); }
 
 .h-xl { font-family: var(--mono); font-size: clamp(30px, 6vw, 52px); letter-spacing: -.03em; font-weight: 500; }
-.h-lg { font-family: var(--mono); font-size: clamp(22px, 3.4vw, 30px); letter-spacing: -.02em; }
 .h-md { font-family: var(--mono); font-size: clamp(17px, 2.2vw, 20px); letter-spacing: -.01em; }
-.h-sm { font: 500 13px/1.4 var(--mono); letter-spacing: .04em; text-transform: uppercase; color: var(--fg-2); }
 
 .lede { font-size: clamp(15px, 1.7vw, 17px); color: var(--fg-2); max-width: 68ch; line-height: 1.7; }
-.muted { color: var(--fg-2); }
-.dim { color: var(--fg-3); }
 .mono { font-family: var(--mono); }
-.prose { max-width: 72ch; color: var(--fg-2); }
-.prose strong { color: var(--fg); font-weight: 500; }
-.prose h3 { color: var(--fg); margin: 2em 0 .7em; font-family: var(--mono); font-size: 16px; letter-spacing: .01em; }
-.prose h3:first-child { margin-top: 0; }
-.prose code {
-  font-family: var(--mono); font-size: .88em;
-  background: var(--bg-3); border: 1px solid var(--line-2);
-  padding: .1em .38em; border-radius: var(--r); color: var(--accent-hi);
-}
 
 /* --- hero -------------------------------------------------- */
 .hero { padding: clamp(28px, 4vw, 44px) 0 clamp(40px, 7vw, 72px); }
-.hero__meta {
-  font: 400 12px/1 var(--mono); color: var(--fg-3);
-  letter-spacing: .1em; text-transform: uppercase;
-  display: flex; flex-wrap: wrap; gap: 8px 18px; margin-bottom: 24px;
-}
-.hero__meta span { display: inline-flex; align-items: center; gap: 7px; }
 .dot { width: 5px; height: 5px; background: var(--accent); flex: none; }
 .hero h1 { margin-bottom: 16px; }
 .hero .links { margin-bottom: 30px; }
+
+/* The dot in "msaunders.dev" while the intro is on screen. */
+.typed__dot { color: var(--accent); }
 
 /* Terminal caret: blinks while the name types and keeps blinking after. */
 .caret {
@@ -188,10 +167,6 @@ main { min-height: 60vh; }
   50%, 100% { opacity: 0; }
 }
 @media (prefers-reduced-motion: reduce) { .caret { animation: none; } }
-.hero__role {
-  font: 400 clamp(13px, 1.6vw, 15px)/1.5 var(--mono);
-  color: var(--accent); letter-spacing: .02em; margin-bottom: 24px;
-}
 
 /* --- buttons ----------------------------------------------- */
 .btn {
@@ -207,17 +182,38 @@ main { min-height: 60vh; }
 .btn--primary:hover { border-color: var(--accent); background: #112538; color: var(--accent-hi); }
 .btn-row { display: flex; flex-wrap: wrap; gap: 10px; }
 /* The hero's one row of everything: resume, contact, profiles, misc. */
-.links { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 4px; }
+.links { display: flex; flex-wrap: wrap; gap: 22px; margin-bottom: 4px; }
+/* The hero row drops the box and reads as a line of text in the heading's own
+   face: no border, no fill, no forced caps, and colour is the only hover cue. */
+.links .btn,
+.links .social {
+  border: 0; background: none; padding: 0; gap: 0;
+  font: 400 15px/1.3 var(--mono);
+  letter-spacing: 0; text-transform: none;
+  color: var(--fg);
+  transition: color .15s;
+}
+.links .btn:hover,
+.links .social:hover { color: var(--accent); background: none; border-color: transparent; }
+/* Brackets around every label, blue against white text. They set their own
+   colour, so they stay blue when the label turns blue on hover. */
+.links .btn::before,
+.links .social::before { content: "<"; color: var(--accent); }
+.links .btn::after,
+.links .social::after { content: ">"; color: var(--accent); }
 
 /* --- tags / chips ------------------------------------------ */
-.tags { display: flex; flex-wrap: wrap; gap: 6px; list-style: none; margin: 0; padding: 0; }
+.tags { display: flex; flex-wrap: wrap; gap: 12px; list-style: none; margin: 0; padding: 0; }
+/* No chip: just the label in angle brackets, in the same grey as the copy round
+   it. The brackets inherit that grey rather than setting a colour of their own,
+   which is what keeps them off the accent the hero links use. */
 .tag {
   font: 400 11.5px/1 var(--mono); letter-spacing: .04em;
-  color: var(--fg-2); background: var(--bg-2);
-  border: 1px solid var(--line); padding: 5px 9px; border-radius: var(--r);
+  color: var(--fg-2);            /* same grey as .lede, .tl__where and .tl__desc */
   white-space: nowrap;
 }
-.tag--accent { color: var(--accent); border-color: var(--accent-line); background: var(--accent-bg); }
+.tag::before { content: "<"; }
+.tag::after { content: ">"; }
 
 /* --- status pill ------------------------------------------- */
 .status {
@@ -226,7 +222,6 @@ main { min-height: 60vh; }
   padding: 5px 9px; border: 1px solid var(--line-2); color: var(--fg-2);
   border-radius: var(--r); background: var(--bg-2);
 }
-.status--live { color: var(--accent); border-color: var(--accent-line); background: var(--accent-bg); }
 .status--live .dot { background: var(--accent); }
 .status--wip .dot { background: var(--fg-3); }
 .status--soon { color: var(--fg-3); }
@@ -234,7 +229,6 @@ main { min-height: 60vh; }
 /* --- grid helpers ------------------------------------------ */
 .grid { display: grid; gap: 1px; background: var(--line); border: 1px solid var(--line); }
 .grid > * { background: var(--bg); }
-.cols-2 { display: grid; gap: clamp(24px, 4vw, 44px); grid-template-columns: 1fr 1fr; }
 .cols-3 { display: grid; gap: clamp(16px, 2.5vw, 24px); grid-template-columns: repeat(3, 1fr); }
 @media (max-width: 860px) { .cols-2, .cols-3 { grid-template-columns: 1fr; } }
 
@@ -242,44 +236,38 @@ main { min-height: 60vh; }
 @media (max-width: 860px) { .split { grid-template-columns: 1fr; gap: 20px; } }
 .split__label { position: sticky; top: 28px; }
 
-/* Sections whose content is a timeline share ONE rail. Each .tl still draws its
-   own border, but that only spans the list; this runs the full height of the
-   section including its padding, and because sections stack flush the rails join
-   into a single unbroken line down the page.
+/* Each rail section gets its OWN vertical line, not a spine running the whole
+   page: .tl's border spans exactly its list, and the padding between sections
+   breaks one segment from the next.
    The gap is closed to 0 so the label's trailing rule meets the rail head on,
    which also shifts the rail and its content left by the old gap width. */
 .section--rail { position: relative; padding-top: 0; }
 /* every rail section except the first keeps its normal top padding */
 .section--rail ~ .section--rail { padding-top: var(--section-pad); }
 .section--rail .split { gap: 0; }
-/* Give the label row the node's own height and let the existing
-   align-items:center do the work: the number, the title and the connector rule
-   all end up centred on the first node's centre line, with no magic offsets
-   and no dependence on the label's font size. */
+/* Give the label row the height of an item's title line and let the existing
+   align-items:center do the work: the marker, the title and the rule all end up
+   centred on the first item's title, with no magic offsets and no dependence on
+   the label's own font size. */
 .section--rail .eyebrow {
-  height: calc(var(--node-top) * 2 + var(--node));
+  height: var(--tl-line);
+  color: var(--fg);
+  /* The heading face, at reading size and without the shouted caps and tracking
+     the eyebrow carries elsewhere. */
+  font: 400 15px/1 var(--mono);
+  letter-spacing: 0;
+  text-transform: none;
+  /* No gap, so "~/" reads as one string with the title it prefixes. The rule
+     puts its own space back. */
+  gap: 0;
 }
-.section--rail::before {
-  content: "";
-  position: absolute; top: 0; bottom: 0; width: 1px;
-  left: calc(max(0px, 50% - var(--wrap) / 2) + var(--pad) + var(--split-label));
-  background: var(--line);
-  pointer-events: none;
-}
+.section--rail .eyebrow::before { content: ">"; color: var(--accent); order: 1; }
+.section--rail .eyebrow::after { margin-left: 10px; order: 2; }
 @media (max-width: 860px) {
-  /* Single column here, so .tl's own border is the rail. */
-  .section--rail::before { display: none; }
   .section--rail .split { gap: 20px; }
 }
 
 /* Secondary link sitting under a section label. */
-.split__link {
-  display: inline-flex; align-items: center; gap: 7px;
-  font: 400 11.5px/1 var(--mono);
-  letter-spacing: .09em; text-transform: uppercase;
-  color: var(--accent);
-}
-.split__link:hover { color: var(--accent-hi); }
 @media (max-width: 860px) { .split__label { position: static; } }
 
 /* --- cards ------------------------------------------------- */
@@ -290,8 +278,6 @@ main { min-height: 60vh; }
   position: relative;
   transition: border-color .18s, background-color .18s;
 }
-.card--link { display: block; color: inherit; }
-.card--link:hover { border-color: var(--line-3); background: var(--bg-3); color: inherit; }
 .card--link:hover .card__title { color: var(--accent); }
 .card__idx {
   font: 400 11px/1 var(--mono); color: var(--fg-3); letter-spacing: .1em;
@@ -304,65 +290,51 @@ main { min-height: 60vh; }
 /* The /projects/ stack: every entry gets the same full-width box, listed in
    order. Cards with artwork split into copy + media; cards without one run the
    copy the full width, so adding a project is one block either way. */
-.pstack { display: grid; gap: clamp(20px, 3vw, 32px); }
-.pcard { padding: 0; }
-.pcard__grid { display: grid; grid-template-columns: 1.15fr .85fr; }
-.pcard__grid--solo { grid-template-columns: 1fr; }
 /* With the pills, tagline, tags and button gone the copy is much shorter than
    the artwork beside it, so centre it in its column rather than stranding it
    at the top of a tall box. */
-.pcard__main {
-  padding: clamp(24px, 3.4vw, 38px);
-  display: flex; flex-direction: column; justify-content: center;
-}
 .pcard .card__title { margin-bottom: 12px; }
 .pcard__main .card__body { font-size: 14.5px; max-width: 52ch; }
 /* Body copy is the last thing in the box now, so it leaves no gap. */
 .pcard__main .card__body:last-child { margin-bottom: 0; }
 /* No media panel, so the copy is not competing with an image for room. */
 .pcard__grid--solo .card__body { max-width: 68ch; }
-.pcard__media {
-  border-left: 1px solid var(--line); background: var(--bg-3);
-  display: grid; place-items: center;
-  padding: clamp(20px, 3vw, 32px); overflow: hidden;
-}
-.pcard__media img { border: 1px solid var(--line); width: 100%; max-width: 420px; }
-@media (max-width: 860px) {
-  .pcard__grid { grid-template-columns: 1fr; }
-  .pcard__media { border-left: 0; border-top: 1px solid var(--line); }
-}
 
 /* --- data list (key/value) --------------------------------- */
-.kv { display: grid; grid-template-columns: minmax(120px, 170px) 1fr; border-top: 1px solid var(--line); }
-.kv > dt {
-  font: 400 11.5px/1.5 var(--mono); letter-spacing: .09em; text-transform: uppercase;
-  color: var(--fg-3); padding: 14px 16px 14px 0; border-bottom: 1px solid var(--line);
-}
-.kv > dd {
-  margin: 0; padding: 14px 0; border-bottom: 1px solid var(--line);
-  color: var(--fg-2); font-size: 14px;
-}
 .kv > dd .mono { color: var(--fg); }
-@media (max-width: 620px) {
-  .kv { grid-template-columns: 1fr; }
-  .kv > dt { padding-bottom: 2px; border-bottom: 0; }
-  .kv > dd { padding-top: 4px; }
-}
 
 /* --- timeline ---------------------------------------------- */
-.tl { list-style: none; margin: 0; padding: 0 0 0 24px; border-left: 1px solid var(--line); }
+/* The bottom padding is the .45em the last li used to contribute as an escaping
+   margin. Keeping it leaves the list's outer height, and so the spacing between
+   sections, exactly where it was before the rail was rebuilt. */
+.tl { list-style: none; margin: 0; padding: 0 0 0.45em 25px; }
 /* flow-root, so .tl__when's negative top margin shifts the content inside
    the item instead of collapsing through its top edge and dragging the
    whole item (node square included) up with it. */
-.tl__item { position: relative; padding: 0 0 30px; display: flow-root; }
-.tl__item:last-child { padding-bottom: 0; }
-.tl__item::before {
-  content: ""; position: absolute; left: -28px; top: var(--node-top);
-  width: var(--node); height: var(--node);
-  background: var(--bg); border: 1px solid var(--line-3);
+.tl__item {
+  position: relative; display: flow-root;
+  /* 30px plus the .45em every li carries: folding it in keeps the gap between
+     entries a single number, which is what the rail segment has to span. */
+  padding: 0 0 calc(30px + 0.45em);
+  margin-bottom: 0;
 }
-.tl__item--now::before,
-.tl > .tl__item:first-child::before { background: var(--accent); border-color: var(--accent); }
+/* The rail is one segment per gap, each running from this entry's title to the
+   next entry's, so the line as a whole starts and ends level with a title
+   rather than overshooting either end. The last entry connects to nothing and
+   draws nothing. 25px of padding plus a 1px line puts it where the list's old
+   border-left was. */
+.tl__item:not(:last-child)::before {
+  content: "";
+  position: absolute; left: -25px;
+  top: calc(var(--tl-line) / 2);
+  bottom: calc(var(--tl-line) / -2);
+  width: 1px; background: var(--line);
+}
+.tl__item:last-child { padding-bottom: 0; }
+/* On the title itself, not floating in the gutter, so the two read as one path.
+   It sits outside the <a> in linked entries, so it never picks up the underline. */
+.tl__what::before { content: "/"; color: var(--accent); }
+.tl__what::after { content: ">"; color: var(--accent); }
 .tl__when {
   font: 400 11.5px/1 var(--mono); letter-spacing: .08em; text-transform: uppercase;
   color: var(--accent); margin-bottom: 7px; display: block;
@@ -372,7 +344,7 @@ main { min-height: 60vh; }
   margin-top: calc(-1em - 7px);
 }
 .tl__what { font-family: var(--mono); font-size: 15.5px; margin-bottom: 3px; }
-.tl__where { font-size: 13.5px; color: var(--fg-3); margin-bottom: 10px; font-family: var(--mono); }
+.tl__where { font-size: 13.5px; color: var(--fg-2); margin-bottom: 10px; font-family: var(--mono); }
 .tl__desc { font-size: 14px; color: var(--fg-2); }
 /* The indent is for prose bullet lists. Tag rows are flush, like every
    other section's, so exclude them: .tl__desc ul out-specifies .tags. */
@@ -404,9 +376,6 @@ main { min-height: 60vh; }
 }
 .shot:hover figcaption { color: var(--fg-2); }
 
-.promos { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 16px; }
-.promos img { width: 100%; border: 1px solid var(--line); }
-
 /* --- lightbox ---------------------------------------------- */
 .lb {
   position: fixed; inset: 0; z-index: 300;
@@ -435,10 +404,6 @@ main { min-height: 60vh; }
   padding: 16px 18px;
   font-size: 14px; color: var(--fg-2);
 }
-.note__label {
-  font: 400 11px/1 var(--mono); letter-spacing: .13em; text-transform: uppercase;
-  color: var(--accent); display: block; margin-bottom: 8px;
-}
 
 /* --- empty state ------------------------------------------- */
 .empty {
@@ -456,10 +421,6 @@ main { min-height: 60vh; }
 .empty p { color: var(--fg-2); font-size: 14px; max-width: 46ch; margin-inline: auto; }
 
 /* --- stats ------------------------------------------------- */
-.stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 1px; background: var(--line); border: 1px solid var(--line); }
-.stat { background: var(--bg-2); padding: 18px 20px; }
-.stat__n { font: 500 clamp(20px, 3vw, 26px)/1 var(--mono); color: var(--accent); letter-spacing: -.02em; }
-.stat__l { font: 400 11px/1.4 var(--mono); letter-spacing: .1em; text-transform: uppercase; color: var(--fg-3); margin-top: 9px; }
 
 /* --- footer ------------------------------------------------ */
 /* The bottom of the page is a scene: the last content, then a gap, then the
@@ -479,7 +440,6 @@ main { min-height: 60vh; }
   font: 400 11.5px/1 var(--mono); color: #4b545e; letter-spacing: 0;
   text-align: center; margin: 0;
 }
-.socials { display: flex; flex-wrap: wrap; gap: 8px; }
 .social {
   display: inline-flex; align-items: center; gap: 8px;
   /* Matches .btn exactly: the two sit side by side in the hero's single row,
@@ -489,7 +449,6 @@ main { min-height: 60vh; }
   padding: 11px 15px; transition: color .15s, border-color .15s, background-color .15s;
 }
 .social:hover { color: var(--accent); border-color: var(--accent-line); background: var(--accent-bg); }
-.social svg { width: 14px; height: 14px; fill: currentColor; flex: none; }
 
 /* --- breadcrumb -------------------------------------------- */
 .crumb {
@@ -502,7 +461,6 @@ main { min-height: 60vh; }
 .crumb__sep { color: var(--line-3); }
 
 /* --- pager ------------------------------------------------- */
-.pager { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; padding: 28px 0 48px; }
 
 /* --- ASCII planetarium ------------------------------------- */
 /* Sits in document space, not the viewport, so the bodies scroll up and

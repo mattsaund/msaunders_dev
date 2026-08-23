@@ -3,8 +3,8 @@
 /hobbies/*  /misc/  301
 /gallery/*  /misc/  301
 
-# The projects index and the APT decoder were both live and indexed. Exact
-# paths, so /projects/godash/ and /projects/observatory/ still serve normally.
-/projects/apt-decoder/*  /  301
-/projects/  /  301
+# The projects are portfolio entries on the About page now, linking straight out
+# to their own sites; nothing lives under /projects/ any more. The index and all
+# three writeups were live and indexed, so the whole tree redirects home.
+/projects/*  /  301
 /projects  /  301
