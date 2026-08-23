@@ -34,9 +34,6 @@
 
   --wrap: 1120px;
   --pad: clamp(20px, 5vw, 48px);
-  --section-pad: clamp(28px, 4vw, 44px);   /* applied top AND bottom, so the
-                                              gap between two sections is twice
-                                              this */
   --tl-line: calc(15.5px * 1.2);   /* an item title's line box: the marker and
                                       the section label both centre on it */
   /* Where the rail and its notches meet a title. Not the line box's centre: a
@@ -56,6 +53,11 @@
      copy, open enough that the art still reads through them. */
   --panel:     rgba(0, 0, 0, 0.62);
   --panel-pad: clamp(20px, 2.6vw, 30px);
+  --panel-gap: clamp(14px, 1.6vw, 20px);  /* between one panel and the next */
+  /* How far .tl__when is lifted out of flow: its own 11.5px line box plus
+     its 7px bottom margin. A panel whose first entry carries one has to
+     add this back, or that label starts above every other section's. */
+  --tl-lift: 18.5px;
 
   --r: 3px;
 }
@@ -140,7 +142,7 @@ hr { border: 0; border-top: 1px solid var(--line); margin: 0; }
 }
 main { min-height: 60vh; }
 
-.section { padding: var(--section-pad) 0; }
+.section { padding: 0; }
 /* Every section carries its own panel rather than the page sitting on one flat
    sheet of black, so the starfield and the planets show between the panels as
    well as through them. The body stays pure black underneath; these only dim
@@ -148,8 +150,19 @@ main { min-height: 60vh; }
 .section > .wrap,
 .hero > .wrap {
   background: var(--panel);
-  padding-top: var(--panel-pad);
-  padding-bottom: var(--panel-pad);
+  border: 1px solid var(--line);   /* same hairline as the rail and its notches */
+  /* One inset on all four sides, so a section title sits as far from the left
+     edge of its box as it does from the top. This overrides .wrap's wider
+     horizontal --pad, which is still what the footer and breadcrumb use. */
+  padding: var(--panel-pad);
+  margin-bottom: var(--panel-gap);
+}
+/* A section that leads with a lifted date label starts its first line --tl-lift
+   higher than the rest, which the panel border makes obvious. Give that padding
+   back. Both columns move together, so the label stays on its entry's line.
+   Without :has() support this just reverts to the tighter top. */
+.section--rail:has(> .wrap .tl__item:first-child > .tl__when) > .wrap {
+  padding-top: calc(var(--panel-pad) + var(--tl-lift));
 }
 
 /* --- type helpers ------------------------------------------ */
@@ -167,13 +180,19 @@ main { min-height: 60vh; }
 .h-xl { font-family: var(--mono); font-size: clamp(30px, 6vw, 52px); letter-spacing: -.03em; font-weight: 500; }
 .h-md { font-family: var(--mono); font-size: clamp(17px, 2.2vw, 20px); letter-spacing: -.01em; }
 
-.lede { font-size: clamp(15px, 1.7vw, 17px); color: var(--fg-2); max-width: 68ch; line-height: 1.7; }
+/* No measure cap: the panel is the measure now, so the lede wraps against the
+   box it sits in rather than stopping short of it. */
+.lede { font-size: clamp(15px, 1.7vw, 17px); color: var(--fg-2); line-height: 1.7; }
 .mono { font-family: var(--mono); }
 
 /* --- hero -------------------------------------------------- */
-.hero { padding: clamp(28px, 4vw, 44px) 0 clamp(40px, 7vw, 72px); }
+.hero { padding: var(--panel-gap) 0 0; }
 .dot { width: 5px; height: 5px; background: var(--accent); flex: none; }
-.hero h1 { margin-bottom: 16px; }
+/* A 52px headline's line box carries far more leading above its capitals than a
+   15.5px section label does, so the same padding put the H 5px lower than the
+   sections' titles sit. Trim that leading back off. In em, so it tracks the
+   headline's own clamped size instead of being right at one viewport width. */
+.hero h1 { margin-top: -0.1em; margin-bottom: 16px; }
 .hero .links { margin-bottom: 30px; }
 
 /* The dot in "msaunders.dev" while the intro is on screen. */
@@ -263,9 +282,7 @@ main { min-height: 60vh; }
    breaks one segment from the next.
    The gap is closed to 0 so the label's trailing rule meets the rail head on,
    which also shifts the rail and its content left by the old gap width. */
-.section--rail { position: relative; padding-top: 0; }
-/* every rail section except the first keeps its normal top padding */
-.section--rail ~ .section--rail { padding-top: var(--section-pad); }
+.section--rail { position: relative; }
 .section--rail .split { gap: 0; }
 /* Give the label row the height of an item's title line and let the existing
    align-items:center do the work: the marker, the title and the rule all end up
@@ -332,10 +349,7 @@ main { min-height: 60vh; }
 .kv > dd .mono { color: var(--fg); }
 
 /* --- timeline ---------------------------------------------- */
-/* The bottom padding is the .45em the last li used to contribute as an escaping
-   margin. Keeping it leaves the list's outer height, and so the spacing between
-   sections, exactly where it was before the rail was rebuilt. */
-.tl { list-style: none; margin: 0; padding: 0 0 0.45em var(--tl-indent); }
+.tl { list-style: none; margin: 0; padding: 0 0 0 var(--tl-indent); }
 /* flow-root, so .tl__when's negative top margin shifts the content inside
    the item instead of collapsing through its top edge and dragging the
    whole item (node square included) up with it. */
@@ -372,6 +386,7 @@ main { min-height: 60vh; }
   height: 1px; background: var(--line);
 }
 .tl__item:last-child { padding-bottom: 0; }
+.tl > .tl__item:last-child > :last-child { margin-bottom: 0; }
 /* On the title itself, not floating in the gutter, so the two read as one path.
    It sits outside the <a> in linked entries, so it never picks up the underline. */
 .tl__what::before { content: "/"; color: var(--accent); }
@@ -382,7 +397,7 @@ main { min-height: 60vh; }
   /* Lift the date clear of the flow (its own line box plus its margin) so the
      heading below it starts at the item's top edge, on the node's line. Items
      with no date already start with their heading and need no correction. */
-  margin-top: calc(-1em - 7px);
+  margin-top: calc(var(--tl-lift) * -1);
 }
 .tl__what { font-family: var(--mono); font-size: 15.5px; margin-bottom: 3px; }
 .tl__where { font-size: 13.5px; color: var(--fg-2); margin-bottom: 10px; font-family: var(--mono); }
