@@ -39,6 +39,13 @@
                                               this */
   --tl-line: calc(15.5px * 1.2);   /* an item title's line box: the marker and
                                       the section label both centre on it */
+  /* Where the rail and its notches meet a title. Not the line box's centre: a
+     line box carries descender space below the letters, so its middle sits ~2px
+     under the middle of the capitals, which is what the eye reads as centre. */
+  --tl-mid: calc(var(--tl-line) / 2 - 2px);
+  --tl-indent: 25px;         /* rail to entry text: the list's left padding */
+  --rule-gap: 10px;          /* clear air between a rule and the text it meets,
+                                shared by the section label and the notches */
   --split-label: 176px;      /* sticky section-label column; the timeline rail
                                 is positioned off this plus --rail-gap, so keep
                                 them in sync. Floor is ~170px: "~/ Certifications"
@@ -252,9 +259,9 @@ main { min-height: 60vh; }
 .section--rail .eyebrow {
   height: var(--tl-line);
   color: var(--fg);
-  /* The heading face, at reading size and without the shouted caps and tracking
-     the eyebrow carries elsewhere. */
-  font: 400 15px/1 var(--mono);
+  /* Exactly an entry title's metrics, so the label's letters and the entry's
+     letters land on the same line without any nudging. */
+  font: 400 15.5px/1.2 var(--mono);
   letter-spacing: 0;
   text-transform: none;
   /* No gap, so "~/" reads as one string with the title it prefixes. The rule
@@ -262,7 +269,13 @@ main { min-height: 60vh; }
   gap: 0;
 }
 .section--rail .eyebrow::before { content: ">"; color: var(--accent); order: 1; }
-.section--rail .eyebrow::after { margin-left: 10px; order: 2; }
+/* Offset from the top of the box by --tl-mid, exactly as the rail's notch is
+   offset inside an entry. Both boxes start on the same line, so the two round to
+   the same pixel instead of drifting apart by one. */
+.section--rail .eyebrow::after {
+  margin-left: var(--rule-gap); order: 2;
+  align-self: flex-start; margin-top: var(--tl-mid);
+}
 @media (max-width: 860px) {
   .section--rail .split { gap: 20px; }
 }
@@ -307,7 +320,7 @@ main { min-height: 60vh; }
 /* The bottom padding is the .45em the last li used to contribute as an escaping
    margin. Keeping it leaves the list's outer height, and so the spacing between
    sections, exactly where it was before the rail was rebuilt. */
-.tl { list-style: none; margin: 0; padding: 0 0 0.45em 25px; }
+.tl { list-style: none; margin: 0; padding: 0 0 0.45em var(--tl-indent); }
 /* flow-root, so .tl__when's negative top margin shifts the content inside
    the item instead of collapsing through its top edge and dragging the
    whole item (node square included) up with it. */
@@ -325,10 +338,23 @@ main { min-height: 60vh; }
    border-left was. */
 .tl__item:not(:last-child)::before {
   content: "";
-  position: absolute; left: -25px;
-  top: calc(var(--tl-line) / 2);
-  bottom: calc(var(--tl-line) / -2);
+  position: absolute; left: calc(var(--tl-indent) * -1);
+  top: var(--tl-mid);
+  bottom: calc(var(--tl-mid) * -1);
   width: 1px; background: var(--line);
+}
+/* A short tick off the rail at every entry, level with its title. The last
+   entry draws no segment but still gets one, so the rail is ticked at both ends. */
+/* Same colour, same 1px, and it starts on the rail's own pixel column, so the
+   two read as one shape rather than a line with something stuck to it. */
+.tl__item::after {
+  content: "";
+  position: absolute; left: calc(var(--tl-indent) * -1);
+  top: var(--tl-mid);
+  /* Reaches to within --rule-gap of the entry text, the same clearance the
+     section label's rule leaves against its own title. */
+  width: calc(var(--tl-indent) - var(--rule-gap));
+  height: 1px; background: var(--line);
 }
 .tl__item:last-child { padding-bottom: 0; }
 /* On the title itself, not floating in the gutter, so the two read as one path.

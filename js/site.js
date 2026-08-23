@@ -84,8 +84,7 @@
       if (!wide.matches) continue;
 
       var items = list.querySelectorAll('.tl__item');
-      var title = items.length && items[items.length - 1].querySelector('.tl__what');
-      if (!title) continue;
+      if (!items.length) continue;
 
       var eyebrow = label.querySelector('.eyebrow');
       if (!eyebrow) continue;
@@ -96,15 +95,25 @@
       var col = label.nextElementSibling;
       if (!col) continue;
 
+      /* Aim at the line the rail's notch sits on, not the middle of the title's
+         box. Read it off the notch itself: an unregistered custom property comes
+         back as its raw calc() text, but a pseudo-element's top resolves to px. */
+      var last = items[items.length - 1];
+      var title = last.querySelector('.tl__what');
+      if (!title) continue;
+
+      var mid = parseFloat(getComputedStyle(last, '::after').top);
+      if (!isFinite(mid)) mid = title.getBoundingClientRect().height / 2;
+
       var r = title.getBoundingClientRect();
-      var tail = col.getBoundingClientRect().bottom - (r.top + r.height / 2);
+      var tail = col.getBoundingClientRect().bottom - (r.top + mid);
 
       /* The margin stops the label's BOX at the target line, but what should
          land there is the label's text, which sits above the box's bottom edge
          by its own trailing margin. Take that offset back off. */
       var lab = label.getBoundingClientRect();
       var eb = eyebrow.getBoundingClientRect();
-      var inset = lab.bottom - (eb.top + eb.height / 2);
+      var inset = lab.bottom - (eb.top + mid);
 
       var stop = tail - inset;
       if (stop > 0) label.style.marginBottom = Math.round(stop) + 'px';
