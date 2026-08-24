@@ -97,9 +97,12 @@ def page(path, *, title, desc, body, canonical, trail=(), noindex=False):
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
 <link rel="alternate icon" href="/favicon.png">
 <meta property="og:type" content="website">
+<meta property="og:site_name" content="msaunders.dev">
 <meta property="og:url" content="{canonical}">
 <meta property="og:title" content="{title}">
 <meta property="og:description" content="{desc}">
+<meta property="og:image" content="https://msaunders.dev/og.png">
+<meta name="twitter:card" content="summary">
 <link rel="stylesheet" href="/css/site.css">
 </head>
 <body>

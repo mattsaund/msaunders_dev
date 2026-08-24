@@ -23,6 +23,7 @@ js/site.js                         Typed name, section label travel, lightbox
 js/cosmos.js                       ASCII planetarium: background art
 files/                             The resume PDF, linked from the hero
 favicon.svg / favicon.png
+og.png                             512x512 link-preview image: see below
 _headers                           Cache + security headers
 _redirects                         301s for pages that have been retired
 robots.txt, sitemap.xml
@@ -69,6 +70,30 @@ every load as a backstop, so forgetting is survivable, not silent.
 If you'd rather stop using it, delete `tools/` and edit the HTML directly, but
 then drop the long cache in `_headers` too.
 
+## Link previews
+
+Paste the link into iMessage, Discord, Slack or anywhere else and the card reads
+one line and shows the site mark, nothing more:
+
+```
+Matthew Saunders, Computer Science, Aerospace Engineering
+```
+
+That is `<title>` and `og:title` in `index.html`, kept identical. There is
+deliberately **no** `og:description` and **no** `<meta name="description">`:
+scrapers fall back to the plain description tag when `og:description` is
+missing, and either one puts a second line under the title. Adding one back is
+how the old two-line Discord card comes back.
+
+The image is `og.png`, the favicon artwork at 512x512 on black, referenced as an
+absolute URL because scrapers do not resolve relative ones. It is square and
+`twitter:card` is `summary`, so it renders as a thumbnail beside the title
+rather than a banner above it. To redraw it, run the polygon from `favicon.svg`
+at whatever size you want; it is six points on a 32-unit grid.
+
+Sub-pages get the same image and their own titles from the shell in
+`tools/build_pages.py`.
+
 ## The ASCII planetarium
 
 `js/cosmos.js` draws the background art. Nothing is pre-rendered: each body is a
@@ -102,6 +127,13 @@ behind them, so a star under body copy now reads as sky and neither restriction
 is needed. About a third twinkle on staggered CSS keyframes: that fraction is
 down from two thirds, because each animated star is a composited layer and the
 field is four times larger than the gutters-only one.
+
+No star is placed on a body. `onHorizon` and `onBody` reject any that would land
+inside a globe or on a ring, testing the star's whole glyph box against the body
+grown by one of its own cells, since a cell inks whenever its centre is on the
+surface and either box alone could straddle a limb. The globe test covers the
+unlit half too, which is drawn as spaces and is exactly where a star used to
+show through and read as sitting in front of the planet.
 
 The drifting bodies are pinned to document coordinates, anchored to real section
 tops rather than a share of the page height, so they scroll up and off with

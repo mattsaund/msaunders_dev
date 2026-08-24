@@ -518,7 +518,7 @@
     var pre = document.createElement('pre');
     pre.className = 'cosmos__body';
     host.appendChild(pre);
-    live.push({ p: p, el: pre, drawn: null, top: 0, h: 0 });
+    live.push({ p: p, el: pre, drawn: null, left: 0, top: 0, w: 0, h: 0 });
   }
   /* The horizon is not one of the drifters: it is pinned to the foot of the
      document and always on, so it stays out of `live` and its count logic. */
@@ -574,16 +574,76 @@
   /* Weighted toward '.' so the field reads as depth rather than confetti. */
   var STAR_GLYPHS = "....*+,'`x.*.:.";
 
-  /* Document y of the globe's limb at a given x, or docH if there is no
-     horizon there. Stars below this line would sit "inside" the planet. */
-  function limbY(x, vw, docH) {
+  /* True if the box (x, y, w, h) touches the horizon globe. The globe is a
+     circle whose centre sits R below its apex, most of it off the foot of the
+     page, so "inside the circle" and "below the limb" are the same test. */
+  function onHorizon(x, y, w, h, vw) {
     var E = horizon.p;
-    if (!E.cols) return docH;                 // not laid out yet
+    if (!E.cols || !horizon.h) return false;           // not laid out yet
     var R = (E.span * vw) / 2;
-    var dx = Math.abs(x - vw / 2);
-    if (dx >= R) return docH;
-    /* Depth of the sphere's surface below its apex at this horizontal offset. */
-    return horizon.top + (R - Math.sqrt(R * R - dx * dx));
+    /* Same two half-diagonals as onBody: the star is a glyph box, and so is
+       every cell of the globe, which inks whenever its centre is on the
+       surface. Testing a bare point let stars hang over the limb where it
+       slopes steeply, out toward the sides. */
+    var ch = horizon.h / E.rows, cw = ch * CHAR_ASPECT;
+    var pad = (Math.sqrt(w * w + h * h) + Math.sqrt(cw * cw + ch * ch)) / 2;
+    var dx = x + w / 2 - vw / 2;
+    var dy = y + h / 2 - (horizon.top + R);
+    return dx * dx + dy * dy <= (R + pad) * (R + pad);
+  }
+
+  /* True if the box (x, y, w, h) touches a drifting body: its globe, or its
+     ring annulus. A star there would show through the unlit half of a planet
+     and through the gaps between ring glyphs, which reads as the sky sitting
+     in front of the body rather than behind it. */
+  function onBody(x, y, w, h) {
+    for (var i = 0; i < count; i++) {
+      var s = live[i], p = s.p;
+      if (!s.w || !s.h) continue;
+      if (x + w < s.left || x > s.left + s.w) continue;
+      if (y + h < s.top || y > s.top + s.h) continue;
+
+      /* The frame the renderer draws in: sx runs across [-extX, extX], sy up
+         [-extY, extY], and the globe is a unit sphere at the origin. */
+      var cx = x + w / 2, cy = y + h / 2;
+      var sx = (2 * (cx - s.left) / s.w - 1) * p.extX;
+      var sy = (1 - 2 * (cy - s.top) / s.h) * p.extY;
+      var d2 = sx * sx + sy * sy;
+
+      /* Both sides of this are boxes, not points: the star is a glyph up to
+         14px tall, and so is every cell of the body, which is inked whenever
+         its centre lands on the surface. Grow the body by both half-diagonals
+         so neither can straddle an edge. One frame unit is s.h / (2 * extY)
+         px, and the disk is drawn round, so that scale holds on both axes. */
+      var unit = s.h / (2 * p.extY);
+      var cw = s.w / p.cols, ch = s.h / p.rows;
+      var pad = (Math.sqrt(w * w + h * h) + Math.sqrt(cw * cw + ch * ch)) / 2 / unit;
+      var R = (p.rock ? ROCK_MAX : 1) + pad;
+      if (d2 <= R * R) return true;
+
+      if (p.rings) {
+        var ct = Math.cos(p.tilt);
+        var nx = -Math.sin(p.roll) * ct, ny = Math.cos(p.roll) * ct, nz = Math.sin(p.tilt);
+        if (Math.abs(nz) > 0.05) {
+          /* Where this line of sight crosses the ring plane. Gaps are not cut
+             out: a division is a couple of hundredths of a unit wide, and a
+             star sitting in one would read as a mistake, not as a gap. */
+          var zr = -(nx * sx + ny * sy) / nz;
+          var rr = Math.sqrt(d2 + zr * zr);
+          /* Ring radius is measured in the ring plane, which is foreshortened,
+             so `pad` screen units is not `pad` of rr: near the minor axis a
+             step across the screen runs several times as far out the ring.
+             |grad rr| is that stretch, so it converts the pad exactly instead
+             of the worst case, which would clear a wide halo of empty sky. */
+          if (rr > 1e-6) {
+            var gx = (sx - zr * nx / nz) / rr, gy = (sy - zr * ny / nz) / rr;
+            var g = Math.max(1, Math.sqrt(gx * gx + gy * gy));
+            if (rr >= p.rings.inner - pad * g && rr <= p.rings.outer + pad * g) return true;
+          }
+        }
+      }
+    }
+    return false;
   }
 
   function buildStars(vw, docH) {
@@ -599,9 +659,14 @@
     for (var i = 0; i < n; i++) {
       var x = 8 + r() * Math.max(0, vw - 16);
       var y = r() * docH;
-      /* Sky only: skip anything that would land on the globe. */
-      if (y > limbY(x, vw, docH)) continue;
       var g = STAR_GLYPHS.charAt((r() * STAR_GLYPHS.length) | 0);
+      var fs = 9 + (r() * 5 | 0);
+      /* Sky only: nothing is placed on a body. The whole glyph box is tested,
+         not the corner it is positioned from, because a star is up to 14px
+         tall and a corner test let one hang over a limb by its own height. */
+      var gw = fs * CHAR_ASPECT, gh = fs;
+      if (onHorizon(x, y, gw, gh, vw)) continue;
+      if (onBody(x, y, gw, gh)) continue;
       /* A minority twinkles. The fraction is down from 0.62 now the field
          covers the whole page rather than two gutters: each animated star is a
          composited layer, and at the old fraction a desktop page carried ~780
@@ -613,7 +678,7 @@
       if (r() < 0.13) cls += ' star--blue';
 
       var css = 'left:' + x.toFixed(0) + 'px;top:' + y.toFixed(0) + 'px;'
-              + 'font-size:' + (9 + (r() * 5 | 0)) + 'px';
+              + 'font-size:' + fs + 'px';
       var peak = (0.38 + r() * 0.62).toFixed(2);
       if (twinkle) {
         /* Period and phase both randomised; the negative delay drops each star
@@ -699,8 +764,10 @@
       var x = (p.side === 'right') ? vw - w - gap : gap;
 
       s.el.style.fontSize = fs.toFixed(2) + 'px';
-      s.el.style.left = Math.round(clamp(x, 0, Math.max(0, vw - w))) + 'px';
+      s.left = Math.round(clamp(x, 0, Math.max(0, vw - w)));
+      s.el.style.left = s.left + 'px';
 
+      s.w = w;
       s.h = p.rows * fs;
       s.top = Math.max(0, spots[i]);
       s.el.style.top = s.top + 'px';
