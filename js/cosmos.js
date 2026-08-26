@@ -20,6 +20,12 @@
   var RAMP = " .:-=+*#%@";
   var CHAR_ASPECT = 0.6;           // glyph advance / line height (measured at init)
   var SCALE = 1.15;                // global size trim for every body
+  /* Brightness for the drifting bodies, none of which set a gain of their
+     own. The horizon does set one, so it keeps its own and is not touched
+     by this. There is room for it: the ramp sits around index 3 of 9 and
+     almost nothing reaches the top, so this lifts the ink without
+     flattening the highlights into a solid patch of '@'. */
+  var BODY_GAIN = 1.13;            // ~13% over the old implicit 1.0
   var L = unit(-0.60, 0.40, 0.69); // key light, upper-left, toward viewer
 
   /* --- small maths ---------------------------------------- */
@@ -300,56 +306,66 @@
                  always fully on screen. Vertical position is assigned from
                  the document height so the bodies space themselves.        */
   var BODIES = [
-    { name: 'saturn', tex: texSaturn, rows: 38, extX: 2.45, extY: 1.20, sz: 0.50,
+    { name: 'saturn', tex: texSaturn, rows: 100, extX: 2.45, extY: 1.20, sz: 0.19,
       tilt: 0.46, roll: -0.16, rate: 0.105, amb: 0.17, phase: 0.4,
       rings: { inner: 1.28, outer: 2.30, gaps: [[1.68, 1.78], [2.04, 2.09]] },
       side: 'right' },
 
-    /* Rows are up from the 17 the old cratered moon used, with sz cut to match,
-       so the extra glyphs go into detail rather than making the body bigger. */
-    { name: 'ice', tex: texIce, rows: 54, extX: 1.14, extY: 1.14, sz: 0.39,
+    /* Every body renders on a 100-row grid. Font size is base * sz and never
+       looks at rows, so the two are inverse: raising rows without cutting sz
+       scales the body up on screen instead of adding detail to it. Each sz
+       here is the old value times the old rows over 100, which is what keeps
+       these the size they have always been. */
+    { name: 'ice', tex: texIce, rows: 100, extX: 1.14, extY: 1.14, sz: 0.2106,
       tilt: 0.28, roll: 0.10, rate: -0.062, amb: 0.16, phase: 1.9,
       side: 'left' },
 
-    { name: 'asteroid', tex: texRock, rock: true, rows: 60, extX: 1.20, extY: 1.20, sz: 0.56,
+    { name: 'asteroid', tex: texRock, rock: true, rows: 100, extX: 1.20, extY: 1.20, sz: 0.336,
       tilt: 0.55, roll: 0.35, rate: 0.085, amb: 0.15, phase: 1.1,
       side: 'right' },
 
-    { name: 'mars', tex: texMars, rows: 32, extX: 1.16, extY: 1.16, sz: 0.525,
+    { name: 'mars', tex: texMars, rows: 100, extX: 1.16, extY: 1.16, sz: 0.168,
       tilt: 0.34, roll: -0.28, rate: 0.110, amb: 0.15, phase: 0.9,
       side: 'left' },
 
     /* Uranus rolls onto its side, so its rings stand up vertically. */
-    { name: 'uranus', tex: texUranus, rows: 52, extX: 1.10, extY: 2.10, sz: 0.475,
+    { name: 'uranus', tex: texUranus, rows: 100, extX: 1.10, extY: 2.10, sz: 0.247,
       tilt: 0.52, roll: 1.5708, rate: -0.085, amb: 0.20, phase: 3.4,
       rings: { inner: 1.44, outer: 2.02, gaps: [[1.63, 1.69]] },
       side: 'right' },
 
-    { name: 'neptune', tex: texNeptune, rows: 36, extX: 1.14, extY: 1.14, sz: 0.50,
+    { name: 'neptune', tex: texNeptune, rows: 100, extX: 1.14, extY: 1.14, sz: 0.18,
       tilt: -0.30, roll: 0.22, rate: 0.095, amb: 0.18, phase: 5.1,
       side: 'left' },
 
-    { name: 'jupiter', tex: texJupiter, rows: 42, extX: 1.12, extY: 1.12, sz: 0.55,
+    { name: 'jupiter', tex: texJupiter, rows: 100, extX: 1.12, extY: 1.12, sz: 0.231,
       tilt: 0.10, roll: 0.06, rate: 0.140, amb: 0.19, phase: 2.7,
       side: 'right' }
   ];
 
 
-  /* The horizon body: an Earth so large it is mostly below the page, with
+  /* The horizon body: a gas giant so large it is mostly below the page, with
      only a shallow band of its limb showing along the very bottom.
        span   : sphere diameter in viewport widths
        reveal : px of globe left visible above the document bottom
-     tilt is 60 degrees so the visible apex sits near 30 degrees latitude
-     (not the pole, where the surface would just swirl) and the rotation
-     reads as a clean rightward drift. Negative rate == drifting right. */
-  /* Seen from directly over its north pole: tilt 0 puts the rotation axis
-     straight up the screen, so the apex of the visible cap IS the pole and the
-     surface wheels around it. A smaller span than a true horizon shot keeps the
-     cap off the extreme limb, where the texture would smear into stripes. */
+
+     Only about 29 degrees of arc is ever on screen, so tilt decides which
+     latitudes that band lands on, and that is what decides whether this reads
+     as a gas giant at all. At tilt 0 the apex is the pole: the bands become
+     rings round it, barely one cycle spans the cap, and the whole thing
+     flattens into a smooth dome. Tilting brings the mid-latitudes up, where
+     the banding actually lives. Past about 1.0 the dome visibly skews and
+     stops reading as a horizon, so this sits short of that.
+
+     A smaller span than a true horizon shot keeps the cap off the extreme
+     limb, where the texture would smear into stripes. */
   var EARTH = {
-    name: 'moonscape', tex: texMoonscape, pin: true,
+    name: 'gasgiant', tex: texJupiter, pin: true,
     span: 2.2, reveal: 200, sz: 1.00,
-    tilt: 0, roll: 0, rate: 0.030, amb: 0.20, gain: 1.70, phase: 0.6
+    /* gain is down from the 1.70 the old moonscape wanted. Brightness is
+       linear in the texture's albedo, and this one sits near 0.80 where that
+       one sat near 0.54; the old gain would have washed the band out. */
+    tilt: 0.6, roll: 0, rate: 0.030, amb: 0.20, gain: 1.15, phase: 0.6
   };
 
   /* --- renderer ------------------------------------------- */
@@ -385,7 +401,7 @@
       return L;
     }
     var rings = p.rings, gaps = rings ? rings.gaps : null;
-    var gain = p.gain || 1;
+    var gain = p.gain || BODY_GAIN;
     var lx = L[0], ly = L[1], lz = L[2];
     var lastIdx = RAMP.length - 1;
 
@@ -527,12 +543,15 @@
   host.appendChild(horizonEl);
   var horizon = { p: EARTH, el: horizonEl, drawn: null, top: 0, h: 0 };
 
-  /* The copyright line lives on the globe's last row. */
+  /* The copyright line sits over the foot of the globe. */
   var note = document.querySelector('.foot__note');
 
-  /* Columns of the globe's last row the copyright covers, worked out in
-     measure() from where the line actually lands. */
-  var noteFrom = 0, noteTo = 0;
+  /* The block of globe cells the copyright covers, worked out in measure()
+     from where the line actually lands. The line used to be sized to exactly
+     one cell, so clearing it meant clearing part of one row; now that the
+     grid is finer than the type, it spans several and the gap is a rectangle.
+     noteRow1 < noteRow0 means "nothing measured yet". */
+  var noteFrom = 0, noteTo = 0, noteRow0 = 0, noteRow1 = -1;
 
   /* Where the copyright sits, in globe columns. Measured rather than predicted:
      a count derived from the character count assumes the glyph advance scales
@@ -540,31 +559,49 @@
      narrow screen, and is wrong outright when a browser enforces a minimum font
      size. Measuring also keeps the gap centred on the line instead of on the
      viewport, so page zoom cannot slide one off the other. */
-  function noteSpan(colPx, cols) {
+  function noteSpan(colPx, cols, rowPx, rows, topPx) {
     noteFrom = noteTo = 0;
-    if (!note || !colPx) return;
+    noteRow0 = 0; noteRow1 = -1;
+    if (!note || !colPx || !rowPx) return;
     var rng = document.createRange();
     rng.selectNodeContents(note);
     var b = rng.getBoundingClientRect();
     if (!b.width) return;
-    /* Inclusive start, exclusive end. The start floors, so the column the line
-       begins in is always cleared and no terrain can crowd the leading glyph.
-       The end rounds: this is an advance box, so its right edge sits a sliver
-       past the last letter's ink, and ceil() spent a whole blank column on a
-       column the text merely grazed. */
-    noteFrom = clamp(Math.floor(b.left / colPx), 0, cols);
-    noteTo   = clamp(Math.round(b.right / colPx), 0, cols);
+    /* Inclusive start, exclusive end, with a margin either side. The margin is
+       the point: cutting the gap to the text's exact box leaves terrain butted
+       against the first and last letter. That used to be hidden, because a
+       column was as wide as the type and flooring to one gave most of a
+       character's clearance for free; at a fraction of that width the free
+       clearance goes too. Tie it to the line box so it holds at any size. */
+    /* Floor the near edge and ceil the far one. Rounding either edge lets that
+       side come out under the margin while the other keeps a full cell, which
+       is what threw the gap off centre; going outwards on both puts each
+       margin in [padX, padX + one cell), so they can differ by less than a
+       cell and never by a whole one. */
+    var padX = b.height * NOTE_PAD;
+    noteFrom = clamp(Math.floor((b.left - padX) / colPx), 0, cols);
+    noteTo   = clamp(Math.ceil((b.right + padX) / colPx), 0, cols);
+
+    /* The rows it covers. getBoundingClientRect is viewport-relative and the
+       globe's top is a document offset, so the scroll position is what puts
+       the two in the same frame. Floor the top and ceil the bottom: a row the
+       line only grazes still has ink behind the type, so it has to go. */
+    var y0 = b.top + (window.scrollY || window.pageYOffset || 0) - topPx;
+    /* Same outward rounding vertically. The line box already carries its own
+       leading above and below the ink, so this needs no pad of its own. */
+    noteRow0 = clamp(Math.floor(y0 / rowPx), 0, rows - 1);
+    noteRow1 = clamp(Math.ceil((y0 + b.height) / rowPx) - 1, 0, rows - 1);
   }
 
   /* Blank the glyphs the copyright covers, rather than letting it sit on top of
      terrain whose brightness changes as the body turns. */
   function punch(text, cols) {
-    if (noteTo <= noteFrom) return text;
+    if (noteTo <= noteFrom || noteRow1 < noteRow0) return text;
     var lines = text.split('\n');
-    var i = lines.length - 1;
-    lines[i] = lines[i].slice(0, noteFrom)
-             + new Array(noteTo - noteFrom + 1).join(' ')
-             + lines[i].slice(noteTo);
+    var gap = new Array(noteTo - noteFrom + 1).join(' ');
+    for (var i = noteRow0; i <= noteRow1 && i < lines.length; i++) {
+      lines[i] = lines[i].slice(0, noteFrom) + gap + lines[i].slice(noteTo);
+    }
     return lines.join('\n');
   }
 
@@ -727,7 +764,9 @@
      stable; the old viewport-derived count silently dropped from three bodies
      to two on a taller window. */
   var TOP_INSET = 40;
-  var NOTE_SCALE = 0.74;           // copyright size as a fraction of a globe cell
+  var NOTE_SCALE = 0.74;           // copyright size as a fraction of its line box
+  var HORIZON_DETAIL = 3;          // globe cells per line of copyright
+  var NOTE_PAD = 0.5;              // gap margin, as a fraction of the line box
 
   function anchors() {
     var out = [TOP_INSET];
@@ -781,9 +820,15 @@
        true circular arc. */
     var E = horizon.p;
     var R = (E.span * vw) / 2;                       // sphere radius in px
-    /* A floor on glyph size: `base` shrinks on small screens, which would
-       otherwise make the horizon's grid denser on a phone than on a desktop. */
-    var efs = Math.max(base * E.sz, 9);
+    /* The copyright's own line box, and the size it has always been. The floor
+       keeps it legible on a small screen, where `base` shrinks; because the
+       grid below is derived from this, the same floor still stops the terrain
+       getting denser on a phone than on a desktop. */
+    var notePx = Math.max(base * E.sz, 9);
+    /* The globe's cell, HORIZON_DETAIL of them to a line of copyright. The
+       type no longer has to be one cell tall, so this is free to go finer
+       than legible text, which is what the drifting bodies already do. */
+    var efs = notePx / HORIZON_DETAIL;
     var revealPx = Math.min(E.reveal, vh * 0.30, R);
 
     E.cols = Math.max(8, Math.round(vw / (efs * CHAR_ASPECT)));
@@ -792,16 +837,18 @@
     E.extY = (E.rows * efs) / 2 / R;
     E.yc = 1 - E.extY;                               // band's top edge at the apex
 
-    /* Same cell size as the globe, so one character is one column. This is
-       what ties the two together: the copyright occupies exactly one glyph row,
-       which is why the horizon's rows cannot be made finer than legible text
-       without breaking the line out of its punched gap. */
+    /* Sized against notePx, not the cell, so making the terrain finer does not
+       drag the copyright down with it. punch() clears whatever block of cells
+       the line turns out to cover, so the two no longer have to agree on a
+       size at all. */
     if (note) {
-      note.style.fontSize = (efs * NOTE_SCALE).toFixed(2) + 'px';
-      note.style.lineHeight = efs.toFixed(2) + 'px';
+      note.style.fontSize = (notePx * NOTE_SCALE).toFixed(2) + 'px';
+      note.style.lineHeight = notePx.toFixed(2) + 'px';
     }
-    /* Read the line back after sizing it: this is what the gap is cut from. */
-    noteSpan(efs * CHAR_ASPECT, E.cols);
+    /* Read the line back after sizing it: this is what the gap is cut from.
+       horizon.top is set below, so pass the value rather than reading it. */
+    noteSpan(efs * CHAR_ASPECT, E.cols, efs, E.rows,
+             Math.round(docH - E.rows * efs));
     horizon.drawn = null;
 
     horizon.h = E.rows * efs;
