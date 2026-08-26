@@ -7,6 +7,26 @@
    most spacing comes from --panel-pad and --panel-gap.
    ============================================================ */
 
+/* --- webfont ----------------------------------------------- *
+   JetBrains Mono, self-hosted so every visitor gets it rather than
+   only the people who already have it installed. One variable file
+   covers the whole 400-800 axis, which is why there is no second
+   face for the 500 the headings use. Latin subset: no page here
+   contains a non-ASCII character.
+
+   The advance is exactly 0.6 em. js/cosmos.js measures that at
+   startup and derives every body's column count from it, so a face
+   with a different advance would change the planets' proportions,
+   not just the type.
+   ============================================================ */
+@font-face {
+  font-family: "JetBrains Mono";
+  src: url("/fonts/jetbrains-mono-latin.woff2") format("woff2");
+  font-weight: 400 800;
+  font-style: normal;
+  font-display: swap;
+}
+
 /* --- tokens ------------------------------------------------ */
 :root {
   --bg:        #000000;
@@ -29,8 +49,8 @@
   --accent-line: #1f4d80;
   --accent-bg:   #0d1a29;
 
-  --mono: ui-monospace, "SF Mono", SFMono-Regular, "JetBrains Mono", "Cascadia Mono",
-          Menlo, Consolas, "Liberation Mono", monospace;
+  --mono: "JetBrains Mono", ui-monospace, "SF Mono", SFMono-Regular,
+          "Cascadia Mono", Menlo, Consolas, "Liberation Mono", monospace;
   --sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
           "Helvetica Neue", Arial, sans-serif;
 

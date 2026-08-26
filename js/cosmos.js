@@ -895,4 +895,17 @@
   });
   /* Images and fonts settling changes the document height. */
   addEventListener('load', function () { measure(); restar(); draw(0); });
+
+  /* The webfont lands after the first paint, and its glyph advance is not the
+     fallback's. Column counts come from that advance, so a body measured
+     against the fallback keeps the wrong proportions and reads as an ellipse.
+     sizeBodies() is the only thing that re-derives them, and the load handler
+     above does not call it, so hang it off the font instead. measure() clears
+     every drawn cache, which is what lets draw() paint the new grid rather
+     than skip it as already current. */
+  if (document.fonts && document.fonts.ready) {
+    document.fonts.ready.then(function () {
+      sizeBodies(); measure(); restar(); draw(0);
+    });
+  }
 })();

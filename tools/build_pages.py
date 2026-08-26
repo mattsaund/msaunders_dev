@@ -103,6 +103,10 @@ def page(path, *, title, desc, body, canonical, trail=(), noindex=False):
 <meta property="og:description" content="{desc}">
 <meta property="og:image" content="https://msaunders.dev/og.png">
 <meta name="twitter:card" content="summary">
+<!-- The stylesheet only asks for the font once it has parsed, and the
+     planetarium sizes itself against the font it finds, so start the
+     fetch alongside the CSS rather than after it. -->
+<link rel="preload" href="/fonts/jetbrains-mono-latin.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="/css/site.css">
 </head>
 <body>
