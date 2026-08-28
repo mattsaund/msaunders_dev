@@ -36,9 +36,18 @@
   --line-2:    #232931;
   --line-3:    #363e49;
 
-  /* ASCII planetarium ink, faint enough to sit behind body copy */
-  --space:     #243c50;
-  --star:      #2b4a62;   /* a touch brighter than --space: panels dim it anyway */
+  /* ASCII planetarium ink: the accent blue at 65% of full. Same hue and the
+     same channel mix, so the bodies read as the accent the '~', '>' and '/'
+     marks use, sitting a step below it rather than next to it. The old value
+     was a desaturated slate off that hue, which is why lifting the brightness
+     also meant moving the colour. A panel is 62% black, so this shows at
+     roughly the old strength behind body copy and full strength between the
+     panels. */
+  --space:     #3167a6;
+  /* Now the dimmer of the two. cosmos.js keeps every star clear of a body, so
+     the field never has to out-shine the planets to stay visible through them;
+     the two only ever sit side by side. */
+  --star:      #2b4a62;
 
   --fg:        #e7eaef;
   --fg-2:      #98a2b0;
