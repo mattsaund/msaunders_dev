@@ -1,0 +1,189 @@
+/* ============================================================
+   crucible.dev page : black, orange, white
+
+   Flat colour only. Nothing here is translucent: every fill is a
+   solid hex, so anything over the page is the page's colour rather
+   than a blend of it.
+
+   Every length written here is a whole number of pixels, the same
+   rule the main site's stylesheet follows. That is a rule about the
+   source, not a promise about the render: centring the hero in a
+   container of odd width puts it on a half pixel, and a run of text
+   is as wide as its glyphs make it. Neither is something a
+   stylesheet can round.
+   ============================================================ */
+
+/* --- webfont ----------------------------------------------- *
+   The same file /css/site.css serves, referenced by the same URL so
+   the two pages share one cache entry. One variable file covers the
+   whole 400-800 axis.
+   ============================================================ */
+@font-face {
+  font-family: "JetBrains Mono";
+  src: url("/fonts/jetbrains-mono-latin.woff2") format("woff2");
+  font-weight: 400 800;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* --- tokens ------------------------------------------------ */
+:root {
+  --bg:     #000000;
+  --fg:     #ffffff;
+  /* The one step off white, for the repo link. It has to sit under the
+     wordmark rather than beside it, or the bar reads as two titles. */
+  --fg-2:   #8c8c8c;
+  --line:   #1c1c1c;   /* the bar's hairline, barely off black */
+
+  --flame:  #ff6a00;
+  /* Hover only. A lighter orange rather than a translucent one, so the
+     button stays a flat fill in both states. */
+  --flame-hi: #ff8a33;
+
+  --mono: "JetBrains Mono", ui-monospace, "SF Mono", SFMono-Regular,
+          "Cascadia Mono", Menlo, Consolas, "Liberation Mono", monospace;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  /* A column, so .hero can take every pixel the bar leaves rather than
+     being told the bar's height in a number that would then have to be
+     kept in step with it. */
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg);
+  color: var(--fg);
+  font: 400 15px/25px var(--mono);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* --- top bar ----------------------------------------------- */
+/* Centred, not baseline aligned: the back control is a glyph on its own and
+   sitting it on the title's baseline left it visibly low against the two runs
+   of text beside it. Nothing wraps, so the bar keeps one height; the repo link
+   truncates instead. */
+.bar {
+  display: flex; align-items: center; flex-wrap: nowrap;
+  gap: 14px; height: 58px;
+  padding: 0 28px;
+  border-bottom: 1px solid var(--line);
+}
+/* Back to the site. No box: the padding is there to give it a target bigger
+   than the mark, not to draw anything. The arrow is a path rather than a
+   character, so it does not depend on the font carrying one, and it strokes
+   in currentColor so the hover below moves it with the rest. */
+.bar__back {
+  display: inline-flex; align-items: center;
+  color: var(--fg-2);
+  text-decoration: none;
+  padding: 6px 2px; flex: none;
+  transition: color .15s;
+}
+.bar__back svg {
+  width: 16px; height: 16px; display: block;
+  fill: none; stroke: currentColor; stroke-width: 1.5;
+  stroke-linecap: round; stroke-linejoin: round;
+}
+.bar__back:hover { color: var(--flame); }
+.bar__back:focus-visible { outline: 2px solid var(--fg); outline-offset: 2px; }
+
+.bar__name {
+  font: 500 18px/18px var(--mono);
+  color: var(--fg);
+  text-decoration: none;
+  letter-spacing: 0; flex: none;
+}
+.bar__name::before { content: "~/"; color: var(--flame); }
+.bar__name:hover { color: var(--flame); }
+.bar__repo {
+  font: 400 13px/18px var(--mono);
+  color: var(--fg-2);
+  text-decoration: none;
+  min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.bar__repo:hover { color: var(--fg); text-decoration: underline; }
+
+/* --- hero -------------------------------------------------- */
+.hero {
+  flex: 1;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  gap: 48px;
+  padding: 48px 28px 72px;
+}
+/* Bottom aligned, not centred: the flame stands on the title's baseline and
+   grows upward from there. flex-end would put its foot on the bottom of the
+   heading's line box, which is lower than the letters, because a line box
+   carries room for descenders and "Crucible" has none. The flame's bottom
+   margin takes that space back off. */
+.hero__unit { display: flex; align-items: flex-end; gap: 28px; }
+
+/* 16 rows of a 7px cell is 112px, half again the 80px title it stands next
+   to, and it rises out of the top of the heading rather than sinking past
+   the bottom of it. The margin is the leading below the title's baseline,
+   0.142 em of it, less the ~1px the bottom glyph's own baseline sits above
+   its cell edge: a box flush to the baseline still draws about 1.6px high,
+   which is a visible gap at this size. Rounded so the foot lands a fraction
+   above the letters rather than a fraction below. */
+.flame {
+  margin: 0 0 11px;
+  font: 400 7px/7px var(--mono);
+  color: var(--flame);
+  white-space: pre;
+  user-select: none; -webkit-user-select: none;
+}
+
+/* 80px is divisible by 5 for the same reason, and by 16, which is what lets
+   the flame beside it land on a whole cell. Whole letter-spacing keeps the
+   advance whole too, since tracking adds to it. */
+.hero__title {
+  margin: 0;
+  font: 500 80px/80px var(--mono);
+  letter-spacing: -2px;
+  color: var(--fg);
+}
+
+/* --- button ------------------------------------------------ */
+/* A solid orange block with black on it. Black, not white: white on this
+   orange is 2.6:1 and fails at any size, while black is 7.6:1. Flat fill,
+   square corners, no border. */
+.btn {
+  display: inline-block;
+  background: var(--flame);
+  color: #000000;
+  font: 500 15px/15px var(--mono);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  text-decoration: none;
+  padding: 17px 30px;
+  transition: background-color .15s;
+}
+.btn:hover { background: var(--flame-hi); }
+.btn:focus-visible { outline: 2px solid var(--fg); outline-offset: 3px; }
+
+/* --- responsive steps -------------------------------------- *
+   Whole pixels per step, the same way the main site handles its scale.
+   ============================================================ */
+@media (max-width: 860px) {
+  .hero__unit { gap: 20px; }
+  .hero__title { font-size: 64px; line-height: 64px; }
+  .flame { font-size: 6px; line-height: 6px; margin-bottom: 9px; }
+}
+
+@media (max-width: 560px) {
+  .bar { padding: 0 20px; }
+  .hero { gap: 32px; padding: 32px 20px 48px; }
+  .hero__unit { gap: 14px; }
+  .hero__title { font-size: 48px; line-height: 48px; letter-spacing: -1px; }
+  /* 5px, not the 4 that would hold the desktop ratio: below that the glyphs
+     stop resolving and the flame reads as a smear rather than as characters.
+     It is allowed to be taller than the title, so visibility wins. */
+  .flame { font-size: 5px; line-height: 5px; margin-bottom: 6px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .btn { transition: none; }
+}

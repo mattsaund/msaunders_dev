@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Crucible</title>
+<meta name="description" content="A local LLM engine that uses delegation and circular computing to maximize performance from smaller models.">
+<link rel="icon" href="/favicon.svg?v=019ca86f" type="image/svg+xml">
+<link rel="icon" href="/favicon.png?v=ea6ef8ba" sizes="any">
+<!-- Same self-hosted face the rest of the site uses, so a visitor arriving from
+     msaunders.dev already has it cached. The flame is measured in glyphs, so it
+     wants the font in hand before first paint rather than after it. -->
+<link rel="preload" href="/fonts/jetbrains-mono-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="/crucible/css/crucible.css?v=708a40c0">
+</head>
+<body>
+
+<!-- Top bar: a back control, the wordmark, and a link to the repo, laid out
+     like the one over the cosmos.js tool. The arrow is drawn, not typed: as
+     a character it depended on the font, and the two pages load different
+     ones, so the same markup came out an arrow here and a literal "<-" over
+     the tool. A path renders the same everywhere. -->
+<header class="bar">
+  <a class="bar__back" href="/" aria-label="Back to msaunders.dev"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M13 8H3M7 4L3 8l4 4"/></svg></a>
+  <a class="bar__name" href="/">Crucible</a>
+  <a class="bar__repo" href="https://github.com/mattsaund/Crucible"
+     target="_blank" rel="noopener">github.com/mattsaund/Crucible</a>
+</header>
+
+<main class="hero">
+  <!-- The flame and the title read as one unit, so they share a row and the
+       button sits under the pair rather than under either one. -->
+  <div class="hero__unit">
+    <!-- Filled by js/flame.js. Decorative: the page says nothing the flame is
+         needed to read, and a screen reader announcing a field of punctuation
+         would be noise. -->
+    <pre class="flame" id="flame" aria-hidden="true"></pre>
+    <h1 class="hero__title">Crucible</h1>
+  </div>
+
+  <a class="btn" href="https://github.com/mattsaund/Crucible"
+     target="_blank" rel="noopener">Download on GitHub</a>
+</main>
+
+<script src="/crucible/js/flame.js?v=8c5b731c" defer></script>
+</body>
+</html>

@@ -39,9 +39,108 @@ def crumb(trail):
 
 
 ASSETS = ("css/site.css", "js/site.js", "js/cosmos.js",
+          "crucible/css/crucible.css", "crucible/js/flame.js",
           "favicon.svg", "favicon.png")
 
 
+#  The site's top bar over the cosmos.js tool
+# ---------------------------------------------------------------------------
+# cosmos/ is a copy of the tool's own web/ directory, re-synced from that repo
+# whenever it changes. The bar over it belongs to this site, not to the tool:
+# it carries a link home, and upstream ships a folder that also opens over
+# file://, where "/" means nothing. So the site owns the whole bar rather than
+# reaching into upstream's markup to add one control to it.
+#
+# That means this replaces upstream's <header class="bar"> when it is there and
+# supplies the bar when it is not, which is what lets the tool drop its own bar
+# without this needing to change. Both the markup and its style live in this
+# one file, so no upstream stylesheet drifts, and the bar is exactly --bar-h
+# tall (58px, border included) because app.css sizes the tool's first row off
+# that token. Nothing wraps: the repo link truncates instead, so the bar cannot
+# grow and put that sizing out.
+
+COSMOS_BAR_CSS = """<style>
+/* The site's bar over the tool. Added by tools/build_pages.py; not part of
+   upstream cosmos.js. Height is --bar-h exactly, which app.css assumes. */
+.site-bar {
+  display: flex; align-items: center; flex-wrap: nowrap;
+  gap: 14px; height: var(--bar-h);
+  padding: 0 28px;
+  border-bottom: 1px solid var(--line);
+}
+.site-bar__back {
+  display: inline-flex; align-items: center;
+  color: var(--fg-3); text-decoration: none;
+  padding: 6px 2px; flex: none;
+  transition: color .15s;
+}
+/* Drawn, not typed. This page loads no webfont, so a "<-" ligated nowhere and
+   an arrow character would have come from whatever mono the system happens to
+   supply. A path is the same on every one of them. */
+.site-bar__back svg {
+  width: 16px; height: 16px; display: block;
+  fill: none; stroke: currentColor; stroke-width: 1.5;
+  stroke-linecap: round; stroke-linejoin: round;
+}
+.site-bar__back:hover { color: var(--fg); }
+.site-bar__name {
+  font: 500 18px/18px var(--mono); color: var(--fg);
+  letter-spacing: -0.01em; margin: 0; flex: none;
+}
+.site-bar__name::before { content: "~/"; color: var(--fg-3); }
+/* Truncates rather than wraps, so the bar keeps its height on a narrow window. */
+.site-bar__repo {
+  font: 400 13px/18px var(--mono); color: var(--fg-3);
+  text-decoration: none; transition: color .15s;
+  min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.site-bar__repo:hover { color: var(--fg); text-decoration: underline; }
+</style>
+"""
+
+COSMOS_BAR = """<header class="site-bar">
+  <a class="site-bar__back" href="/" aria-label="Back to msaunders.dev"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M13 8H3M7 4L3 8l4 4"/></svg></a>
+  <h1 class="site-bar__name">cosmos.js</h1>
+  <a class="site-bar__repo" href="https://github.com/mattsaund/cosmos.js"
+     target="_blank" rel="noopener">github.com/mattsaund/cosmos.js</a>
+</header>
+"""
+
+# Upstream's own bar, however much whitespace it carries around it.
+UPSTREAM_BAR = re.compile(r'<header class="bar">.*?</header>\s*', re.S)
+
+
+def cosmos_bar():
+    """Give the hosted copy of the cosmos.js tool this site's top bar."""
+    path = os.path.join(ROOT, "cosmos", "index.html")
+    if not os.path.exists(path):
+        print("  cosmos/: not present, skipped")
+        return
+    with open(path, encoding="utf-8") as fh:
+        html = fh.read()
+    before = html
+
+    had_upstream = bool(UPSTREAM_BAR.search(html))
+    if had_upstream:
+        html = UPSTREAM_BAR.sub("", html, count=1)
+
+    if "site-bar__back" not in html:
+        if "<body>" not in html or "</head>" not in html:
+            print("  cosmos/index.html                      SHAPE CHANGED, bar NOT added")
+            return
+        html = html.replace("</head>", COSMOS_BAR_CSS + "</head>", 1)
+        html = html.replace("<body>\n", "<body>\n\n" + COSMOS_BAR, 1)
+
+    if html == before:
+        print("  cosmos/index.html                      site bar already in place")
+        return
+    with open(path, "w", encoding="utf-8") as fh:
+        fh.write(html)
+    print("  cosmos/index.html                      site bar {}".format(
+        "replaced upstream's" if had_upstream else "added"))
+
+
+# ---------------------------------------------------------------------------
 def stamp_assets():
     """Append a content hash to every CSS/JS URL in every page.
 
@@ -247,5 +346,6 @@ if __name__ == "__main__":
     page("404.html", title="404 / Matthew Saunders",
          desc="Page not found.", body=NOTFOUND,
          canonical="https://msaunders.dev/404.html", noindex=True, trail=[("404", None)])
+    cosmos_bar()
     stamp_assets()
     print("done.")

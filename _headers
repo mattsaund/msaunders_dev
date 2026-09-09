@@ -14,6 +14,15 @@
 /js/*
   Cache-Control: public, max-age=0, must-revalidate
 
+# The Crucible page's own CSS and JS. They live under /crucible/, so the /css/*
+# and /js/* rules above do not reach them, but their URLs are stamped by the
+# same builder, so they get the same revalidate treatment.
+/crucible/css/*
+  Cache-Control: public, max-age=0, must-revalidate
+
+/crucible/js/*
+  Cache-Control: public, max-age=0, must-revalidate
+
 # The cosmos.js tool, copied in from its own repo. Its URLs carry no content
 # hash, so revalidate rather than risk serving a stale build after a re-sync.
 /cosmos/*
