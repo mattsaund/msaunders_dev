@@ -64,18 +64,30 @@
           "Helvetica Neue", Arial, sans-serif;
 
   --wrap: 1120px;
-  --pad: clamp(20px, 5vw, 48px);
-  --tl-line: calc(15.5px * 1.2);   /* an item title's line box: the marker and
-                                      the section label both centre on it */
-  /* Where the rail and its notches meet a title. Not the line box's centre: a
-     line box carries descender space below the letters, so its middle sits ~2px
-     under the middle of the capitals, which is what the eye reads as centre. */
-  --tl-mid: calc(var(--tl-line) / 2 - 2px);
+  /* Every length in this file is a whole number of pixels. Fluid units are what
+     used to break that: 5vw is a fraction at all but a few window widths, and a
+     fraction in a token lands in every box the token sizes. So the fluid values
+     step at breakpoints instead, in the block at the foot of this file. */
+  --pad: 48px;
+
+  /* An entry title's line box, and the section label's. 15px, not 15.5, buys
+     more than a whole line box: JetBrains Mono advances 0.6 em, so a size
+     divisible by 5 puts every glyph in a title on a whole pixel too. 15px
+     advances exactly 9px. */
+  --tl-fs: 15px;
+  --tl-line: 19px;           /* 15px type, 19px leading: both whole, ratio 1.267 */
+  /* Where the rail, its notches and the section label's rule meet a title.
+     Measured off the accent '>' the connector points at, not off the capitals:
+     in JetBrains Mono at 15px/19px the chevron's ink centres 9.95px down the
+     line box, so a whole 10px lands 0.05px off it. The '/' that opens an entry
+     title centres 0.55px higher, just over half a pixel, which is the price of
+     one whole number serving both the label's rule and the notches. */
+  --tl-mid: 10px;
   --tl-indent: 25px;         /* rail to entry text: the list's left padding */
   --rule-gap: 10px;          /* clear air between a rule and the text it meets,
                                 shared by the section label and the notches */
-  --split-label: 176px;      /* sticky section-label column; the timeline rail
-                                is positioned off this plus --rail-gap, so keep
+  --split-label: 176px;      /* section-label column; the timeline rail is
+                                positioned off this plus --rail-gap, so keep
                                 them in sync. Floor is ~170px: "~/ Certifications"
                                 is the widest label and needs 160px plus the flex
                                 gap, below which its rule vanishes. */
@@ -83,8 +95,8 @@
   /* Content panels floating over the planetarium: dark enough to carry body
      copy, open enough that the art still reads through them. */
   --panel:     rgba(0, 0, 0, 0.62);
-  --panel-pad: clamp(20px, 2.6vw, 30px);
-  --panel-gap: clamp(14px, 1.6vw, 20px);  /* between one panel and the next */
+  --panel-pad: 30px;
+  --panel-gap: 20px;         /* between one panel and the next */
 
   --r: 3px;
 }
@@ -108,7 +120,10 @@ body {
   color: var(--fg);
   font-family: var(--sans);
   font-size: 15px;
-  line-height: 1.65;
+  /* A length, not a ratio: a ratio re-multiplies at every inherited font size
+     and lands fractional at most of them. Every rule that sets a smaller size
+     below sets its own whole leading to match. */
+  line-height: 25px;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
 }
@@ -127,11 +142,14 @@ a {
 }
 a:hover { color: var(--accent-hi); }
 .btn, .social { text-decoration: none; }
-h1, h2, h3, h4 { margin: 0; font-weight: 500; line-height: 1.2; letter-spacing: -0.01em; }
+/* No shared line-height or tracking: 1.2 of a heading size is fractional more
+   often than not, and -0.01em is under a pixel at every size here. Each heading
+   sets its own whole values. */
+h1, h2, h3, h4 { margin: 0; font-weight: 500; }
 p { margin: 0 0 1em; }
 p:last-child { margin-bottom: 0; }
-ul, ol { margin: 0 0 1em; padding-left: 1.15em; }
-li { margin-bottom: .45em; }
+ul, ol { margin: 0 0 1em; padding-left: 17px; }
+li { margin-bottom: 7px; }
 li::marker { color: var(--accent); }
 hr { border: 0; border-top: 1px solid var(--line); margin: 0; }
 ::selection { background: var(--accent); color: #04070c; }
@@ -156,7 +174,7 @@ hr { border: 0; border-top: 1px solid var(--line); margin: 0; }
   padding: 0 var(--pad);
   position: relative;
 }
-main { min-height: 60vh; }
+main { min-height: 400px; }   /* was 60vh, a fraction at most window heights */
 
 .section { padding: 0; }
 /* --- section panels ---------------------------------------- */
@@ -180,8 +198,8 @@ main { min-height: 60vh; }
 
 /* --- type helpers ------------------------------------------ */
 .eyebrow {
-  font: 400 11.5px/1 var(--mono);
-  letter-spacing: .16em; text-transform: uppercase;
+  font: 400 12px/12px var(--mono);
+  letter-spacing: 2px; text-transform: uppercase;
   color: var(--fg-3);
   display: flex; align-items: center; gap: 10px;
   margin: 0 0 22px;
@@ -190,22 +208,25 @@ main { min-height: 60vh; }
 .eyebrow b { color: var(--accent); font-weight: 400; }
 .eyebrow::after { content: ""; flex: 1; height: 1px; background: var(--line); }
 
-.h-xl { font-family: var(--mono); font-size: clamp(30px, 6vw, 52px); letter-spacing: -.03em; font-weight: 500; }
-.h-md { font-family: var(--mono); font-size: clamp(17px, 2.2vw, 20px); letter-spacing: -.01em; }
+/* 50, not 52: JetBrains Mono advances 0.6 em, so a size divisible by 5 puts
+   every glyph of the headline on a whole pixel. Whole letter-spacing keeps it
+   that way, since tracking adds to the advance. */
+.h-xl { font-family: var(--mono); font-size: 50px; line-height: 60px; letter-spacing: -2px; font-weight: 500; }
+.h-md { font-family: var(--mono); font-size: 20px; line-height: 24px; letter-spacing: 0; }
 
 /* No measure cap: the panel is the measure now, so the lede wraps against the
    box it sits in rather than stopping short of it. */
-.lede { font-size: clamp(15px, 1.7vw, 17px); color: var(--fg-2); line-height: 1.7; }
+.lede { font-size: 17px; color: var(--fg-2); line-height: 29px; }
 .mono { font-family: var(--mono); }
 
 /* --- hero -------------------------------------------------- */
 .hero { padding: var(--panel-gap) 0 0; }
 .dot { width: 5px; height: 5px; background: var(--accent); flex: none; }
 /* A 52px headline's line box carries far more leading above its capitals than a
-   15.5px section label does, so the same padding put the H 5px lower than the
-   sections' titles sit. Trim that leading back off. In em, so it tracks the
-   headline's own clamped size instead of being right at one viewport width. */
-.hero h1 { margin-top: -0.1em; margin-bottom: 16px; }
+   15px section label does, so the same padding put the H 5px lower than the
+   sections' titles sit. Trim that leading back off. Whole pixels per step, set
+   with the headline's size in the block at the foot of this file. */
+.hero h1 { margin-top: -5px; margin-bottom: 16px; }
 .hero .links { margin-bottom: 30px; }
 
 /* The dot in "msaunders.dev" while the intro is on screen. */
@@ -225,7 +246,7 @@ main { min-height: 60vh; }
 /* --- buttons ----------------------------------------------- */
 .btn {
   display: inline-flex; align-items: center; gap: 9px;
-  font: 400 12.5px/1 var(--mono); letter-spacing: .06em; text-transform: uppercase;
+  font: 400 12px/12px var(--mono); letter-spacing: 1px; text-transform: uppercase;
   padding: 11px 17px;
   border: 1px solid var(--line-2); color: var(--fg); background: var(--bg-2);
   transition: border-color .15s, background-color .15s, color .15s;
@@ -242,7 +263,7 @@ main { min-height: 60vh; }
 .links .btn,
 .links .social {
   border: 0; background: none; padding: 0; gap: 0;
-  font: 400 15px/1.3 var(--mono);
+  font: 400 var(--tl-fs)/var(--tl-line) var(--mono);
   letter-spacing: 0; text-transform: none;
   color: var(--fg);
   transition: color .15s;
@@ -262,7 +283,9 @@ main { min-height: 60vh; }
    it. The brackets inherit that grey rather than setting a colour of their own,
    which is what keeps them off the accent the hero links use. */
 .tag {
-  font: 400 11.5px/1 var(--mono); letter-spacing: .04em;
+  /* .04em was 0.46px here, which is no longer expressible: the nearest whole
+     pixel is none at all. The row keeps its air from the 12px flex gap. */
+  font: 400 12px/12px var(--mono); letter-spacing: 0;
   color: var(--fg-2);            /* same grey as .lede, .tl__where and .tl__desc */
   white-space: nowrap;
 }
@@ -272,7 +295,7 @@ main { min-height: 60vh; }
 /* --- status pill ------------------------------------------- */
 .status {
   display: inline-flex; align-items: center; gap: 7px;
-  font: 400 11px/1 var(--mono); letter-spacing: .1em; text-transform: uppercase;
+  font: 400 11px/11px var(--mono); letter-spacing: 1px; text-transform: uppercase;
   padding: 5px 9px; border: 1px solid var(--line-2); color: var(--fg-2);
   border-radius: var(--r); background: var(--bg-2);
 }
@@ -281,12 +304,11 @@ main { min-height: 60vh; }
 /* --- grid helpers ------------------------------------------ */
 .grid { display: grid; gap: 1px; background: var(--line); border: 1px solid var(--line); }
 .grid > * { background: var(--bg); }
-.cols-3 { display: grid; gap: clamp(16px, 2.5vw, 24px); grid-template-columns: repeat(3, 1fr); }
+.cols-3 { display: grid; gap: 24px; grid-template-columns: repeat(3, 1fr); }
 @media (max-width: 860px) { .cols-3 { grid-template-columns: 1fr; } }
 
-.split { display: grid; grid-template-columns: var(--split-label) 1fr; gap: clamp(24px, 4vw, 48px); align-items: start; }
+.split { display: grid; grid-template-columns: var(--split-label) 1fr; gap: 48px; align-items: start; }
 @media (max-width: 860px) { .split { grid-template-columns: 1fr; gap: 20px; } }
-.split__label { position: sticky; top: 28px; }
 
 /* Each rail section gets its OWN vertical line, not a spine running the whole
    page: .tl's border spans exactly its list, and the padding between sections
@@ -304,7 +326,7 @@ main { min-height: 60vh; }
   color: var(--fg);
   /* Exactly an entry title's metrics, so the label's letters and the entry's
      letters land on the same line without any nudging. */
-  font: 400 15.5px/1.2 var(--mono);
+  font: 400 var(--tl-fs)/var(--tl-line) var(--mono);
   letter-spacing: 0;
   text-transform: none;
   /* No gap, so "~/" reads as one string with the title it prefixes. The rule
@@ -323,23 +345,21 @@ main { min-height: 60vh; }
   .section--rail .split { gap: 20px; }
 }
 
-/* Secondary link sitting under a section label. */
-@media (max-width: 860px) { .split__label { position: static; } }
 
 /* --- cards ------------------------------------------------- */
 .card {
   border: 1px solid var(--line);
   background: var(--bg-2);
-  padding: clamp(18px, 2.4vw, 26px);
+  padding: 26px;
   position: relative;
   transition: border-color .18s, background-color .18s;
 }
 .card__idx {
-  font: 400 11px/1 var(--mono); color: var(--fg-3); letter-spacing: .1em;
+  font: 400 11px/11px var(--mono); color: var(--fg-3); letter-spacing: 1px;
   margin-bottom: 14px; display: block;
 }
-.card__title { font-family: var(--mono); font-size: 17px; margin-bottom: 8px; transition: color .18s; }
-.card__body { color: var(--fg-2); font-size: 14px; margin-bottom: 16px; }
+.card__title { font-family: var(--mono); font-size: 17px; line-height: 21px; margin-bottom: 8px; transition: color .18s; }
+.card__body { color: var(--fg-2); font-size: 14px; line-height: 23px; margin-bottom: 16px; }
 
 /* --- timeline ---------------------------------------------- */
 .tl { list-style: none; margin: 0; padding: 0 0 0 var(--tl-indent); }
@@ -348,9 +368,9 @@ main { min-height: 60vh; }
    it would move the line. */
 .tl__item {
   position: relative; display: flow-root;
-  /* 30px plus the .45em every li carries: folding it in keeps the gap between
+  /* 30px plus the 7px every li carries: folding it in keeps the gap between
      entries a single number, which is what the rail segment has to span. */
-  padding: 0 0 calc(30px + 0.45em);
+  padding: 0 0 37px;
   margin-bottom: 0;
 }
 /* The rail is one segment per gap, each running from this entry's title to the
@@ -384,12 +404,12 @@ main { min-height: 60vh; }
    It sits outside the <a> in linked entries, so it never picks up the underline. */
 .tl__what::before { content: "/"; color: var(--accent); }
 .tl__what::after { content: ">"; color: var(--accent); }
-.tl__what { font-family: var(--mono); font-size: 15.5px; margin-bottom: 3px; }
-.tl__where { font-size: 13.5px; color: var(--fg-2); margin-bottom: 10px; font-family: var(--mono); }
-.tl__desc { font-size: 14px; color: var(--fg-2); }
+.tl__what { font-family: var(--mono); font-size: var(--tl-fs); line-height: var(--tl-line); margin-bottom: 3px; }
+.tl__where { font-size: 13px; line-height: 21px; color: var(--fg-2); margin-bottom: 10px; font-family: var(--mono); }
+.tl__desc { font-size: 14px; line-height: 23px; color: var(--fg-2); }
 /* The indent is for prose bullet lists. Tag rows are flush, like every
    other section's, so exclude them: .tl__desc ul out-specifies .tags. */
-.tl__desc ul:not(.tags) { margin: 0; padding-left: 1.1em; }
+.tl__desc ul:not(.tags) { margin: 0; padding-left: 15px; }
 
 /* Project entries: the title links out to the project's own site. */
 .tl__what a {
@@ -412,7 +432,7 @@ main { min-height: 60vh; }
 .shot:hover { border-color: var(--accent-line); }
 .shot img { width: 100%; height: auto; border: 1px solid var(--line); background: #000; }
 .shot figcaption {
-  font: 400 11px/1.5 var(--mono); letter-spacing: .05em; text-transform: uppercase;
+  font: 400 11px/17px var(--mono); letter-spacing: 1px; text-transform: uppercase;
   color: var(--fg-3); margin-top: 10px; padding-top: 0;
 }
 .shot:hover figcaption { color: var(--fg-2); }
@@ -421,19 +441,21 @@ main { min-height: 60vh; }
 .lb {
   position: fixed; inset: 0; z-index: 300;
   background: rgba(0, 0, 0, .94);
-  display: grid; place-items: center; padding: 4vh 4vw;
+  display: grid; place-items: center; padding: 32px;
   cursor: zoom-out;
 }
 .lb[hidden] { display: none; }
-.lb img { max-width: 100%; max-height: 92vh; border: 1px solid var(--line-2); }
+/* The viewport height less the padding above and below, so the cap is a whole
+   number wherever 100vh is one. 92vh was a fraction at almost every height. */
+.lb img { max-width: 100%; max-height: calc(100vh - 64px); border: 1px solid var(--line-2); }
 .lb__cap {
   position: absolute; left: 0; right: 0; bottom: 14px; text-align: center;
-  font: 400 11.5px/1 var(--mono); letter-spacing: .1em; text-transform: uppercase; color: var(--fg-3);
+  font: 400 12px/12px var(--mono); letter-spacing: 1px; text-transform: uppercase; color: var(--fg-3);
 }
 .lb__x {
   position: absolute; top: 14px; right: 16px;
   background: none; border: 1px solid var(--line-2); color: var(--fg-2);
-  font: 400 13px/1 var(--mono); width: 32px; height: 32px; cursor: pointer;
+  font: 400 13px/13px var(--mono); width: 32px; height: 32px; cursor: pointer;
 }
 .lb__x:hover { color: var(--fg); border-color: var(--line-3); }
 
@@ -443,23 +465,24 @@ main { min-height: 60vh; }
   border-left: 2px solid var(--accent);
   background: var(--bg-2);
   padding: 16px 18px;
-  font-size: 14px; color: var(--fg-2);
+  font-size: 14px; line-height: 23px; color: var(--fg-2);
 }
 
 /* --- empty state ------------------------------------------- */
 .empty {
   border: 1px dashed var(--line-2);
   background: var(--bg-2);
-  padding: clamp(36px, 7vw, 72px) var(--pad);
+  padding: 72px var(--pad);
   text-align: center;
 }
 .empty__icon {
   width: 40px; height: 40px; margin: 0 auto 20px;
   border: 1px solid var(--accent-line); background: var(--accent-bg); color: var(--accent);
-  display: grid; place-items: center; font: 400 15px/1 var(--mono);
+  display: grid; place-items: center; font: 400 15px/15px var(--mono);
 }
-.empty h2 { font-family: var(--mono); font-size: 18px; margin-bottom: 10px; }
-.empty p { color: var(--fg-2); font-size: 14px; max-width: 46ch; margin-inline: auto; }
+.empty h2 { font-family: var(--mono); font-size: 18px; line-height: 22px; margin-bottom: 10px; }
+/* 46ch in px: a ch is the '0' advance, which is a fraction at this size. */
+.empty p { color: var(--fg-2); font-size: 14px; line-height: 23px; max-width: 320px; margin-inline: auto; }
 
 /* --- footer ------------------------------------------------ */
 /* The bottom of the page is a scene: the last panel, a wide gap, then the
@@ -468,20 +491,20 @@ main { min-height: 60vh; }
    size scales with width, so a vh-based gap drifted out of step with the art it
    was making room for. The footer takes no panel of its own, or the box would
    sit over the globe and cut the copyright out of its row. */
-.foot { padding: clamp(260px, 24vw, 360px) 0 0; }
+.foot { padding: 360px 0 0; }
 /* The copyright occupies the globe's last glyph row. cosmos.js sets its
    font-size and line-height to the globe's row height so it shares that grid
    exactly, and blanks the glyphs underneath it. Letter-spacing must stay 0 or
    the character count no longer maps to columns. */
 .foot__note {
-  font: 400 11.5px/1 var(--mono); color: #4b545e; letter-spacing: 0;
+  font: 400 12px/12px var(--mono); color: #4b545e; letter-spacing: 0;
   text-align: center; margin: 0;
 }
 .social {
   display: inline-flex; align-items: center; gap: 8px;
   /* Matches .btn exactly: the two sit side by side in the hero's single row,
      so any difference in size or padding reads as a mistake. */
-  font: 400 12.5px/1 var(--mono); letter-spacing: .06em; text-transform: uppercase;
+  font: 400 12px/12px var(--mono); letter-spacing: 1px; text-transform: uppercase;
   color: var(--fg); border: 1px solid var(--line-2); background: var(--bg-2);
   padding: 11px 15px; transition: color .15s, border-color .15s, background-color .15s;
 }
@@ -489,7 +512,7 @@ main { min-height: 60vh; }
 
 /* --- breadcrumb -------------------------------------------- */
 .crumb {
-  font: 400 11.5px/1 var(--mono); letter-spacing: .09em; text-transform: uppercase;
+  font: 400 12px/12px var(--mono); letter-spacing: 1px; text-transform: uppercase;
   color: var(--fg-3); display: flex; align-items: center; gap: 9px; flex-wrap: wrap;
   padding-top: 26px;
 }
@@ -571,3 +594,34 @@ main { flex: 1 0 auto; }
   .cosmos__body { color: #1a2c3a; }   /* quieter where copy is denser */
 }
 
+
+/* --- responsive steps -------------------------------------- *
+   What clamp() and vw used to do, in whole pixels. A fluid length is a
+   fraction at all but a handful of window widths, and a fraction in a token
+   reaches every box that token sizes, so the scale steps at breakpoints
+   instead. Three stops, widest first, each one a plain integer.
+   ============================================================ */
+@media (max-width: 1200px) {
+  :root { --pad: 40px; --panel-pad: 26px; --panel-gap: 16px; }
+  .card  { padding: 22px; }
+  .empty { padding: 56px var(--pad); }
+  .foot  { padding: 300px 0 0; }
+}
+
+@media (max-width: 860px) {
+  :root { --pad: 28px; --panel-pad: 22px; }
+  .h-xl { font-size: 40px; line-height: 48px; letter-spacing: -1px; }
+  .hero h1 { margin-top: -4px; }
+  .h-md { font-size: 18px; line-height: 22px; }
+  .lede { font-size: 16px; line-height: 27px; }
+  .cols-3 { gap: 16px; }
+  .card  { padding: 18px; }
+  .empty { padding: 36px var(--pad); }
+  .foot  { padding: 260px 0 0; }
+}
+
+@media (max-width: 600px) {
+  :root { --pad: 20px; --panel-pad: 20px; --panel-gap: 14px; }
+  .h-xl { font-size: 30px; line-height: 36px; letter-spacing: -1px; }
+  .hero h1 { margin-top: -3px; }
+}

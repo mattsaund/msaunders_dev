@@ -778,6 +778,17 @@
     return out;
   }
 
+  /* The panel's side rules. Everything on the page sits in a centred column of
+     at most --wrap, so the strip between a rule and the window edge is the only
+     clear space on that side, and it is what the bodies centre on. Falls back to
+     the window edges if a page has no panel. */
+  function rails(vw) {
+    var el = document.querySelector('main .wrap');
+    if (!el) return { left: 0, right: vw };
+    var r = el.getBoundingClientRect();
+    return { left: r.left, right: r.right };
+  }
+
   function measure() {
     /* clientWidth, not innerWidth: the scrollbar is not usable space. */
     var vw = document.documentElement.clientWidth, vh = window.innerHeight;
@@ -785,6 +796,7 @@
     host.style.height = docH + 'px';
 
     var spots = anchors();
+    var rail = rails(vw);
     count = Math.min(spots.length, live.length);
 
     var base = clamp(Math.min(vw, vh * 1.7) / 108, 6, 13) * SCALE;
@@ -797,13 +809,36 @@
       var w = p.cols * fs * CHAR_ASPECT;
       /* Never wider than the viewport, whatever the screen. */
       if (w > vw) { fs *= vw / w; w = vw; }
+      /* Whole pixels: line-height is 1, so the cell height IS the font size and
+         a fraction here puts every glyph row after the first on a fractional
+         offset inside the <pre>. Rounding costs a little size accuracy, which
+         these already give up on every resize: base is a clamp of the viewport,
+         so no body has a fixed size to lose. Column width stays fractional at
+         0.6 * fs unless fs is a multiple of 5, which at these sizes would
+         quantise the bodies far too coarsely to be worth it. */
+      fs = Math.max(1, Math.round(fs));
+      w = p.cols * fs * CHAR_ASPECT;
 
-      /* Hug an edge, but keep the whole body on screen. */
-      var gap = clamp((vw - w) * 0.5, 0, 32);
-      var x = (p.side === 'right') ? vw - w - gap : gap;
+      /* Centred on the gutter beside the panels, not tucked against the window
+         edge. A body is several times wider than that strip, so centring it
+         there means it overhangs both ways: .cosmos clips the outer side and the
+         panel dims the inner one, which is what puts the visible mass of the
+         body out in the margin rather than behind the copy.
 
-      s.el.style.fontSize = fs.toFixed(2) + 'px';
-      s.left = Math.round(clamp(x, 0, Math.max(0, vw - w)));
+         The panels stop short of the window only while it is wider than --wrap.
+         Below that the gutter closes, its centre becomes the window edge, and
+         centring on it would hang every body half off the screen, so the old
+         edge hug fades back in as the gutter runs out. The gutter is (vw - 1120)
+         / 2, so full effect arrives at a 1360px window and the two agree exactly
+         where the gutter reaches zero. */
+      var gut = (p.side === 'right') ? (vw - rail.right) : rail.left;
+      var hug = Math.min(gut, 32);
+      var edge = (p.side === 'right') ? vw - w - hug : hug;
+      var mid = (p.side === 'right') ? (rail.right + vw) / 2 : rail.left / 2;
+      var x = edge + (mid - w / 2 - edge) * clamp(gut / 120, 0, 1);
+
+      s.el.style.fontSize = fs + 'px';
+      s.left = Math.round(x);
       s.el.style.left = s.left + 'px';
 
       s.w = w;
@@ -824,7 +859,9 @@
        keeps it legible on a small screen, where `base` shrinks; because the
        grid below is derived from this, the same floor still stops the terrain
        getting denser on a phone than on a desktop. */
-    var notePx = Math.max(base * E.sz, 9);
+    /* Rounded to a whole multiple of HORIZON_DETAIL so the cell below divides
+       out whole as well. The floor is already a multiple of it. */
+    var notePx = Math.max(Math.round(base * E.sz / HORIZON_DETAIL) * HORIZON_DETAIL, 9);
     /* The globe's cell, HORIZON_DETAIL of them to a line of copyright. The
        type no longer has to be one cell tall, so this is free to go finer
        than legible text, which is what the drifting bodies already do. */
@@ -842,8 +879,8 @@
        the line turns out to cover, so the two no longer have to agree on a
        size at all. */
     if (note) {
-      note.style.fontSize = (notePx * NOTE_SCALE).toFixed(2) + 'px';
-      note.style.lineHeight = notePx.toFixed(2) + 'px';
+      note.style.fontSize = Math.round(notePx * NOTE_SCALE) + 'px';
+      note.style.lineHeight = notePx + 'px';
     }
     /* Read the line back after sizing it: this is what the gap is cut from.
        horizon.top is set below, so pass the value rather than reading it. */
@@ -853,7 +890,7 @@
 
     horizon.h = E.rows * efs;
     horizon.top = Math.round(docH - horizon.h);
-    horizonEl.style.fontSize = efs.toFixed(2) + 'px';
+    horizonEl.style.fontSize = efs + 'px';
     horizonEl.style.left = '0px';
     horizonEl.style.top = horizon.top + 'px';
     horizon.drawn = null;

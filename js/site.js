@@ -1,12 +1,11 @@
 /* ============================================================
    msaunders.dev : page behaviour
 
-   Three unrelated jobs, all presentation only. Nothing here is
-   required to read the page: the name, the section labels and the
-   images all work with the script absent.
+   Two unrelated jobs, both presentation only. Nothing here is
+   required to read the page: the name and the images both work with
+   the script absent.
      1. the typed name in the hero
-     2. holding each sticky section label level with its last entry
-     3. a lightbox for anything marked [data-zoom]
+     2. a lightbox for anything marked [data-zoom]
    ============================================================ */
 (function () {
   'use strict';
@@ -68,74 +67,6 @@
       setTimeout(function () { erase(INTRO.length - 1); }, 2000);
     }
   }
-
-  /* --- section label travel --------------------------------- */
-  /* A sticky label is bounded by its grid area, which runs to the bottom of the
-     list beside it. That lets the label drift past the last entry's title and
-     come to rest level with a tag row or a stray line of body copy. Shortening
-     the area with a bottom margin stops it level with that title instead.
-
-     The tail below the last title differs per section, so it has to be measured.
-     This is presentation only: with no JS the label simply travels the whole
-     section, which is what it did before. Below the split's breakpoint the label
-     is its own grid row, where a bottom margin would push the content down, so
-     the margin is cleared there. */
-  var wide = window.matchMedia('(min-width: 861px)');
-
-  function labelStops() {
-    var secs = document.querySelectorAll('.section--rail');
-    for (var i = 0; i < secs.length; i++) {
-      var label = secs[i].querySelector('.split__label');
-      var list = secs[i].querySelector('.tl');
-      if (!label || !list) continue;
-
-      label.style.marginBottom = '';
-      if (!wide.matches) continue;
-
-      var items = list.querySelectorAll('.tl__item');
-      if (!items.length) continue;
-
-      var eyebrow = label.querySelector('.eyebrow');
-      if (!eyebrow) continue;
-
-      /* Measure against the column beside the label, not the list inside it:
-         the last li's bottom margin escapes the ol, so the list ends ~7px above
-         the grid area that actually bounds the sticky label. */
-      var col = label.nextElementSibling;
-      if (!col) continue;
-
-      /* Aim at the line the rail's notch sits on, not the middle of the title's
-         box. Read it off the notch itself: an unregistered custom property comes
-         back as its raw calc() text, but a pseudo-element's top resolves to px. */
-      var last = items[items.length - 1];
-      var title = last.querySelector('.tl__what');
-      if (!title) continue;
-
-      var mid = parseFloat(getComputedStyle(last, '::after').top);
-      if (!isFinite(mid)) mid = title.getBoundingClientRect().height / 2;
-
-      var r = title.getBoundingClientRect();
-      var tail = col.getBoundingClientRect().bottom - (r.top + mid);
-
-      /* The margin stops the label's BOX at the target line, but what should
-         land there is the label's text, which sits above the box's bottom edge
-         by its own trailing margin. Take that offset back off. */
-      var lab = label.getBoundingClientRect();
-      var eb = eyebrow.getBoundingClientRect();
-      var inset = lab.bottom - (eb.top + mid);
-
-      var stop = tail - inset;
-      if (stop > 0) label.style.marginBottom = Math.round(stop) + 'px';
-    }
-  }
-
-  labelStops();
-
-  var reflow;
-  window.addEventListener('resize', function () {
-    clearTimeout(reflow);
-    reflow = setTimeout(labelStops, 120);
-  });
 
   /* --- lightbox ------------------------------------------- */
   var zoomables = document.querySelectorAll('[data-zoom]');
