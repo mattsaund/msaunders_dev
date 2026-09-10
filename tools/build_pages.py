@@ -64,11 +64,11 @@ COSMOS_BAR_CSS = """<style>
    upstream cosmos.js, which as of its bar removal knows nothing about one.
    Hence --site-bar-h rather than the old --bar-h: that token went with the
    markup, and the height is the site's own business now. */
-:root { --site-bar-h: 58px; }
+:root { --site-bar-h: 40px; }
 .site-bar {
   display: flex; align-items: center; flex-wrap: nowrap;
-  gap: 14px; height: var(--site-bar-h);
-  padding: 0 28px;
+  gap: 12px; height: var(--site-bar-h);
+  padding: 0 20px;
   border-bottom: 1px solid var(--line);
 }
 /* The tool sizes its first row against the window so the preview fills the
@@ -83,26 +83,26 @@ COSMOS_BAR_CSS = """<style>
 .site-bar__back {
   display: inline-flex; align-items: center;
   color: var(--fg-3); text-decoration: none;
-  padding: 6px 2px; flex: none;
+  padding: 5px 2px; flex: none;
   transition: color .15s;
 }
 /* Drawn, not typed. This page loads no webfont, so a "<-" ligated nowhere and
    an arrow character would have come from whatever mono the system happens to
    supply. A path is the same on every one of them. */
 .site-bar__back svg {
-  width: 16px; height: 16px; display: block;
+  width: 14px; height: 14px; display: block;
   fill: none; stroke: currentColor; stroke-width: 1.5;
   stroke-linecap: round; stroke-linejoin: round;
 }
 .site-bar__back:hover { color: var(--fg); }
 .site-bar__name {
-  font: 500 18px/18px var(--mono); color: var(--fg);
-  letter-spacing: -0.01em; margin: 0; flex: none;
+  font: 500 15px/15px var(--mono); color: var(--fg);
+  letter-spacing: 0; margin: 0; flex: none;
 }
 .site-bar__name::before { content: "~/"; color: var(--fg-3); }
 /* Truncates rather than wraps, so the bar keeps its height on a narrow window. */
 .site-bar__repo {
-  font: 400 13px/18px var(--mono); color: var(--fg-3);
+  font: 400 12px/15px var(--mono); color: var(--fg-3);
   text-decoration: none; transition: color .15s;
   min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
@@ -118,8 +118,11 @@ COSMOS_BAR = """<header class="site-bar">
 </header>
 """
 
-# Upstream's own bar, however much whitespace it carries around it.
+# Upstream's own bar, however much whitespace it carries around it, and the
+# two blocks this script writes, so a rerun replaces them instead of stacking.
 UPSTREAM_BAR = re.compile(r'<header class="bar">.*?</header>\s*', re.S)
+OWN_BAR = re.compile(r'<header class="site-bar">.*?</header>\s*', re.S)
+OWN_CSS = re.compile(r'<style>\s*/\* The site\'s bar over the tool\..*?</style>\s*', re.S)
 
 
 def cosmos_bar():
@@ -132,24 +135,28 @@ def cosmos_bar():
         html = fh.read()
     before = html
 
+    # Take out whatever is there now: upstream's bar, and any bar this script
+    # put in on an earlier run. Re-injecting rather than skipping when one is
+    # already present is what lets the markup and style above be edited: a
+    # presence check alone would leave the old copy in place for good.
     had_upstream = bool(UPSTREAM_BAR.search(html))
-    if had_upstream:
-        html = UPSTREAM_BAR.sub("", html, count=1)
+    html = UPSTREAM_BAR.sub("", html, count=1)
+    html = OWN_BAR.sub("", html, count=1)
+    html = OWN_CSS.sub("", html, count=1)
 
-    if "site-bar__back" not in html:
-        if "<body>" not in html or "</head>" not in html:
-            print("  cosmos/index.html                      SHAPE CHANGED, bar NOT added")
-            return
-        html = html.replace("</head>", COSMOS_BAR_CSS + "</head>", 1)
-        html = html.replace("<body>\n", "<body>\n\n" + COSMOS_BAR, 1)
+    if "<body>" not in html or "</head>" not in html:
+        print("  cosmos/index.html                      SHAPE CHANGED, bar NOT added")
+        return
+    html = html.replace("</head>", COSMOS_BAR_CSS + "</head>", 1)
+    html = html.replace("<body>\n", "<body>\n\n" + COSMOS_BAR, 1)
 
     if html == before:
-        print("  cosmos/index.html                      site bar already in place")
+        print("  cosmos/index.html                      site bar already current")
         return
     with open(path, "w", encoding="utf-8") as fh:
         fh.write(html)
     print("  cosmos/index.html                      site bar {}".format(
-        "replaced upstream's" if had_upstream else "added"))
+        "replaced upstream's" if had_upstream else "written"))
 
 
 # ---------------------------------------------------------------------------

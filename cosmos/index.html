@@ -14,11 +14,11 @@
    upstream cosmos.js, which as of its bar removal knows nothing about one.
    Hence --site-bar-h rather than the old --bar-h: that token went with the
    markup, and the height is the site's own business now. */
-:root { --site-bar-h: 58px; }
+:root { --site-bar-h: 40px; }
 .site-bar {
   display: flex; align-items: center; flex-wrap: nowrap;
-  gap: 14px; height: var(--site-bar-h);
-  padding: 0 28px;
+  gap: 12px; height: var(--site-bar-h);
+  padding: 0 20px;
   border-bottom: 1px solid var(--line);
 }
 /* The tool sizes its first row against the window so the preview fills the
@@ -33,26 +33,26 @@
 .site-bar__back {
   display: inline-flex; align-items: center;
   color: var(--fg-3); text-decoration: none;
-  padding: 6px 2px; flex: none;
+  padding: 5px 2px; flex: none;
   transition: color .15s;
 }
 /* Drawn, not typed. This page loads no webfont, so a "<-" ligated nowhere and
    an arrow character would have come from whatever mono the system happens to
    supply. A path is the same on every one of them. */
 .site-bar__back svg {
-  width: 16px; height: 16px; display: block;
+  width: 14px; height: 14px; display: block;
   fill: none; stroke: currentColor; stroke-width: 1.5;
   stroke-linecap: round; stroke-linejoin: round;
 }
 .site-bar__back:hover { color: var(--fg); }
 .site-bar__name {
-  font: 500 18px/18px var(--mono); color: var(--fg);
-  letter-spacing: -0.01em; margin: 0; flex: none;
+  font: 500 15px/15px var(--mono); color: var(--fg);
+  letter-spacing: 0; margin: 0; flex: none;
 }
 .site-bar__name::before { content: "~/"; color: var(--fg-3); }
 /* Truncates rather than wraps, so the bar keeps its height on a narrow window. */
 .site-bar__repo {
-  font: 400 13px/18px var(--mono); color: var(--fg-3);
+  font: 400 12px/15px var(--mono); color: var(--fg-3);
   text-decoration: none; transition: color .15s;
   min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }

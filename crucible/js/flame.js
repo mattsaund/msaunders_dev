@@ -45,6 +45,14 @@
      at. Regenerating from a new flame.md means decoding the braille, then
      resampling to whatever column count holds that ratio at 0.6 em.
 
+     Resample by tracking each wing's edges, not by thresholding how much of a
+     cell the art covers. Coverage was what put a flat wall down the left side:
+     the drawing carries thin detached marks a single dot wide out there, too
+     fine for this grid to hold, and the threshold kept tipping them on and
+     welding them to the wing. Following the left and right edge of each wing
+     instead, averaged over the source rows a cell spans and smoothed once
+     along the run, keeps the taper that those marks were burying.
+
      The grid is sized to the title rather than the other way round: the two
      stand as a lockup, so the flame is as tall as the heading's line box.
      That caps how many rows there is room for, and 16 is what a 5px cell
@@ -53,22 +61,26 @@
      survive at this size, and the silhouette is what carries it.
      ============================================================ */
   var MASK = [
-    '        #',
-    '        ###',
-    '        ###',
-    '        #####',
-    '        ######',
-    '       #######',
-    '     ##########',
-    '     #### ######',
-    '    ####  #######',
-    '#######   #######',
-    '######     ######',
-    '#####       #####',
-    '#####        ###',
-    '  ###        ###',
-    '   ###       ##',
-    '     ##    ##'
+    '         ###',
+    '          ##',
+    '          ###',
+    '          #####',
+    '         #######',
+    '         ######',
+    '        ##########',
+    '       #### ######',
+    '      #####  ######',
+    '     ######    #####',
+    '    ######    #######',
+    '   ######     #######',
+    ' #######     ########',
+    ' ######       #######',
+    '#######        #####',
+    ' #####          ####',
+    ' ######         ####',
+    '   ####         ###',
+    '    ####      ###',
+    '     ####     ###'
   ];
 
   /* Sparse to dense: the Bourke ramp, the same one the planetarium maps

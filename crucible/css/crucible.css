@@ -67,8 +67,8 @@ body {
    truncates instead. */
 .bar {
   display: flex; align-items: center; flex-wrap: nowrap;
-  gap: 14px; height: 58px;
-  padding: 0 28px;
+  gap: 12px; height: 40px;
+  padding: 0 20px;
   border-bottom: 1px solid var(--line);
 }
 /* Back to the site. No box: the padding is there to give it a target bigger
@@ -79,11 +79,11 @@ body {
   display: inline-flex; align-items: center;
   color: var(--fg-2);
   text-decoration: none;
-  padding: 6px 2px; flex: none;
+  padding: 5px 2px; flex: none;
   transition: color .15s;
 }
 .bar__back svg {
-  width: 16px; height: 16px; display: block;
+  width: 14px; height: 14px; display: block;
   fill: none; stroke: currentColor; stroke-width: 1.5;
   stroke-linecap: round; stroke-linejoin: round;
 }
@@ -91,7 +91,7 @@ body {
 .bar__back:focus-visible { outline: 2px solid var(--fg); outline-offset: 2px; }
 
 .bar__name {
-  font: 500 18px/18px var(--mono);
+  font: 500 15px/15px var(--mono);
   color: var(--fg);
   text-decoration: none;
   letter-spacing: 0; flex: none;
@@ -99,7 +99,7 @@ body {
 .bar__name::before { content: "~/"; color: var(--flame); }
 .bar__name:hover { color: var(--flame); }
 .bar__repo {
-  font: 400 13px/18px var(--mono);
+  font: 400 12px/15px var(--mono);
   color: var(--fg-2);
   text-decoration: none;
   min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
@@ -121,23 +121,26 @@ body {
    margin takes that space back off. */
 .hero__unit { display: flex; align-items: flex-end; gap: 28px; }
 
-/* 16 rows of a 7px cell is 112px, half again the 80px title it stands next
+/* 20 rows of a 6px cell is 120px, half again the 80px title it stands next
    to, and it rises out of the top of the heading rather than sinking past
-   the bottom of it. The margin is the leading below the title's baseline,
-   0.142 em of it, less the ~1px the bottom glyph's own baseline sits above
-   its cell edge: a box flush to the baseline still draws about 1.6px high,
-   which is a visible gap at this size. Rounded so the foot lands a fraction
-   above the letters rather than a fraction below. */
+   the bottom of it. 20 rows rather than the 16 it started at: the shape is
+   a resampled drawing, and at 16 the taper down the left wing collapsed into
+   about three rows and read as a flat wall.
+
+   The margin is the leading below the title's baseline, 0.142 em of it, less
+   the same 0.142 of a cell that the bottom glyph's own baseline sits above
+   its cell edge: a box flush to the baseline still draws high by that much,
+   which is a visible gap at this size. Rounded up so the foot lands a
+   fraction above the letters rather than a fraction below. */
 .flame {
   margin: 0 0 11px;
-  font: 400 7px/7px var(--mono);
+  font: 400 6px/6px var(--mono);
   color: var(--flame);
   white-space: pre;
   user-select: none; -webkit-user-select: none;
 }
 
-/* 80px is divisible by 5 for the same reason, and by 16, which is what lets
-   the flame beside it land on a whole cell. Whole letter-spacing keeps the
+/* 80px is divisible by 5 for the same reason. Whole letter-spacing keeps the
    advance whole too, since tracking adds to it. */
 .hero__title {
   margin: 0;
@@ -170,18 +173,18 @@ body {
 @media (max-width: 860px) {
   .hero__unit { gap: 20px; }
   .hero__title { font-size: 64px; line-height: 64px; }
-  .flame { font-size: 6px; line-height: 6px; margin-bottom: 9px; }
+  .flame { font-size: 5px; line-height: 5px; margin-bottom: 9px; }
 }
 
 @media (max-width: 560px) {
-  .bar { padding: 0 20px; }
+  .bar { padding: 0 14px; }
   .hero { gap: 32px; padding: 32px 20px 48px; }
   .hero__unit { gap: 14px; }
   .hero__title { font-size: 48px; line-height: 48px; letter-spacing: -1px; }
   /* 5px, not the 4 that would hold the desktop ratio: below that the glyphs
      stop resolving and the flame reads as a smear rather than as characters.
      It is allowed to be taller than the title, so visibility wins. */
-  .flame { font-size: 5px; line-height: 5px; margin-bottom: 6px; }
+  .flame { font-size: 4px; line-height: 4px; margin-bottom: 7px; }
 }
 
 @media (prefers-reduced-motion: reduce) {
