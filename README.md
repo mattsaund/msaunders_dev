@@ -130,7 +130,7 @@ field is four times larger than the gutters-only one.
 
 No star is placed on a body. `onHorizon` and `onBody` reject any that would land
 inside a globe or on a ring, testing the star's whole glyph box against the body
-grown by one of its own cells, since a cell inks whenever its centre is on the
+grown by one of its own cells, since a cell inks whenever its center is on the
 surface and either box alone could straddle a limb. The globe test covers the
 unlit half too, which is drawn as spaces and is exactly where a star used to
 show through and read as sitting in front of the planet.
@@ -156,12 +156,12 @@ edge to hug. `EARTH` holds the horizon's own knobs: `span` (diameter in
 viewport widths), `reveal` (px left showing), tilt, gain and rate.
 `SCALE` sets the global size of every drifting body; the divisor in
 `buildStars` sets star density and `STAR_GLYPHS` the character mix.
-`--space` and `--star` in `css/site.css` set the two ink colours. `window.__cosmos` exposes
+`--space` and `--star` in `css/site.css` set the two ink colors. `window.__cosmos` exposes
 `{ render, bodies, live, horizon, measure, draw }` in the console for experimenting.
 
 ## Design
 
-Pure black (`#000`), by design. Colours, spacing, and type live as CSS custom
+Pure black (`#000`), by design. Colors, spacing, and type live as CSS custom
 properties at the top of `css/site.css`: change `--accent` to reskin the whole
 site. No gradients anywhere.
 

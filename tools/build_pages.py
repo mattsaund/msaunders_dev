@@ -61,12 +61,24 @@ ASSETS = ("css/site.css", "js/site.js", "js/cosmos.js",
 
 COSMOS_BAR_CSS = """<style>
 /* The site's bar over the tool. Added by tools/build_pages.py; not part of
-   upstream cosmos.js. Height is --bar-h exactly, which app.css assumes. */
+   upstream cosmos.js, which as of its bar removal knows nothing about one.
+   Hence --site-bar-h rather than the old --bar-h: that token went with the
+   markup, and the height is the site's own business now. */
+:root { --site-bar-h: 58px; }
 .site-bar {
   display: flex; align-items: center; flex-wrap: nowrap;
-  gap: 14px; height: var(--bar-h);
+  gap: 14px; height: var(--site-bar-h);
   padding: 0 28px;
   border-bottom: 1px solid var(--line);
+}
+/* The tool sizes its first row against the window so the preview fills the
+   screen. With its own bar gone it no longer discounts one, but this page has
+   a bar, so the row has to give the height back or the preview overshoots the
+   fold and pushes the code panel down. Same rule and breakpoint as app.css,
+   restated with the bar in it. */
+@media (min-width: 901px) {
+  .app { grid-template-rows: calc(100vh - var(--site-bar-h) - 2 * var(--app-pad) - var(--code-peek)) auto; }
+  .app { grid-template-rows: calc(100dvh - var(--site-bar-h) - 2 * var(--app-pad) - var(--code-peek)) auto; }
 }
 .site-bar__back {
   display: inline-flex; align-items: center;

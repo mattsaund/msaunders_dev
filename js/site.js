@@ -1,5 +1,5 @@
 /* ============================================================
-   msaunders.dev : page behaviour
+   msaunders.dev : page behavior
 
    Two unrelated jobs, both presentation only. Nothing here is
    required to read the page: the name and the images both work with

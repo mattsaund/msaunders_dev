@@ -1,13 +1,13 @@
 /* ============================================================
    crucible.dev page : black, orange, white
 
-   Flat colour only. Nothing here is translucent: every fill is a
-   solid hex, so anything over the page is the page's colour rather
+   Flat color only. Nothing here is translucent: every fill is a
+   solid hex, so anything over the page is the page's color rather
    than a blend of it.
 
    Every length written here is a whole number of pixels, the same
    rule the main site's stylesheet follows. That is a rule about the
-   source, not a promise about the render: centring the hero in a
+   source, not a promise about the render: centering the hero in a
    container of odd width puts it on a half pixel, and a run of text
    is as wide as its glyphs make it. Neither is something a
    stylesheet can round.
@@ -61,7 +61,7 @@ body {
 }
 
 /* --- top bar ----------------------------------------------- */
-/* Centred, not baseline aligned: the back control is a glyph on its own and
+/* Centered, not baseline aligned: the back control is a glyph on its own and
    sitting it on the title's baseline left it visibly low against the two runs
    of text beside it. Nothing wraps, so the bar keeps one height; the repo link
    truncates instead. */
@@ -114,7 +114,7 @@ body {
   gap: 48px;
   padding: 48px 28px 72px;
 }
-/* Bottom aligned, not centred: the flame stands on the title's baseline and
+/* Bottom aligned, not centered: the flame stands on the title's baseline and
    grows upward from there. flex-end would put its foot on the bottom of the
    heading's line box, which is lower than the letters, because a line box
    carries room for descenders and "Crucible" has none. The flame's bottom

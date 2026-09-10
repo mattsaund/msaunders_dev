@@ -58,7 +58,7 @@
     return out;
   }
 
-  /* A plane through the centre cuts the sphere in a great circle, so
+  /* A plane through the center cuts the sphere in a great circle, so
      |dot(p, n)| is the angular distance from that line. Two dot products give a
      feature that runs the whole way round the body, which no blob can do. */
   function greatCircles(seed, n, wMin, wSpan) {
@@ -211,7 +211,7 @@
      sphere with a moving texture. */
   /* Three scales of deformation, all generated from a seed so no single lobe
      ends up dominating. Hand-picked amplitudes were the problem before: one
-     broad lobe was twice its neighbours and read as a spike sticking out of an
+     broad lobe was twice its neighbors and read as a spike sticking out of an
      otherwise round body at certain angles. */
   function lobeField(seed, n, aMin, aSpan, negChance) {
     var r = rng(seed), out = [], i, y, ph, c;
@@ -234,7 +234,7 @@
   function rockRadius(bx, by, bz) {
     /* Elongation first. Most asteroids are notably longer on one axis, and a
        body built only from scattered lobes averages back out to a ball: ten
-       of them cancelled almost perfectly and the outline barely moved as it
+       of them canceled almost perfectly and the outline barely moved as it
        turned. A single long axis gives the silhouette something to sweep. */
     var r = 0.78 + 0.24 * (bx * bx - 0.34);
     var i, L, d, d2, d3;
@@ -557,7 +557,7 @@
      a count derived from the character count assumes the glyph advance scales
      with font-size, which stops being true at the sizes this drops to on a
      narrow screen, and is wrong outright when a browser enforces a minimum font
-     size. Measuring also keeps the gap centred on the line instead of on the
+     size. Measuring also keeps the gap centered on the line instead of on the
      viewport, so page zoom cannot slide one off the other. */
   function noteSpan(colPx, cols, rowPx, rows, topPx) {
     noteFrom = noteTo = 0;
@@ -575,7 +575,7 @@
        clearance goes too. Tie it to the line box so it holds at any size. */
     /* Floor the near edge and ceil the far one. Rounding either edge lets that
        side come out under the margin while the other keeps a full cell, which
-       is what threw the gap off centre; going outwards on both puts each
+       is what threw the gap off center; going outwards on both puts each
        margin in [padX, padX + one cell), so they can differ by less than a
        cell and never by a whole one. */
     var padX = b.height * NOTE_PAD;
@@ -612,14 +612,14 @@
   var STAR_GLYPHS = "....*+,'`x.*.:.";
 
   /* True if the box (x, y, w, h) touches the horizon globe. The globe is a
-     circle whose centre sits R below its apex, most of it off the foot of the
+     circle whose center sits R below its apex, most of it off the foot of the
      page, so "inside the circle" and "below the limb" are the same test. */
   function onHorizon(x, y, w, h, vw) {
     var E = horizon.p;
     if (!E.cols || !horizon.h) return false;           // not laid out yet
     var R = (E.span * vw) / 2;
     /* Same two half-diagonals as onBody: the star is a glyph box, and so is
-       every cell of the globe, which inks whenever its centre is on the
+       every cell of the globe, which inks whenever its center is on the
        surface. Testing a bare point let stars hang over the limb where it
        slopes steeply, out toward the sides. */
     var ch = horizon.h / E.rows, cw = ch * CHAR_ASPECT;
@@ -649,7 +649,7 @@
 
       /* Both sides of this are boxes, not points: the star is a glyph up to
          14px tall, and so is every cell of the body, which is inked whenever
-         its centre lands on the surface. Grow the body by both half-diagonals
+         its center lands on the surface. Grow the body by both half-diagonals
          so neither can straddle an edge. One frame unit is s.h / (2 * extY)
          px, and the disk is drawn round, so that scale holds on both axes. */
       var unit = s.h / (2 * p.extY);
@@ -778,9 +778,9 @@
     return out;
   }
 
-  /* The panel's side rules. Everything on the page sits in a centred column of
+  /* The panel's side rules. Everything on the page sits in a centered column of
      at most --wrap, so the strip between a rule and the window edge is the only
-     clear space on that side, and it is what the bodies centre on. Falls back to
+     clear space on that side, and it is what the bodies center on. Falls back to
      the window edges if a page has no panel. */
   function rails(vw) {
     var el = document.querySelector('main .wrap');
@@ -819,15 +819,15 @@
       fs = Math.max(1, Math.round(fs));
       w = p.cols * fs * CHAR_ASPECT;
 
-      /* Centred on the gutter beside the panels, not tucked against the window
-         edge. A body is several times wider than that strip, so centring it
+      /* Centered on the gutter beside the panels, not tucked against the window
+         edge. A body is several times wider than that strip, so centering it
          there means it overhangs both ways: .cosmos clips the outer side and the
          panel dims the inner one, which is what puts the visible mass of the
          body out in the margin rather than behind the copy.
 
          The panels stop short of the window only while it is wider than --wrap.
-         Below that the gutter closes, its centre becomes the window edge, and
-         centring on it would hang every body half off the screen, so the old
+         Below that the gutter closes, its center becomes the window edge, and
+         centering on it would hang every body half off the screen, so the old
          edge hug fades back in as the gutter runs out. The gutter is (vw - 1120)
          / 2, so full effect arrives at a 1360px window and the two agree exactly
          where the gutter reaches zero. */

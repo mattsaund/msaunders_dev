@@ -4,7 +4,7 @@
    A fire simulation on a character grid, clipped to a fixed
    silhouette. Heat is seeded along the base, rises, drifts a
    column either way and decays, and what survives is mapped to a
-   ramp of glyphs. One colour throughout, so the flame reads
+   ramp of glyphs. One color throughout, so the flame reads
    through glyph density rather than hue, which is the same trick
    the planetarium on the main site uses.
 
@@ -128,7 +128,7 @@
   var lastIdx = RAMP.length - 1;
   var clock = 0;
 
-  /* The fuel, re-lit every frame. The sine gives neighbouring columns
+  /* The fuel, re-lit every frame. The sine gives neighboring columns
      different phases of the same slow pulse, so the foot of the flame
      breathes instead of strobing, and the depth term leaves the lowest
      point of the underside hotter than the rim running up the sides. */

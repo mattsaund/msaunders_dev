@@ -3,7 +3,7 @@
 
    Dark, hairline-ruled, monospace-forward. No gradients. The page
    is a stack of semi-transparent panels over an ASCII planetarium
-   drawn by js/cosmos.js, so most colours are tokens at the top and
+   drawn by js/cosmos.js, so most colors are tokens at the top and
    most spacing comes from --panel-pad and --panel-gap.
    ============================================================ */
 
@@ -40,7 +40,7 @@
      same channel mix, so the bodies read as the accent the '~', '>' and '/'
      marks use, sitting a step below it rather than next to it. The old value
      was a desaturated slate off that hue, which is why lifting the brightness
-     also meant moving the colour. A panel is 62% black, so this shows at
+     also meant moving the color. A panel is 62% black, so this shows at
      roughly the old strength behind body copy and full strength between the
      panels. */
   --space:     #3167a6;
@@ -78,9 +78,9 @@
   --tl-line: 19px;           /* 15px type, 19px leading: both whole, ratio 1.267 */
   /* Where the rail, its notches and the section label's rule meet a title.
      Measured off the accent '>' the connector points at, not off the capitals:
-     in JetBrains Mono at 15px/19px the chevron's ink centres 9.95px down the
+     in JetBrains Mono at 15px/19px the chevron's ink centers 9.95px down the
      line box, so a whole 10px lands 0.05px off it. The '/' that opens an entry
-     title centres 0.55px higher, just over half a pixel, which is the price of
+     title centers 0.55px higher, just over half a pixel, which is the price of
      one whole number serving both the label's rule and the notches. */
   --tl-mid: 10px;
   --tl-indent: 25px;         /* rail to entry text: the list's left padding */
@@ -259,7 +259,7 @@ main { min-height: 400px; }   /* was 60vh, a fraction at most window heights */
 /* The hero's one row of everything: resume, contact, profiles, misc. */
 .links { display: flex; flex-wrap: wrap; gap: 22px; margin-bottom: 4px; }
 /* The hero row drops the box and reads as a line of text in the heading's own
-   face: no border, no fill, no forced caps, and colour is the only hover cue. */
+   face: no border, no fill, no forced caps, and color is the only hover cue. */
 .links .btn,
 .links .social {
   border: 0; background: none; padding: 0; gap: 0;
@@ -271,7 +271,7 @@ main { min-height: 400px; }   /* was 60vh, a fraction at most window heights */
 .links .btn:hover,
 .links .social:hover { color: var(--accent); background: none; border-color: transparent; }
 /* Brackets around every label, blue against white text. They set their own
-   colour, so they stay blue when the label turns blue on hover. */
+   color, so they stay blue when the label turns blue on hover. */
 .links .btn::before,
 .links .social::before { content: "<"; color: var(--accent); }
 .links .btn::after,
@@ -279,14 +279,14 @@ main { min-height: 400px; }   /* was 60vh, a fraction at most window heights */
 
 /* --- tags / chips ------------------------------------------ */
 .tags { display: flex; flex-wrap: wrap; gap: 12px; list-style: none; margin: 0; padding: 0; }
-/* No chip: just the label in angle brackets, in the same grey as the copy round
-   it. The brackets inherit that grey rather than setting a colour of their own,
+/* No chip: just the label in angle brackets, in the same gray as the copy round
+   it. The brackets inherit that gray rather than setting a color of their own,
    which is what keeps them off the accent the hero links use. */
 .tag {
   /* .04em was 0.46px here, which is no longer expressible: the nearest whole
      pixel is none at all. The row keeps its air from the 12px flex gap. */
   font: 400 12px/12px var(--mono); letter-spacing: 0;
-  color: var(--fg-2);            /* same grey as .lede, .tl__where and .tl__desc */
+  color: var(--fg-2);            /* same gray as .lede, .tl__where and .tl__desc */
   white-space: nowrap;
 }
 .tag::before { content: "<"; }
@@ -319,7 +319,7 @@ main { min-height: 400px; }   /* was 60vh, a fraction at most window heights */
 .section--rail .split { gap: 0; }
 /* Give the label row the height of an item's title line and let the existing
    align-items:center do the work: the marker, the title and the rule all end up
-   centred on the first item's title, with no magic offsets and no dependence on
+   centered on the first item's title, with no magic offsets and no dependence on
    the label's own font size. */
 .section--rail .eyebrow {
   height: var(--tl-line);
@@ -387,7 +387,7 @@ main { min-height: 400px; }   /* was 60vh, a fraction at most window heights */
 }
 /* A short tick off the rail at every entry, level with its title. The last
    entry draws no segment but still gets one, so the rail is ticked at both ends. */
-/* Same colour, same 1px, and it starts on the rail's own pixel column, so the
+/* Same color, same 1px, and it starts on the rail's own pixel column, so the
    two read as one shape rather than a line with something stuck to it. */
 .tl__item::after {
   content: "";
