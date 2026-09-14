@@ -1,0 +1,3 @@
+# The browser build of tiny: a clone of github.com/mattsaund/tiny with its
+# own git history. It is built locally into tiny/app/; only that output ships.
+tiny/web/

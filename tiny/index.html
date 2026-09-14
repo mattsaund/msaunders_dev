@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>tiny</title>
+<meta name="description" content="An extremely lightweight, terminal based personal knowledge management system, IDE, and text editor. Written in Rust.">
+<link rel="icon" href="/favicon.svg?v=019ca86f" type="image/svg+xml">
+<link rel="icon" href="/favicon.png?v=ea6ef8ba" sizes="any">
+<!-- Same self-hosted face as the rest of the site, so a visitor arriving from
+     msaunders.dev already has it cached. -->
+<link rel="preload" href="/fonts/jetbrains-mono-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="/tiny/css/tiny.css?v=74aac080">
+</head>
+<body>
+
+<!-- Top bar: a back control, the wordmark, and a link to the repo, the same
+     as the bars over Crucible and the cosmos.js tool. -->
+<header class="bar">
+  <a class="bar__back" href="/" aria-label="Back to msaunders.dev"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M13 8H3M7 4L3 8l4 4"/></svg></a>
+  <a class="bar__name" href="/">tiny</a>
+  <a class="bar__repo" href="https://github.com/mattsaund/tiny"
+     target="_blank" rel="noopener">github.com/mattsaund/tiny</a>
+</header>
+
+<main class="hero">
+  <!-- The mark and the title read as one unit, so they share a row and the
+       button sits under the pair. -->
+  <div class="hero__unit">
+    <!-- The mark, as plain text: a disk of glyphs with JetBrains Mono's
+         lowercase t knocked out of it. Two grids, one per screen size, swapped
+         in the stylesheet; how they were made is written up there. Decorative,
+         so hidden from screen readers. -->
+    <pre class="logo logo--lg" aria-hidden="true">              :-++****++-:              
+          :+#@@@@@@@@@@@@@@#+:          
+        =%@@@@@@@@@@@@@@@@@@@@%=        
+      =%@@@@@@@@@@@@@@@@@@@@@@@@%=      
+    .#@@@@@@@@@@%####%@@@@@@@@@@@@#.    
+   :%@@@@@@@@@@@:    +@@@@@@@@@@@@@%:   
+  :@@@@@@@@@@@@@:    +@@@@@@@@@@@@@@@:  
+  %@@@@@@@@@@@@@:    +@@@@@@@@@@@@@@@%  
+ +@@@@@@@@@:                =@@@@@@@@@+ 
+ @@@@@@@@@@:                =@@@@@@@@@@ 
+-@@@@@@@@@@-....      ......+@@@@@@@@@@-
+=@@@@@@@@@@@@@@@:    +@@@@@@@@@@@@@@@@@=
+=@@@@@@@@@@@@@@@:    +@@@@@@@@@@@@@@@@@=
+-@@@@@@@@@@@@@@@:    +@@@@@@@@@@@@@@@@@-
+ @@@@@@@@@@@@@@@:    +@@@@@@@@@@@@@@@@@ 
+ +@@@@@@@@@@@@@@:    +@@@@@@@@@@@@@@@@+ 
+  %@@@@@@@@@@@@@-    :******%@@@@@@@@%  
+  :@@@@@@@@@@@@@#           #@@@@@@@@:  
+   :%@@@@@@@@@@@@#:         #@@@@@@%:   
+    .#@@@@@@@@@@@@@%*+++++++%@@@@@#.    
+      =%@@@@@@@@@@@@@@@@@@@@@@@@%=      
+        =%@@@@@@@@@@@@@@@@@@@@%=        
+          :+#@@@@@@@@@@@@@@#+:          
+              :-++****++-:              </pre>
+    <pre class="logo logo--sm" aria-hidden="true">            -=+++++=-            
+        -*%@@@@@@@@@@@%*-        
+      =%@@@@@@@@@@@@@@@@@%=      
+    -%@@@@@@@@@@@@@@@@@@@@@%-    
+   +@@@@@@@@@=   =@@@@@@@@@@@+   
+  *@@@@@@@@@@=   -@@@@@@@@@@@@*  
+ -@@@@@@@####-   :#####%@@@@@@@- 
+ %@@@@@@@:             =@@@@@@@% 
+-@@@@@@@@:             =@@@@@@@@-
+=@@@@@@@@@@@@-   -@@@@@@@@@@@@@@=
+=@@@@@@@@@@@@=   -@@@@@@@@@@@@@@=
+-@@@@@@@@@@@@=   -@@@@@@@@@@@@@@-
+ %@@@@@@@@@@@=   -@@@@@@@@@@@@@% 
+ -@@@@@@@@@@@=   .#####@@@@@@@@- 
+  *@@@@@@@@@@#         #@@@@@@*  
+   +@@@@@@@@@@#-       #@@@@@+   
+    -%@@@@@@@@@@@%%%%%%@@@@%-    
+      =%@@@@@@@@@@@@@@@@@%=      
+        -*%@@@@@@@@@@@%*-        
+            -=+++++=-            </pre>
+    <h1 class="hero__title">tiny</h1>
+  </div>
+
+  <a class="btn" href="https://github.com/mattsaund/tiny"
+     target="_blank" rel="noopener">Download on GitHub</a>
+</main>
+
+<!-- tiny itself, running in the page. The program is compiled to WebAssembly
+     and app/term.js gives it the filesystem, keyboard and screen a terminal
+     would. The program itself is only fetched once start is pressed. -->
+<section class="try" aria-labelledby="try-label">
+  <div class="try__inner">
+    <h2 class="try__label" id="try-label">Try it out here</h2>
+    <div class="term" id="term" tabindex="0" role="application"
+         aria-roledescription="terminal" aria-label="tiny, running in this page">
+      <canvas class="term__screen" aria-hidden="true"></canvas>
+      <div class="term__cover">
+        <button class="btn term__start" type="button">Start tiny</button>
+        <p class="term__status" role="status" aria-live="polite"></p>
+        <noscript><p class="term__status">tiny needs JavaScript to run here.</p></noscript>
+      </div>
+    </div>
+    <!-- Stand in for Ctrl+1, 2 and 3, which in a browser switch tabs. -->
+    <div class="term__windows" role="group" aria-label="tiny's windows">
+      <button class="term__win" type="button" data-window="0" aria-pressed="true">Editor</button>
+      <button class="term__win" type="button" data-window="1" aria-pressed="false">Source Control</button>
+      <button class="term__win" type="button" data-window="2" aria-pressed="false">Project map</button>
+    </div>
+  </div>
+</section>
+
+<script type="module" src="/tiny/app/term.js?v=d2dceb9e"></script>
+</body>
+</html>

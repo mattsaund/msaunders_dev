@@ -1,0 +1,20 @@
+{
+  "wasm": {
+    "file": "tiny.wasm",
+    "bytes": 5152740,
+    "gzip": 2168793,
+    "hash": "3a032490"
+  },
+  "project": {
+    "file": "project.json",
+    "bytes": 1089064,
+    "gzip": 289798,
+    "hash": "59bf60da"
+  },
+  "start": {
+    "file": "start.json",
+    "bytes": 4504390,
+    "gzip": 40858,
+    "hash": "dfe0fc28"
+  }
+}

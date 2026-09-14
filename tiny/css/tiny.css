@@ -1,0 +1,269 @@
+/* ============================================================
+   tiny page : black, white, forest green
+
+   Built the same way as the Crucible page: flat fills only, nothing
+   translucent, and every length written here a whole number of
+   pixels. What differs between the two is the accent and the mark.
+   ============================================================ */
+
+/* --- webfont ----------------------------------------------- *
+   The file /css/site.css serves, by the same URL, so every page on
+   the site shares one cache entry for it.
+   ============================================================ */
+@font-face {
+  font-family: "JetBrains Mono";
+  src: url("/fonts/jetbrains-mono-latin.woff2") format("woff2");
+  font-weight: 400 800;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* --- tokens ------------------------------------------------ */
+:root {
+  --bg:     #000000;
+  --fg:     #ffffff;
+  --fg-2:   #8c8c8c;   /* the repo link, one step off white */
+  --line:   #1c1c1c;   /* the bar's hairline, barely off black */
+
+  /* A dark, woodsy green, picked against both jobs it does. As the logo's
+     ink on black it holds 4.07:1, enough to read as a mark rather than as
+     background; as the button's fill it carries white text at 5.16:1. The
+     darker candidates looked woodsier but went murky as ink, and the lighter
+     ones pushed white text under 4.5:1. */
+  --forest:    #3a7a4c;
+  /* Hover. Lighter, but only as far as white text allows: 4.59:1. */
+  --forest-hi: #3f8352;
+
+  --mono: "JetBrains Mono", ui-monospace, "SF Mono", SFMono-Regular,
+          "Cascadia Mono", Menlo, Consolas, "Liberation Mono", monospace;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  /* A column, so .hero takes every pixel the bar leaves. */
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg);
+  color: var(--fg);
+  font: 400 15px/25px var(--mono);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* --- top bar ----------------------------------------------- */
+/* The same 40px bar as Crucible's: three items on one vertical center,
+   nothing wraps, and the repo link truncates rather than growing the bar. */
+.bar {
+  display: flex; align-items: center; flex-wrap: nowrap;
+  gap: 12px; height: 40px;
+  padding: 0 20px;
+  border-bottom: 1px solid var(--line);
+}
+/* The padding gives the arrow a target bigger than the mark; the path strokes
+   in currentColor so the hover moves it with the text. */
+.bar__back {
+  display: inline-flex; align-items: center;
+  color: var(--fg-2);
+  text-decoration: none;
+  padding: 5px 2px; flex: none;
+  transition: color .15s;
+}
+.bar__back svg {
+  width: 14px; height: 14px; display: block;
+  fill: none; stroke: currentColor; stroke-width: 1.5;
+  stroke-linecap: round; stroke-linejoin: round;
+}
+.bar__back:hover { color: var(--forest-hi); }
+.bar__back:focus-visible { outline: 2px solid var(--fg); outline-offset: 2px; }
+
+.bar__name {
+  font: 500 15px/15px var(--mono);
+  color: var(--fg);
+  text-decoration: none;
+  letter-spacing: 0; flex: none;
+}
+.bar__name::before { content: "~/"; color: var(--forest-hi); }
+.bar__name:hover { color: var(--forest-hi); }
+.bar__repo {
+  font: 400 12px/15px var(--mono);
+  color: var(--fg-2);
+  text-decoration: none;
+  min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.bar__repo:hover { color: var(--fg); text-decoration: underline; }
+
+/* --- hero -------------------------------------------------- */
+.hero {
+  flex: 1;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  gap: 48px;
+  padding: 48px 28px 72px;
+}
+/* Centered, unlike Crucible's flame, which stands on its title's baseline. A
+   flame has a foot to stand on and a circle does not: set on the baseline it
+   floats high, while the descender of the "y" hangs below it. */
+.hero__unit { display: flex; align-items: center; gap: 28px; }
+
+/* The mark: a disk of glyphs with JetBrains Mono's own lowercase t cut out of
+   it. Built once, not at runtime. A canvas drew the disk, knocked the t out of
+   it in weight 800 from this same font file, and measured how much of every
+   cell stayed inked. Full cells are "@"; cells an edge only partly covers step
+   down the ramp " .:-=+*#%@" by coverage, which is what rounds the circle and
+   the t instead of leaving them stair-stepped.
+
+   "@" rather than "#" for the fill: at this size "#" is an open lattice, and
+   the knocked-out t sank into the gaps between its strokes.
+
+   5px cells, because the advance is 0.6 em and a size divisible by 5 puts
+   every column on a whole pixel. 24 rows by 40 columns is 120px square. */
+.logo {
+  margin: 0;
+  font: 400 5px/5px var(--mono);
+  color: var(--forest);
+  white-space: pre;
+  user-select: none; -webkit-user-select: none;
+}
+/* The coarser grid for narrow screens, 20 rows by 33. Scaling the 24-row grid
+   down to a smaller mark would take its cells to 4px and then 3px; this one
+   holds 5px at the middle step and only drops to 4px at the smallest. */
+.logo--sm { display: none; }
+
+/* 80px is divisible by 5 for the same reason as the cells. Whole
+   letter-spacing keeps the advance whole, since tracking adds to it. */
+.hero__title {
+  margin: 0;
+  font: 500 80px/80px var(--mono);
+  letter-spacing: -2px;
+  color: var(--fg);
+}
+
+/* --- button ------------------------------------------------ */
+/* White on the green rather than black: white is 5.16:1 on it, black only
+   4.07:1. Flat fill, square corners, no border. */
+.btn {
+  display: inline-block;
+  /* Crucible's button is a link; here Start tiny is a real <button>, and
+     browsers give those a border of their own. */
+  border: 0;
+  background: var(--forest);
+  color: #ffffff;
+  font: 500 15px/15px var(--mono);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  text-decoration: none;
+  padding: 17px 30px;
+  transition: background-color .15s;
+}
+.btn:hover { background: var(--forest-hi); }
+.btn:focus-visible { outline: 2px solid var(--fg); outline-offset: 3px; }
+
+/* --- responsive steps -------------------------------------- *
+   Whole pixels per step, the same way the main site handles its scale.
+   ============================================================ */
+@media (max-width: 860px) {
+  .hero__unit { gap: 20px; }
+  .hero__title { font-size: 64px; line-height: 64px; }
+  .logo--lg { display: none; }
+  .logo--sm { display: block; }        /* 20 rows of 5px: 100px */
+}
+
+@media (max-width: 560px) {
+  .bar { padding: 0 14px; }
+  .hero { gap: 32px; padding: 32px 20px 48px; }
+  .hero__unit { gap: 14px; }
+  .hero__title { font-size: 48px; line-height: 48px; letter-spacing: -1px; }
+  /* 4px: 80px tall, the same ratio to the title as Crucible's flame here. The
+     glyphs read as texture at this size, but the t is carried by which cells
+     are blank, and that survives. */
+  .logo--sm { font-size: 4px; line-height: 4px; }
+}
+
+/* --- try it ------------------------------------------------ */
+/* The terminal's own face: JetBrains Mono again, but a subset carrying the
+   arrows, shapes and symbols tiny draws, which the site's Latin-only file does
+   not. Blocking rather than swapping: the program is only drawn once this has
+   loaded, and a fallback face would put glyphs in the wrong columns. */
+@font-face {
+  font-family: "tiny term";
+  src: url("/tiny/app/term.woff2") format("woff2");
+  font-weight: 400 800;
+  font-style: normal;
+  font-display: block;
+}
+
+.try { padding: 0 28px 96px; }
+/* app/term.js sets its width to exactly the grid plus the box around it, so
+   the label, the screen and the buttons share one left edge. */
+.try__inner { max-width: 100%; margin: 0 auto; }
+.try__label {
+  margin: 0 0 16px;
+  font: 500 20px/24px var(--mono);
+  color: var(--fg);
+}
+
+.term {
+  position: relative;
+  background: #000000;
+  border: 1px solid var(--line);
+  padding: 12px;
+  outline: none;
+}
+.term.is-focused { border-color: var(--forest); }
+
+/* Until it runs, the screen holds tiny's opening frame, dimmed. It is the same
+   frame the program draws first, so starting it only has to lift the dimming. */
+.term__screen {
+  display: block;
+  transition: filter .5s ease, opacity .5s ease;
+}
+.term:not(.is-running) .term__screen {
+  filter: grayscale(1);
+  opacity: .4;
+}
+
+/* The start button, over the dimmed frame, faded out once the program runs. */
+.term__cover {
+  position: absolute; inset: 0;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  gap: 12px;
+  transition: opacity .3s ease, visibility 0s linear .3s;
+}
+.term.is-running .term__cover { opacity: 0; visibility: hidden; }
+.term__status {
+  margin: 0;
+  font: 400 12px/15px var(--mono);
+  color: var(--fg-2);
+}
+.term__start:disabled { background: var(--line); color: var(--fg-2); cursor: default; }
+
+.term__windows { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+.term__win {
+  font: 500 13px/13px var(--mono);
+  padding: 11px 16px;
+  color: var(--fg-2);
+  background: #0d0d0d;
+  border: 1px solid var(--line);
+  cursor: pointer;
+  transition: color .15s, background-color .15s, border-color .15s;
+}
+.term__win:hover { color: var(--fg); }
+.term__win[aria-pressed="true"] {
+  color: #ffffff;
+  background: var(--forest);
+  border-color: var(--forest);
+}
+.term__win:focus-visible { outline: 2px solid var(--fg); outline-offset: 2px; }
+
+@media (max-width: 560px) {
+  .try { padding: 0 14px 64px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .btn { transition: none; }
+  .term__win { transition: none; }
+  .term__screen, .term__cover { transition: none; }
+}

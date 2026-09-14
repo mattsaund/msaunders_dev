@@ -40,6 +40,7 @@ def crumb(trail):
 
 ASSETS = ("css/site.css", "js/site.js", "js/cosmos.js",
           "crucible/css/crucible.css", "crucible/js/flame.js",
+          "tiny/css/tiny.css", "tiny/app/term.js",
           "favicon.svg", "favicon.png")
 
 
@@ -181,7 +182,12 @@ def stamp_assets():
         return '{}="/{}?v={}"'.format(m.group("attr"), m.group("path"), vers[m.group("path")])
 
     touched = 0
-    for root, _dirs, files in os.walk(ROOT):
+    clone = os.path.join(ROOT, "tiny", "web")
+    for root, dirs, files in os.walk(ROOT):
+        # The tiny clone is a Rust checkout: a build directory of tens of
+        # thousands of files and not a page among them. Pruned here so the walk
+        # never goes into it, rather than skipped once it is already inside.
+        dirs[:] = [d for d in dirs if os.path.join(root, d) != clone]
         if os.sep + ".git" in root or os.sep + "assets" in root:
             continue
         for f in files:

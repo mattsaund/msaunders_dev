@@ -181,9 +181,9 @@ body {
   .hero { gap: 32px; padding: 32px 20px 48px; }
   .hero__unit { gap: 14px; }
   .hero__title { font-size: 48px; line-height: 48px; letter-spacing: -1px; }
-  /* 5px, not the 4 that would hold the desktop ratio: below that the glyphs
-     stop resolving and the flame reads as a smear rather than as characters.
-     It is allowed to be taller than the title, so visibility wins. */
+  /* 4px, which at 20 rows is 80px, the height the 16-row flame had here at
+     5px. That is about the smallest cell whose glyphs still render: they read
+     as texture rather than characters, but the shape holds. */
   .flame { font-size: 4px; line-height: 4px; margin-bottom: 7px; }
 }
 

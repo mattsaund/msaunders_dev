@@ -23,6 +23,17 @@
 /crucible/js/*
   Cache-Control: public, max-age=0, must-revalidate
 
+# The tiny page's own CSS. Same arrangement as Crucible's: outside the reach of
+# the /css/* rule, stamped by the same builder, so it revalidates the same way.
+/tiny/css/*
+  Cache-Control: public, max-age=0, must-revalidate
+
+# tiny running in the page: the script, the vendored WASI shim, the wasm, the
+# project it opens and its font. The script's URL is stamped; the wasm and the
+# project are fetched under the hashes in manifest.json. All of it revalidates.
+/tiny/app/*
+  Cache-Control: public, max-age=0, must-revalidate
+
 # The cosmos.js tool, copied in from its own repo. Its URLs carry no content
 # hash, so revalidate rather than risk serving a stale build after a re-sync.
 /cosmos/*
