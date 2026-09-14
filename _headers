@@ -39,5 +39,8 @@
 /cosmos/*
   Cache-Control: public, max-age=0, must-revalidate
 
+# PDFs keep their public URLs when they are replaced, so a day's max-age left
+# visitors on the old resume. Revalidating makes an update show up on the next
+# load; the resume link on the home page is also stamped with its hash.
 /files/*
-  Cache-Control: public, max-age=86400
+  Cache-Control: public, max-age=0, must-revalidate

@@ -41,7 +41,8 @@ def crumb(trail):
 ASSETS = ("css/site.css", "js/site.js", "js/cosmos.js",
           "crucible/css/crucible.css", "crucible/js/flame.js",
           "tiny/css/tiny.css", "tiny/app/term.js",
-          "favicon.svg", "favicon.png")
+          "favicon.svg", "favicon.png",
+          "files/matthew-saunders-resume.pdf")
 
 
 #  The site's top bar over the cosmos.js tool
