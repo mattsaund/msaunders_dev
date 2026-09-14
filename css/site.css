@@ -318,7 +318,7 @@ main { min-height: 400px; }   /* was 60vh, a fraction at most window heights */
 .section--rail { position: relative; }
 .section--rail .split { gap: 0; }
 /* Give the label row the height of an item's title line and let the existing
-   align-items:center do the work: the marker, the title and the rule all end up
+   align-items:center do the work: the title and the rule both end up
    centered on the first item's title, with no magic offsets and no dependence on
    the label's own font size. */
 .section--rail .eyebrow {
@@ -333,7 +333,6 @@ main { min-height: 400px; }   /* was 60vh, a fraction at most window heights */
      puts its own space back. */
   gap: 0;
 }
-.section--rail .eyebrow::before { content: ">"; color: var(--accent); order: 1; }
 /* Offset from the top of the box by --tl-mid, exactly as the rail's notch is
    offset inside an entry. Both boxes start on the same line, so the two round to
    the same pixel instead of drifting apart by one. */
