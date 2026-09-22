@@ -34,6 +34,7 @@
      wordmark rather than beside it, or the bar reads as two titles. */
   --fg-2:   #8c8c8c;
   --line:   #1c1c1c;   /* the bar's hairline, barely off black */
+  --line-2: #2e2e2e;   /* the install box, which needs an edge that shows */
 
   --flame:  #ff6a00;
   /* Hover only. A lighter orange rather than a translucent one, so the
@@ -167,6 +168,89 @@ body {
 .btn:hover { background: var(--flame-hi); }
 .btn:focus-visible { outline: 2px solid var(--fg); outline-offset: 3px; }
 
+/* --- install line ------------------------------------------ */
+/* The button and the command are one offer, so they share a column of their
+   own and the hero's gap stays between that column and the title above it. */
+/* Full width, so the box below measures itself against the hero rather than
+   against its own command, which is wider than a phone. */
+.get { display: flex; flex-direction: column; align-items: center; gap: 20px; width: 100%; }
+
+/* Wide enough that the whole command shows at 13px: the longer of the two
+   is 86 characters of a 0.6 em advance, plus the padding and the button.
+   Narrower than that it scrolls rather than wraps, since a wrapped shell
+   command reads as two commands. */
+.cmd { width: 100%; max-width: 900px; }
+
+/* The marks stand outside the box, in a column of their own, so the two boxes
+   keep one left edge whether that column holds one mark or two. */
+.cmd__row { display: flex; align-items: center; gap: 14px; }
+.cmd__row + .cmd__row { margin-top: 10px; }
+.cmd__os {
+  flex: none;
+  /* Packed against the box, not spread across the column: the Windows row
+     carries one mark where the row above it carries two, and left-aligned
+     that one sat a mark's width out from the box it belongs to. */
+  display: flex; align-items: center; justify-content: flex-end; gap: 10px;
+  width: 52px;
+  color: var(--fg-2);
+}
+.cmd__os svg { width: 18px; height: 18px; display: block; fill: currentColor; }
+.cmd__label {
+  margin: 0 0 8px;
+  font: 400 13px/16px var(--mono);
+  color: var(--fg-2);
+  text-align: center;
+}
+.cmd__box {
+  flex: 1; min-width: 0;
+  display: flex; align-items: stretch;
+  border: 1px solid var(--line-2);
+  /* A shade off the page, so the box reads as a panel and not as a hole. */
+  background: #0a0a0a;
+}
+.cmd__text {
+  flex: 1; min-width: 0;
+  overflow-x: auto;
+  white-space: pre;
+  padding: 14px 16px;
+  font: 400 13px/20px var(--mono);
+  color: var(--fg);
+  /* Only ever seen on a narrow window, where the command runs past the box.
+     Thin, because the box is one line tall and a full-width bar would take a
+     third of it. */
+  scrollbar-width: thin;
+  scrollbar-color: var(--line-2) transparent;
+}
+/* White until it is used, then the accent fill. The accent as text would be
+   under 4.5:1 at this size on either page; as a fill behind black it is
+   the same pairing the download button already uses. */
+.cmd__copy {
+  flex: none;
+  border: 0; border-left: 1px solid var(--line-2);
+  background: transparent;
+  color: var(--fg);
+  font: 500 12px/20px var(--mono);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  padding: 14px 18px;
+  cursor: pointer;
+  transition: background-color .15s, color .15s;
+  /* "Copy" and what replaces it are different lengths; a fixed width keeps
+     the box from twitching when the label swaps. */
+  min-width: 112px;
+}
+.cmd__copy:hover,
+.cmd__copy.is-said { background: var(--flame); color: #000000; }
+.cmd__copy:focus-visible { outline: 2px solid var(--fg); outline-offset: -2px; }
+/* Holds its line whether or not it has anything to say, so confirming the
+   copy does not shift the page under the pointer. */
+.cmd__note {
+  margin: 8px 0 0; min-height: 16px;
+  font: 400 12px/16px var(--mono);
+  color: var(--fg-2);
+  text-align: center;
+}
+
 /* --- responsive steps -------------------------------------- *
    Whole pixels per step, the same way the main site handles its scale.
    ============================================================ */
@@ -177,6 +261,13 @@ body {
 }
 
 @media (max-width: 560px) {
+  .get { gap: 16px; }
+  .cmd__label { font-size: 12px; }
+  .cmd__row { gap: 10px; }
+  .cmd__os { width: 40px; gap: 8px; }
+  .cmd__os svg { width: 16px; height: 16px; }
+  .cmd__text { font-size: 12px; padding: 12px 12px; }
+  .cmd__copy { font-size: 11px; padding: 12px 12px; min-width: 92px; }
   .bar { padding: 0 14px; }
   .hero { gap: 32px; padding: 32px 20px 48px; }
   .hero__unit { gap: 14px; }

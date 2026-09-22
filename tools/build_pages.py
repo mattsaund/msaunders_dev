@@ -38,7 +38,7 @@ def crumb(trail):
             + '\n    </nav>\n  </div>')
 
 
-ASSETS = ("css/site.css", "js/site.js", "js/cosmos.js",
+ASSETS = ("css/site.css", "js/site.js", "js/cosmos.js", "js/install.js",
           "crucible/css/crucible.css", "crucible/js/flame.js",
           "tiny/css/tiny.css", "tiny/app/term.js",
           "favicon.svg", "favicon.png",
