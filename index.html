@@ -35,7 +35,7 @@
      planetarium sizes itself against the font it finds, so start the
      fetch alongside the CSS rather than after it. -->
 <link rel="preload" href="/fonts/jetbrains-mono-latin.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="/css/site.css?v=e7f65c35">
+<link rel="stylesheet" href="/css/site.css?v=574596d0">
 </head>
 <body>
 <a class="skip" href="#main">Skip to content</a>
@@ -65,6 +65,13 @@
 
 
   <!-- ============ EDUCATION ============ -->
+  <!-- Every tag list, and every project description, is wrapped in
+       <details class="drop" open>. On a desktop
+       the summary is hidden and the list simply shows; on a phone js/site.js
+       closes them and the summary becomes the tap target. With no JS at all
+       they stay open, which is why "open" is in the markup rather than added
+       later. The summary shows a bracketed marker, and the count inside it is
+       the accessible name a screen reader announces, not visible text. -->
   <section class="section section--rail" id="education">
     <div class="wrap">
       <div class="split">
@@ -75,43 +82,52 @@
               <h3 class="tl__what">B.S. Computer Science, Mathematics Focus, Spring 2027</h3>
               <p class="tl__where">University of Maryland Global Campus</p>
               <div class="tl__desc">
-                <ul class="tags">
-                  <li class="tag">Discrete Structures</li>
-                  <li class="tag">Software Development</li>
-                  <li class="tag">Advanced Programming</li>
-                  <li class="tag">Compiler Theory</li>
-                  <li class="tag">Machine Learning</li>
-                  <li class="tag">Calculus I-III</li>
-                  <li class="tag">Linear Algebra</li>
-                  <li class="tag">Differential Equations</li>
-                  <li class="tag">Algebraic Structures</li>
-                  <li class="tag">Real Analysis</li>
-                  <li class="tag">Complex Analysis</li>
-                </ul>
+                <details class="drop" open>
+                  <summary class="drop__sum"><span class="drop__label">11 courses</span></summary>
+                  <ul class="tags">
+                    <li class="tag">Discrete Structures</li>
+                    <li class="tag">Software Development</li>
+                    <li class="tag">Advanced Programming</li>
+                    <li class="tag">Compiler Theory</li>
+                    <li class="tag">Machine Learning</li>
+                    <li class="tag">Calculus I-III</li>
+                    <li class="tag">Linear Algebra</li>
+                    <li class="tag">Differential Equations</li>
+                    <li class="tag">Algebraic Structures</li>
+                    <li class="tag">Real Analysis</li>
+                    <li class="tag">Complex Analysis</li>
+                  </ul>
+                </details>
               </div>
             </li>
             <li class="tl__item">
               <h3 class="tl__what">B.S. Computer Science, General Studies, Aug 2022 to Apr 2023</h3>
               <p class="tl__where">University of Colorado, Boulder</p>
               <div class="tl__desc">
-                <ul class="tags">
-                  <li class="tag">Astronomy</li>
-                  <li class="tag">Ethics</li>
-                  <li class="tag">Philosophy</li>
-                  <li class="tag">General Education</li>
-                </ul>
+                <details class="drop" open>
+                  <summary class="drop__sum"><span class="drop__label">4 courses</span></summary>
+                  <ul class="tags">
+                    <li class="tag">Astronomy</li>
+                    <li class="tag">Ethics</li>
+                    <li class="tag">Philosophy</li>
+                    <li class="tag">General Education</li>
+                  </ul>
+                </details>
               </div>
             </li>
             <li class="tl__item">
               <h3 class="tl__what">Technical Certificate, Computer Science, Sep 2017 to May 2021</h3>
               <p class="tl__where">Sollers Point Technical High School</p>
               <div class="tl__desc">
-                <ul class="tags">
-                  <li class="tag">Computer Architecture</li>
-                  <li class="tag">Algorithm Design</li>
-                  <li class="tag">Microcontrollers</li>
-                  <li class="tag">Networking</li>
-                </ul>
+                <details class="drop" open>
+                  <summary class="drop__sum"><span class="drop__label">4 courses</span></summary>
+                  <ul class="tags">
+                    <li class="tag">Computer Architecture</li>
+                    <li class="tag">Algorithm Design</li>
+                    <li class="tag">Microcontrollers</li>
+                    <li class="tag">Networking</li>
+                  </ul>
+                </details>
               </div>
             </li>
             <li class="tl__item">
@@ -163,64 +179,76 @@
 
             <li class="tl__item">
               <h3 class="tl__what">Languages</h3>
-              <ul class="tags tl__tags">
-                <li class="tag">C</li>
-                <li class="tag">C++</li>
-                <li class="tag">C#</li>
-                <li class="tag">Rust</li>
-                <li class="tag">Python</li>
-                <li class="tag">Swift</li>
-                <li class="tag">Java</li>
-                <li class="tag">JavaScript</li>
-                <li class="tag">TypeScript</li>
-                <li class="tag">SQL</li>
-                <li class="tag">HTML/CSS</li>
-              </ul>
+              <details class="drop" open>
+                <summary class="drop__sum"><span class="drop__label">11 languages</span></summary>
+                <ul class="tags tl__tags">
+                  <li class="tag">C</li>
+                  <li class="tag">C++</li>
+                  <li class="tag">C#</li>
+                  <li class="tag">Rust</li>
+                  <li class="tag">Python</li>
+                  <li class="tag">Swift</li>
+                  <li class="tag">Java</li>
+                  <li class="tag">JavaScript</li>
+                  <li class="tag">TypeScript</li>
+                  <li class="tag">SQL</li>
+                  <li class="tag">HTML/CSS</li>
+                </ul>
+              </details>
             </li>
 
             <li class="tl__item">
               <h3 class="tl__what">Frameworks</h3>
-              <ul class="tags tl__tags">
-                <li class="tag">React.js</li>
-                <li class="tag">Node.js</li>
-                <li class="tag">Next.js</li>
-                <li class="tag">SwiftUI</li>
-                <li class="tag">NumPy</li>
-                <li class="tag">Tesseract</li>
-                <li class="tag">Matplotlib</li>
-                <li class="tag">TensorFlow</li>
-                <li class="tag">PyTorch</li>
-                <li class="tag">Pandas</li>
-              </ul>
+              <details class="drop" open>
+                <summary class="drop__sum"><span class="drop__label">10 frameworks</span></summary>
+                <ul class="tags tl__tags">
+                  <li class="tag">React.js</li>
+                  <li class="tag">Node.js</li>
+                  <li class="tag">Next.js</li>
+                  <li class="tag">SwiftUI</li>
+                  <li class="tag">NumPy</li>
+                  <li class="tag">Tesseract</li>
+                  <li class="tag">Matplotlib</li>
+                  <li class="tag">TensorFlow</li>
+                  <li class="tag">PyTorch</li>
+                  <li class="tag">Pandas</li>
+                </ul>
+              </details>
             </li>
 
             <li class="tl__item">
               <h3 class="tl__what">Operating Systems</h3>
-              <ul class="tags tl__tags">
-                <li class="tag">Arch Linux</li>
-                <li class="tag">Debian</li>
-                <li class="tag">Ubuntu</li>
-                <li class="tag">Unix</li>
-                <li class="tag">macOS</li>
-                <li class="tag">Windows</li>
-              </ul>
+              <details class="drop" open>
+                <summary class="drop__sum"><span class="drop__label">6 systems</span></summary>
+                <ul class="tags tl__tags">
+                  <li class="tag">Arch Linux</li>
+                  <li class="tag">Debian</li>
+                  <li class="tag">Ubuntu</li>
+                  <li class="tag">Unix</li>
+                  <li class="tag">macOS</li>
+                  <li class="tag">Windows</li>
+                </ul>
+              </details>
             </li>
 
             <li class="tl__item">
               <h3 class="tl__what">Technical</h3>
-              <ul class="tags tl__tags">
-                <li class="tag">CUDA</li>
-                <li class="tag">Vulkan</li>
-                <li class="tag">MLX</li>
-                <li class="tag">GitHub</li>
-                <li class="tag">Jira</li>
-                <li class="tag">Flex</li>
-                <li class="tag">Make</li>
-                <li class="tag">Docker</li>
-                <li class="tag">AWS</li>
-                <li class="tag">PostgreSQL</li>
-                <li class="tag">Embedded programming</li>
-              </ul>
+              <details class="drop" open>
+                <summary class="drop__sum"><span class="drop__label">11 tools</span></summary>
+                <ul class="tags tl__tags">
+                  <li class="tag">CUDA</li>
+                  <li class="tag">Vulkan</li>
+                  <li class="tag">MLX</li>
+                  <li class="tag">GitHub</li>
+                  <li class="tag">Jira</li>
+                  <li class="tag">Flex</li>
+                  <li class="tag">Make</li>
+                  <li class="tag">Docker</li>
+                  <li class="tag">AWS</li>
+                  <li class="tag">PostgreSQL</li>
+                  <li class="tag">Embedded programming</li>
+                </ul>
+              </details>
             </li>
 
           </ol>
@@ -243,25 +271,37 @@
             <li class="tl__item">
               <h3 class="tl__what"><a href="https://godash.us" target="_blank" rel="noopener">GoDash</a></h3>
               <!-- one sentence, replace freely -->
-              <p class="tl__desc">An iOS dash cam app that runs maps and music in split modules so you never switch apps while driving.</p>
+              <details class="drop" open>
+                <summary class="drop__sum"><span class="drop__label">About GoDash</span></summary>
+                <p class="tl__desc">An iOS dash cam app that runs maps and music in split modules so you never switch apps while driving.</p>
+              </details>
             </li>
 
             <li class="tl__item">
               <h3 class="tl__what"><a href="/crucible/">Crucible</a></h3>
               <!-- one sentence, replace freely -->
-               <p class="tl__desc">A local LLM multitool that allows the creation of fine tuned models for delegation and circular computing.</p>
+               <details class="drop" open>
+                 <summary class="drop__sum"><span class="drop__label">About Crucible</span></summary>
+                 <p class="tl__desc">A local LLM multitool that allows the creation of fine tuned models for delegation and circular computing.</p>
+               </details>
             </li>
 
             <li class="tl__item">
               <h3 class="tl__what"><a href="/tiny/">tiny</a></h3>
               <!-- one sentence, replace freely -->
-              <p class="tl__desc">A lightweight, terminal based personal knowledge management system, IDE, and text editor. Written in Rust.</p>
+              <details class="drop" open>
+                <summary class="drop__sum"><span class="drop__label">About tiny</span></summary>
+                <p class="tl__desc">A lightweight, terminal based personal knowledge management system, IDE, and text editor. Written in Rust.</p>
+              </details>
             </li>
 
             <li class="tl__item">
               <h3 class="tl__what"><a href="/cosmos/">cosmos.js</a></h3>
               <!-- one sentence, replace freely -->
-              <p class="tl__desc">An ASCII planet generator that renders animated ASCII planets and exports Python or JavaScript for any project.</p>
+              <details class="drop" open>
+                <summary class="drop__sum"><span class="drop__label">About cosmos.js</span></summary>
+                <p class="tl__desc">An ASCII planet generator that renders animated ASCII planets and exports Python or JavaScript for any project.</p>
+              </details>
             </li>
 
           </ol>
@@ -306,6 +346,6 @@
 </footer>
 
 <script src="/js/cosmos.js?v=a2a4e83f" defer></script>
-<script src="/js/site.js?v=baacc670" defer></script>
+<script src="/js/site.js?v=f4f88467" defer></script>
 </body>
 </html>

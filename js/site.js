@@ -68,6 +68,27 @@
     }
   }
 
+  /* --- detail lists --------------------------------------- */
+  /* The tag rows ship open, so the page reads whole with this script absent.
+     On a phone they are most of its height, so they start folded and the
+     summary becomes the tap target.
+
+     The query is the one css/site.css uses for the phone layout, repeated
+     here: change one and change the other. It is read on load and then only
+     when it flips, never on every resize, so a list the reader opened stays
+     open while they are reading it. */
+  var PHONE = '(max-width: 860px), (pointer: coarse) and (max-width: 900px)';
+  var drops = document.querySelectorAll('.drop');
+  if (drops.length && window.matchMedia) {
+    var phone = window.matchMedia(PHONE);
+    var fold = function () {
+      for (var i = 0; i < drops.length; i++) drops[i].open = !phone.matches;
+    };
+    fold();
+    if (phone.addEventListener) phone.addEventListener('change', fold);
+    else if (phone.addListener) phone.addListener(fold);   /* older Safari */
+  }
+
   /* --- lightbox ------------------------------------------- */
   var zoomables = document.querySelectorAll('[data-zoom]');
   if (!zoomables.length) return;

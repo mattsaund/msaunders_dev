@@ -103,6 +103,9 @@
      its own, so the indent carries that pixel as well as an arm and a gap, or
      the two arms come out a pixel apart. */
   --tl-arm: 16px;
+  /* What separates a section label from its list once they stack, which is
+     also what the phone's corner connector has to drop across. */
+  --stack-gap: 16px;
   --rule-gap: 8px;           /* clear air between an arm and the text it meets,
                                 shared by the section label and the notches */
   --tl-indent: calc(var(--tl-arm) + var(--rule-gap) + 1px);   /* rail to entry
@@ -341,6 +344,22 @@ main { min-height: 400px; }   /* was 60vh, a fraction at most window heights */
 .tag::before { content: "<"; }
 .tag::after { content: ">"; }
 
+/* --- collapsible detail ------------------------------------ */
+/* A tag list, wrapped so a phone can fold it away. On a desktop there is room
+   for the whole thing: the summary is hidden and the list just shows, which is
+   what the `open` in the markup does. js/site.js closes them at phone widths.
+   With scripting off they stay open rather than becoming unreachable, which is
+   why `open` is the markup's state and closing is the script's job. */
+.drop { margin: 0; }
+.drop > summary { display: none; }
+/* The count that used to be the visible label. It stays in the markup as the
+   summary's accessible name, announced in place of the marker, which is
+   punctuation and would read as nothing useful. */
+.drop__label {
+  position: absolute; width: 1px; height: 1px;
+  overflow: hidden; clip-path: inset(50%); white-space: nowrap;
+}
+
 /* --- status pill ------------------------------------------- */
 .status {
   display: inline-flex; align-items: center; gap: 8px;
@@ -357,7 +376,10 @@ main { min-height: 400px; }   /* was 60vh, a fraction at most window heights */
 @media (max-width: 860px) { .cols-3 { grid-template-columns: 1fr; } }
 
 .split { display: grid; grid-template-columns: var(--split-label) 1fr; gap: 48px; align-items: start; }
-@media (max-width: 860px) { .split { grid-template-columns: 1fr; gap: 16px; } }
+/* Stacking is not here but in the phone block at the foot of this file, with
+   the connector that joins a stacked label to its list. The two have to switch
+   on the same query or there is a width where the label keeps a desktop rule
+   that runs to nothing. */
 
 /* Each rail section gets its OWN vertical line, not a spine running the whole
    page: .tl's border spans exactly its list, and the padding between sections
@@ -396,11 +418,6 @@ main { min-height: 400px; }   /* was 60vh, a fraction at most window heights */
   flex: 1; order: 2;
   margin-left: var(--rule-gap);
   align-self: flex-start; margin-top: var(--tl-mid);
-}
-@media (max-width: 860px) {
-  /* Stacked: the label sits above its entries, one step away, the same step
-     that separates one entry from the next inside the list. */
-  .section--rail .split { gap: 16px; }
 }
 
 
@@ -674,9 +691,6 @@ main, .foot, .skip { position: relative; z-index: 1; }
 main { flex: 1 0 auto; }
 .foot { flex: 0 0 auto; }
 
-@media (max-width: 720px) {
-  .cosmos__body { color: #1a2c3a; }   /* quieter where copy is denser */
-}
 
 
 /* --- responsive steps -------------------------------------- *
@@ -704,6 +718,130 @@ main { flex: 1 0 auto; }
   .foot  { padding: 260px 0 0; }
 }
 
+/* --- phone -------------------------------------------------- *
+   A layout of its own, not a narrow desktop, and it arrives in one piece. The
+   label stacking above its list, the connector that joins them and the folded
+   detail lists are all in this one query, so there is no width in between
+   where a section shows a label rule with nothing on the end of it.
+
+   It comes in by width and also by pointer, so a phone held sideways and a
+   tablet get it too: a coarse pointer on anything under 900px is a hand, not a
+   mouse. Everything above stays on the desktop layout, however narrow the
+   window. js/site.js repeats this query to fold the lists, so the two have to
+   be changed together.
+   ============================================================ */
+@media (max-width: 860px), (pointer: coarse) and (max-width: 900px) {
+  /* ---- the label stacks above its list ---- */
+  /* One step between them, the same step that separates one entry from the
+     next inside the list. The rail sections need saying twice: on a desktop
+     they close the gap to nothing so the label's rule meets the rail head on,
+     and that rule out-specifies the plain .split above. */
+  .split { grid-template-columns: 1fr; gap: var(--stack-gap); }
+  .section--rail .split { gap: var(--stack-gap); }
+
+  /* ---- hero ---- */
+  /* Centered, and the links in rows of three. Thirds rather than a grid, so
+     the row that does not fill (there are seven links, so 3 + 3 + 1) centers
+     what is left instead of hanging it on the left edge. */
+  .hero > .wrap { text-align: center; }
+  /* Capped, so the three columns stay a group. Thirds of a full-width row put
+     the links a long way apart on the wide end of this layout, where it is a
+     narrowed desktop window rather than a phone. */
+  .links {
+    justify-content: center; gap: 12px 0;
+    max-width: 420px; margin-inline: auto;
+  }
+  .links > * { flex: 0 0 33.333%; justify-content: center; }
+
+  /* ---- sections ---- */
+  /* The label sits above its list here, so the connector turns a corner: it
+     leaves the label on its left, at the height the arm meets it on a desktop,
+     and drops to the head of the rail that runs down the entries. Two borders
+     of one box, so the corner is a single shape that cannot come apart, and
+     the drop is exactly the label's own height plus the gap below it. */
+  .section--rail .eyebrow { position: relative; padding-left: var(--tl-indent); }
+  .section--rail .eyebrow::after {
+    position: absolute; left: 0; top: var(--tl-mid);
+    width: var(--tl-arm); height: calc(var(--tl-line) + var(--stack-gap));
+    margin: 0; flex: none; background: none;
+    border-left: 1px solid var(--line);
+    border-top: 1px solid var(--line);
+  }
+
+  /* ---- detail lists ---- */
+  /* The chips are most of this page's height, so they fold. What shows is a
+     marker in the same brackets the chips and the hero's links wear, blue
+     throughout, and it flips when the list opens.
+
+     Body metrics, so the marker's row sits in the same rhythm as the lines
+     above and below it rather than reading as a control dropped between them.
+     The padding is hit area only: the matching negative margin takes it back
+     out of the layout, so the row stays exactly one line tall while the tap
+     target is half as tall again. */
+  .drop > summary {
+    display: block; width: fit-content; cursor: pointer; list-style: none;
+    font: 400 var(--body-fs)/var(--body-line) var(--mono);
+    color: var(--accent);
+    padding: 6px 14px 6px 0;
+    /* The padding is hit area and these margins take it back out, but not
+       evenly: they are what sets the marker's distance from the line above it
+       and from the list below.
+
+       The marker is punctuation centered on the math axis, not letters sitting
+       on a baseline, so its ink stops short of the line box at both ends and an
+       even set of line boxes reads as an uneven set of gaps. These two numbers
+       were measured rather than chosen: a degree and the school under it sit
+       13.5px of ink apart, and at -11 and -5 the marker sits 14 under the line
+       above it and 13 above the list, which is the same gap to within the half
+       pixel whole numbers leave. */
+    margin: -11px -14px -5px 0;
+    /* JetBrains Mono ligates "<->" into a single arrow glyph, which is not the
+       marker and is not the same width as "<+>". Off, so the open and closed
+       states are the same three characters in the same three cells. */
+    font-variant-ligatures: none;
+    font-feature-settings: "liga" 0, "calt" 0;
+  }
+  .drop > summary::-webkit-details-marker { display: none; }
+  .drop > summary::after { content: "<+>"; }
+  .drop[open] > summary::after { content: "<->"; }
+  .drop > summary:hover { color: var(--accent-hi); }
+  .drop > summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  /* An entry whose next line is the marker gives it a body line's clearance,
+     not the tighter step a title gives a subtitle. */
+  .tl__what + .drop { margin-top: 8px; }
+  /* Same correction under the marker as above it: its ink stops short of the
+     line box at both ends, so the list needs pulling up to sit a chip row's
+     distance below it rather than half again that. */
+  /* Nothing of its own: this margin sits against the summary's own bottom
+     margin and the two collapse to whichever is more negative, so the summary
+     is where both sides of the marker are set. */
+  .drop[open] > .tags { margin-top: 0; }
+
+  /* ---- the art ---- */
+  /* The horizon globe is four viewport widths across, so on a phone it is a
+     wall of ink under the last panel rather than a limb rising into the page,
+     and the copyright reads against it badly. It goes, and the deep footer
+     padding that was reserving room for it goes with it. The drifting bodies
+     stay: they are small here and the panels already dim what sits behind
+     them. */
+  .cosmos__horizon { display: none; }
+  .foot { padding: 72px 0 0; }
+
+  /* ---- compaction ---- */
+  .tl__item { padding: 0 0 24px; }
+  /* The chips read as lines of text here, not as a cloud: one line box each,
+     the body's own, and the row gap comes out of the leading rather than being
+     added to it. That puts an opened list on the same rhythm as the copy above
+     it, which is the rhythm the marker's row is on too. */
+  .tags { gap: 0 12px; }
+  /* A chip is an li, so it was carrying the 8px every list item carries on top
+     of the row gap, which is why an open list sat looser than the copy above
+     it. The line box does the spacing here, nothing else. */
+  .tags .tag { line-height: var(--body-line); margin-bottom: 0; }
+}
+
+/* The smallest step. Sizes only: the layout above is already the phone one by
+   the time a window is this narrow. */
 @media (max-width: 600px) {
   :root { --pad: 20px; --panel-pad: 16px; --panel-gap: 12px; }
   .h-xl { font-size: 30px; line-height: 36px; letter-spacing: -1px; }

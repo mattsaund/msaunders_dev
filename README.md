@@ -184,7 +184,10 @@ deterministically, so it is the same field on every visit. It used to be
 confined to the gutters either side of the content column, and to hide entirely
 below 860px where there were no gutters left; the section panels dim whatever is
 behind them, so a star under body copy now reads as sky and neither restriction
-is needed. About a third twinkle on staggered CSS keyframes: that fraction is
+is needed. The art also used to darken below 720px, which read as murk rather
+than quiet, so it now keeps one ink at every width. The horizon is hidden on the
+phone layout instead: at four viewport widths it is a wall under the last panel
+there, not a limb rising into the page. About a third twinkle on staggered CSS keyframes: that fraction is
 down from two thirds, because each animated star is a composited layer and the
 field is four times larger than the gutters-only one.
 
@@ -272,6 +275,46 @@ advances 0.6 em, so only a title size divisible by 5 would land it whole.
 1204px box in an odd window would otherwise put the panel, and every hairline
 inside it, on a half pixel, where a 1px line paints across two columns and reads
 thicker in one window than the next.
+
+### Phone
+
+The phone layout is its own design, not the desktop one squeezed. It comes in by
+width **and** by pointer:
+
+```css
+@media (max-width: 860px), (pointer: coarse) and (max-width: 900px)
+```
+
+A coarse pointer under 900px is a hand, so a phone held sideways and a tablet
+get it too. There is no layout in between: the label stacking above its list,
+the connector that joins them and the folded lists all switch on this one
+query, so no width can show a label rule that runs to nothing. What changes:
+
+- The hero centers, and the row of links becomes rows of three. They are sized
+  in thirds rather than laid out on a grid, so the row that does not fill
+  centers its remainder instead of hanging left.
+- The section label sits above its list, so its connector turns a corner: it
+  leaves the label on the left at the same height the arm meets it on a desktop,
+  then drops to the head of the rail. It is two borders of one box, so the
+  corner cannot come apart.
+- Every tag list and every project description folds. Each is wrapped in
+  `<details class="drop" open>`. What
+  shows is a marker in the same brackets the chips wear, `<+>` to open and
+  `<->` to close, blue throughout and set on the body's own metrics so its row
+  keeps the rhythm of the lines around it; its padding is hit area, taken back
+  out of the layout by a matching negative margin. Ligatures are off on that
+  row, because the font would otherwise draw `<->` as a single arrow. What the
+  summary says stays in the markup as its accessible name, a count for a list
+  ("11 courses") or the project's name for a description ("About GoDash"), so a
+  screen reader announces something useful rather than punctuation. Both sides
+  of the marker are set on the summary itself: its margins collapse with the
+  content's, so splitting them across the two elements does not work. The markup
+  ships open, so with no JS the page reads whole; `js/site.js` closes them at
+  phone widths and syncs only when the query flips, never on every resize, so a
+  list the reader opened stays open. On a desktop the summary is hidden and the
+  list just shows.
+
+`js/site.js` repeats that media query. Change one and change the other.
 
 House style: no em dashes, no en dashes, plain hyphens only. Copy stays terse.
 
