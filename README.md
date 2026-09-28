@@ -62,6 +62,14 @@ Cloudflare serves the file from its new path, so published links, the sitemap
 and the canonical tags all stay as they were. Static files win over these rules,
 which is why the root pages are unaffected.
 
+One rule about the rules: **the target must be a directory, never a path ending
+in `index.html`**. Pages canonicalises a URL that names `index.html`, and one
+that ends in `.html`, by redirecting to the clean form, and it applies that to
+the target of a rewrite as well. Writing `/tiny/ /pages/projects/tiny/index.html
+200` therefore produces a visible 307 to `/pages/projects/tiny/`, which is the
+long path leaking into the address bar. A directory target is already canonical
+and is served as-is.
+
 Three things follow from that. Keep writing links as the short URL (`/tiny/`,
 not the path on disk). `_headers` matches the request path, so its rules still
 read `/tiny/app/*`. And preview with `tools/serve.py` rather than

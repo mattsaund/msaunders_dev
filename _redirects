@@ -5,23 +5,26 @@
 # ---- moved in the repo, not on the web ----------------------------------
 # The pages live under pages/ now, and the icons and documents under files/.
 # A 200 is a rewrite, not a redirect: the address bar keeps the short URL and
-# Cloudflare serves the file from its new path. Order matters, first match
-# wins, so the bare and trailing-slash forms come before the splat.
-/crucible        /pages/projects/crucible/index.html  200
-/crucible/       /pages/projects/crucible/index.html  200
-/crucible/*      /pages/projects/crucible/:splat      200
+# Cloudflare serves the file from its new path.
+#
+# Every target here is a directory, never a path ending in index.html. Pages
+# canonicalises a URL that names index.html (and one that ends .html) by
+# redirecting to the directory, and it does that to the target of a rewrite as
+# well, which turns the rewrite into a visible 307 and leaks the long path into
+# the address bar. A directory is already canonical, so it is served as-is.
+# The splat covers the bare form too: /tiny with an empty splat lands on the
+# same directory.
+/crucible        /pages/projects/crucible/        200
+/crucible/*      /pages/projects/crucible/:splat  200
 
-/tiny            /pages/projects/tiny/index.html      200
-/tiny/           /pages/projects/tiny/index.html      200
-/tiny/*          /pages/projects/tiny/:splat          200
+/tiny            /pages/projects/tiny/            200
+/tiny/*          /pages/projects/tiny/:splat      200
 
-/cosmos          /pages/projects/cosmos/index.html    200
-/cosmos/         /pages/projects/cosmos/index.html    200
-/cosmos/*        /pages/projects/cosmos/:splat        200
+/cosmos          /pages/projects/cosmos/          200
+/cosmos/*        /pages/projects/cosmos/:splat    200
 
-/misc            /pages/misc/index.html               200
-/misc/           /pages/misc/index.html               200
-/misc/*          /pages/misc/:splat                   200
+/misc            /pages/misc/                     200
+/misc/*          /pages/misc/:splat               200
 
 # The old file URLs. Every page here points at the new paths already; these are
 # for links that left the site: the resume URL in particular is on a CV and in
