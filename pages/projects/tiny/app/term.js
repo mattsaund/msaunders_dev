@@ -3,7 +3,7 @@
 
    tiny is a terminal program and this page has no terminal. The
    program runs as tiny.wasm, built from the web branch of the clone
-   in tiny/web, and this file stands in for everything a terminal
+   in tiny/web (see tools/build_tiny.py), and this file stands in for everything a terminal
    would have given it: a filesystem with a project in it, the
    keyboard, and a screen to paint its frames on.
 
@@ -17,7 +17,7 @@ const APP = new URL(".", import.meta.url);
 
 /* The frame's separators, the ASCII unit, record, group and file separators,
    and the two line-ending characters. By code rather than written as escapes.
-   The format is documented at the top of tiny/web/src/web.rs, which builds it. */
+   The format is documented at the top of src/web.rs in that clone, which builds it. */
 const US = String.fromCharCode(0x1f);
 const RS = String.fromCharCode(0x1e);
 const GS = String.fromCharCode(0x1d);
@@ -341,7 +341,7 @@ function mount(box) {
       .catch(() => {});
   }
 
-  /* Paint one frame. The format is written up at the top of tiny/web/src/web.rs. */
+  /* Paint one frame. The format is written up at the top of src/web.rs in that clone. */
   function draw(raw) {
     const nl = raw.indexOf(LF);
     const [cols, rows, cx, cy, shown, win] = raw.slice(0, nl).split(" ").map(Number);

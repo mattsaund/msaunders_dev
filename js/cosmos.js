@@ -20,6 +20,10 @@
   var RAMP = " .:-=+*#%@";
   var CHAR_ASPECT = 0.6;           // glyph advance / line height (measured at init)
   var SCALE = 1.15;                // global size trim for every body
+  /* The floor for a body's glyph, in CSS pixels. 3 is where the ramp still
+     separates: at 5px a '@' peaks around 70 of 255 against this ink color, at
+     3px around 56, at 2px 40, and by 1px the whole ramp is a flat haze. */
+  var MIN_CELL = 3;
   /* Brightness for the drifting bodies, none of which set a gain of their
      own. The horizon does set one, so it keeps its own and is not touched
      by this. There is room for it: the ramp sits around index 3 of 9 and
@@ -792,14 +796,38 @@
   function measure() {
     /* clientWidth, not innerWidth: the scrollbar is not usable space. */
     var vw = document.documentElement.clientWidth, vh = window.innerHeight;
-    var docH = document.documentElement.scrollHeight;
+    var base = clamp(Math.min(vw, vh * 1.7) / 108, 6, 13) * SCALE;
+
+    /* The copyright's own line box, and the size it has always been. The floor
+       keeps it legible on a small screen, where `base` shrinks; because the
+       horizon's grid is derived from this, the same floor still stops the
+       terrain getting denser on a phone than on a desktop. Rounded to a whole
+       multiple of HORIZON_DETAIL so the cell below divides out whole as well.
+
+       Sized here, before the page is measured, because the line is the last
+       thing in the document and its height is part of what is being measured.
+       Setting it afterwards, which is where this used to live, left the layer
+       holding a height the content no longer had, and the horizon sat that far
+       below the line it carries. */
+    var notePx = Math.max(Math.round(base * horizon.p.sz / HORIZON_DETAIL) * HORIZON_DETAIL, 9);
+    if (note) {
+      note.style.fontSize = Math.round(notePx * NOTE_SCALE) + 'px';
+      note.style.lineHeight = notePx + 'px';
+    }
+
+    /* The body's own height, not scrollHeight. Two things inflate scrollHeight
+       here, and either one puts the horizon below the line it carries: this
+       layer is absolutely positioned and as tall as the page, so once sized it
+       holds scrollHeight at whatever the page measured then, and a glyph set
+       larger than its line box, which the copyleft mark is, spills a few
+       pixels of scrollable page under the copyright. The body measures the
+       content itself, and the copyright is the last of it. */
+    var docH = Math.round(document.body.getBoundingClientRect().height);
     host.style.height = docH + 'px';
 
     var spots = anchors();
     var rail = rails(vw);
     count = Math.min(spots.length, live.length);
-
-    var base = clamp(Math.min(vw, vh * 1.7) / 108, 6, 13) * SCALE;
     for (var i = 0; i < live.length; i++) {
       var s = live[i], p = s.p;
       if (i >= count) { s.el.style.display = 'none'; continue; }
@@ -816,7 +844,14 @@
          so no body has a fixed size to lose. Column width stays fractional at
          0.6 * fs unless fs is a multiple of 5, which at these sizes would
          quantise the bodies far too coarsely to be worth it. */
-      fs = Math.max(1, Math.round(fs));
+      /* Never below MIN_CELL. A glyph this small is not a small glyph, it is a
+         smudge: the ink per cell holds but the peak brightness does not, so the
+         ramp's steps stop reading apart and the body dims into the page. It
+         happens where the fit rule above bites hardest, a narrow window, and
+         page zoom makes it worse by shrinking the CSS viewport the rule works
+         from. Past this point the body is allowed to be wider than the window
+         and clipped, which it already is on the outer side. */
+      fs = Math.max(MIN_CELL, Math.round(fs));
       w = p.cols * fs * CHAR_ASPECT;
 
       /* Centered on the gutter beside the panels, not tucked against the window
@@ -828,9 +863,9 @@
          The panels stop short of the window only while it is wider than --wrap.
          Below that the gutter closes, its center becomes the window edge, and
          centering on it would hang every body half off the screen, so the old
-         edge hug fades back in as the gutter runs out. The gutter is (vw - 1120)
-         / 2, so full effect arrives at a 1360px window and the two agree exactly
-         where the gutter reaches zero. */
+         edge hug fades back in as the gutter runs out. The gutter is half of
+         (vw - --wrap), measured off the panels themselves rather than restated
+         here, so the two agree exactly where it reaches zero. */
       var gut = (p.side === 'right') ? (vw - rail.right) : rail.left;
       var hug = Math.min(gut, 32);
       var edge = (p.side === 'right') ? vw - w - hug : hug;
@@ -855,13 +890,6 @@
        true circular arc. */
     var E = horizon.p;
     var R = (E.span * vw) / 2;                       // sphere radius in px
-    /* The copyright's own line box, and the size it has always been. The floor
-       keeps it legible on a small screen, where `base` shrinks; because the
-       grid below is derived from this, the same floor still stops the terrain
-       getting denser on a phone than on a desktop. */
-    /* Rounded to a whole multiple of HORIZON_DETAIL so the cell below divides
-       out whole as well. The floor is already a multiple of it. */
-    var notePx = Math.max(Math.round(base * E.sz / HORIZON_DETAIL) * HORIZON_DETAIL, 9);
     /* The globe's cell, HORIZON_DETAIL of them to a line of copyright. The
        type no longer has to be one cell tall, so this is free to go finer
        than legible text, which is what the drifting bodies already do. */
@@ -878,10 +906,6 @@
        drag the copyright down with it. punch() clears whatever block of cells
        the line turns out to cover, so the two no longer have to agree on a
        size at all. */
-    if (note) {
-      note.style.fontSize = Math.round(notePx * NOTE_SCALE) + 'px';
-      note.style.lineHeight = notePx + 'px';
-    }
     /* Read the line back after sizing it: this is what the gap is cut from.
        horizon.top is set below, so pass the value rather than reading it. */
     noteSpan(efs * CHAR_ASPECT, E.cols, efs, E.rows,

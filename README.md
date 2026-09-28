@@ -1,35 +1,81 @@
 # msaunders.dev
 
-Personal site for Matthew Saunders. Plain static HTML/CSS/JS: no build step, no
-dependencies, no external requests. Cloudflare Pages serves the repo root as-is.
+Personal site for Matthew Saunders. Static HTML, CSS and JS: no framework, no
+dependencies, no external requests at runtime. Cloudflare Pages serves the repo
+root as the site.
 
 ## Structure
 
-```
-Everything in the repo root is deployed. Only index.html is written by hand;
-the other two pages are generated and say so in a comment at the top.
+The repo root is what ships, so the layout below is also the URL layout, with
+one exception: the pages live under `pages/` and keep their short addresses
+through rewrites in `_redirects` (see "URLs"). Only `index.html` is written by
+hand; the two generated pages say so in a comment at the top.
 
 ```
-index.html          hand-written   The whole site: hero, education,
-                                   certifications, skills, projects, future
-                                   plans. Projects are portfolio entries that
-                                   link straight out to their own sites.
-misc/index.html     generated      Hobbies + gallery. Currently serving a
-                                   holding screen: see "Hidden pages".
-404.html            generated      Not found
+index.html                     hand-written  The whole site: hero, education,
+                                             certifications, skills, projects,
+                                             future plans
+404.html                       generated     Not found
 
-css/site.css                       Design tokens + every component
-js/site.js                         Typed name, section label travel, lightbox
-js/cosmos.js                       ASCII planetarium: background art
-files/                             The resume PDF, linked from the hero
-favicon.svg / favicon.png
-og.png                             512x512 link-preview image: see below
-_headers                           Cache + security headers
-_redirects                         301s for pages that have been retired
+pages/misc/index.html          generated     Hobbies + gallery, currently a
+                                             holding screen: see "Hidden pages"
+pages/projects/crucible/       hand-written  /crucible/  local LLM engine
+pages/projects/tiny/           hand-written  /tiny/      terminal PKMS, with the
+                                             program itself running in the page
+pages/projects/cosmos/         vendored      /cosmos/    the cosmos.js tool, a
+                                             copy of its own web/ directory
+
+css/site.css                   Design tokens and every component on the site's
+                               own pages. The project pages have their own.
+js/site.js                     Typed name in the hero, and the image lightbox
+js/cosmos.js                   ASCII planetarium: the background art
+js/install.js                  Copy button on the project pages' install lines
+fonts/                         JetBrains Mono, subset, self-hosted
+
+files/images/                  favicon.svg, favicon.png, og.png
+files/docs/                    The resume and the certificates
+
+_headers                       Cache and security headers, by request path
+_redirects                     Rewrites for the moved pages, 301s for retired
+                               ones and for files that have moved
 robots.txt, sitemap.xml
 
-tools/build_pages.py               Page generator + asset stamper: see below
+tools/build_pages.py           Page generator and asset stamper: see "Editing"
+tools/build_tiny.py            Builds tiny to WebAssembly for /tiny/
+tools/make_icons.py            Cuts the site mark from the font into files/images
+tools/serve.py                 Local preview that applies _redirects
 ```
+
+## URLs
+
+`index.html` and `404.html` have to sit in the root: that is where Cloudflare
+Pages looks for the site root and the not-found page. Everything else is free to
+be organised, so the pages live under `pages/` and `_redirects` maps the short
+URL onto the file:
+
+```
+/tiny/*   /pages/projects/tiny/:splat   200
+```
+
+A `200` is a rewrite rather than a redirect: the address bar keeps `/tiny/` and
+Cloudflare serves the file from its new path, so published links, the sitemap
+and the canonical tags all stay as they were. Static files win over these rules,
+which is why the root pages are unaffected.
+
+Three things follow from that. Keep writing links as the short URL (`/tiny/`,
+not the path on disk). `_headers` matches the request path, so its rules still
+read `/tiny/app/*`. And preview with `tools/serve.py` rather than
+`python -m http.server`, because a plain file server knows nothing about
+`_redirects` and will 404 on every page under `pages/`.
+
+## Local preview
+
+```sh
+python3 tools/serve.py          # http://127.0.0.1:8788
+```
+
+It reads the rules out of `_redirects` itself, so the preview and production
+cannot drift apart.
 
 ## Hidden pages
 
@@ -85,11 +131,17 @@ scrapers fall back to the plain description tag when `og:description` is
 missing, and either one puts a second line under the title. Adding one back is
 how the old two-line Discord card comes back.
 
-The image is `og.png`, the favicon artwork at 512x512 on black, referenced as an
-absolute URL because scrapers do not resolve relative ones. It is square and
-`twitter:card` is `summary`, so it renders as a thumbnail beside the title
-rather than a banner above it. To redraw it, run the polygon from `favicon.svg`
-at whatever size you want; it is six points on a 32-unit grid.
+The image is `files/images/og.png`, the site mark at 512x512 on black,
+referenced as an absolute URL because scrapers do not resolve relative ones. It
+is square and `twitter:card` is `summary`, so it renders as a thumbnail beside
+the title rather than a banner above it.
+
+The mark is a copyleft-blue `~/`, the same two characters the project pages
+print in front of their names, cut from the site's own JetBrains Mono file at
+weight 800. All three files (`favicon.svg`, `favicon.png`, `og.png`) come out of
+`tools/make_icons.py`, which needs fonttools, brotli and pillow in a throwaway
+virtualenv; the header of that script has the commands. Change the colour or the
+weight there rather than editing the SVG by hand.
 
 Sub-pages get the same image and their own titles from the shell in
 `tools/build_pages.py`.
@@ -170,19 +222,54 @@ planetarium, outlined with the same `--line` hairline as the timeline rail, so
 the art shows through the panels and at full strength between them. Three tokens
 drive the whole rhythm and nothing else sets section spacing:
 
-- `--panel-pad` the inset on all four sides, so a title sits as far from the
-  left edge of its box as from the top
+- `--panel-pad` the inset. The vertical padding is derived from it, 3px
+  shorter at the top and 2px at the bottom, because a line box is taller than
+  its letters: the trim is what puts the ink the same distance from every edge,
+  which is the distance the eye actually reads
 - `--panel-gap` the distance between one panel and the next
 - `--panel` the fill
 
 The footer deliberately has no panel: a box there would sit over the horizon
 globe and cut the copyright out of the row it is punched into.
 
+### Type
+
+One face, JetBrains Mono, self-hosted and subset to Latin. Two sizes, both
+tokens, and nothing on the page is smaller than the second:
+
+- `--tl-fs` / `--tl-line` (16/23) anything that titles or labels: section
+  labels, entry titles, the hero's row of links
+- `--body-fs` / `--body-line` (14/23) everything it says: copy, the lines under
+  a title, chips, buttons, the footer, the breadcrumb
+
+The headline keeps its own scale and steps down at the breakpoints.
+
+`--tl-line` is not free to be anything. The rail and its notches meet the type
+at `--tl-mid`, which is where a `>` centers its ink: 0.53 em below the top of
+the em box, so 16px in a 23px line box puts it on 11.98px and `--tl-mid: 12px`
+lands on it. Change the line box and that number has to be recomputed.
+`--split-label` is the longest section label plus `--rule-gap` plus one arm, so
+it moves with the title size too.
+
+### Spacing
+
+Whole pixels everywhere, on an 8px rhythm, with 4px reserved for the tightest
+pair (a title and the line under it). Related things sit the same distance
+apart: in the hero the name, the links and the sentence are each 16px apart.
+Fractions are avoided rather than banned: the one on the page is the left tip of
+a section's connector, which starts where the label's text ends, and the font
+advances 0.6 em, so only a title size divisible by 5 would land it whole.
+
+`.wrap` rounds its own leading margin down to a whole pixel. Centering a
+1204px box in an odd window would otherwise put the panel, and every hairline
+inside it, on a half pixel, where a 1px line paints across two columns and reads
+thicker in one window than the next.
+
 House style: no em dashes, no en dashes, plain hyphens only. Copy stays terse.
 
 ## Adding a gallery image
 
-1. Create `img/gallery/` and put the file in it.
+1. Create `files/images/gallery/` and put the file in it.
 2. Add a `<figure class="shot" data-zoom>` block to `MISC` in
    `tools/build_pages.py` (a commented template is already in there), then
    rebuild. Nothing shows until `MISC_LIVE` is `True`: see "Hidden pages".

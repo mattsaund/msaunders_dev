@@ -1,18 +1,18 @@
 #!/usr/bin/env python3
-"""Build the browser version of tiny into tiny/app/.
+"""Build the browser version of tiny into pages/projects/tiny/app/.
 
-tiny/web/ is a clone of github.com/mattsaund/tiny. Its `main` branch is tiny as
+pages/projects/tiny/web/ is a clone of github.com/mattsaund/tiny. Its `main` branch is tiny as
 published; its `web` branch adds what lets tiny run in a page instead of a
 terminal. This script turns that clone into what the page loads:
 
-  tiny/app/tiny.wasm      the program, built for wasm32-wasip1 and shrunk
-  tiny/app/project.json   the project it opens: tiny's own source, exactly as
+  app/tiny.wasm      the program, built for wasm32-wasip1 and shrunk
+  app/project.json   the project it opens: tiny's own source, exactly as
                           it stands on `main`, plus the answers Source Control
                           asks git for, recorded from a real checkout of it
-  tiny/app/start.json     the first frame tiny draws, at every size the page
+  app/start.json     the first frame tiny draws, at every size the page
                           can give it, which the page shows dimmed behind the
                           start button until the program itself takes over
-  tiny/app/manifest.json  sizes and content hashes of all three, which the page
+  app/manifest.json  sizes and content hashes of all three, which the page
                           reads to fetch each under a URL that changes when the
                           file does
 
@@ -38,8 +38,8 @@ import tarfile
 import tempfile
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-CLONE = os.path.join(ROOT, "tiny", "web")
-OUT = os.path.join(ROOT, "tiny", "app")
+CLONE = os.path.join(ROOT, "pages", "projects", "tiny", "web")
+OUT = os.path.join(ROOT, "pages", "projects", "tiny", "app")
 WASM_OPT = os.path.expanduser("~/.local/opt/binaryen/bin/wasm-opt")
 TARGET = "wasm32-wasip1"
 
@@ -52,7 +52,7 @@ PROJECT_DIR = "tiny"
 # there instead.
 GRAPH_LIMIT = "1000"
 
-# Every grid the page can ask for, from metrics() and fit() in tiny/app/term.js:
+# Every grid the page can ask for, from metrics() and fit() in the page's term.js:
 # 32 rows above a 560px window and 30 at or below it, 40 to 160 columns wide.
 # Keep the two in step, or the page falls back to a blank screen at the sizes
 # this leaves out.
@@ -222,7 +222,7 @@ def start_worker():
     frames = {}
     began = time.time()
     with tempfile.TemporaryDirectory() as root:
-        # The filesystem tiny/app/term.js builds in the page, laid out on disk.
+        # The filesystem term.js builds in the page, laid out on disk.
         for path, text in project["files"].items():
             full = os.path.join(root, project["dir"], path)
             os.makedirs(os.path.dirname(full), exist_ok=True)

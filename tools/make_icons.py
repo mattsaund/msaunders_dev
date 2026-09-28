@@ -30,6 +30,7 @@ from PIL import Image, ImageDraw, ImageFont
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 FONT = os.path.join(ROOT, "fonts", "jetbrains-mono-latin.woff2")
+IMAGES = os.path.join("files", "images")   # where the three marks are written
 MARK = "~/"
 WEIGHT = 800
 INK = (0x4c, 0x9e, 0xff)      # --accent, the blue the site's '~', '>' and '/' use
@@ -88,7 +89,7 @@ def write_svg(path, box, size=32):
         "</svg>\n"
     ).format(s=size, paper="%02x%02x%02x" % PAPER, ink="%02x%02x%02x" % INK,
              tx=tx, ty=ty, k=scale, d=path)
-    with io.open(os.path.join(ROOT, "favicon.svg"), "w", encoding="utf-8") as fh:
+    with io.open(os.path.join(ROOT, IMAGES, "favicon.svg"), "w", encoding="utf-8") as fh:
         fh.write(svg)
     return svg
 
@@ -112,7 +113,7 @@ def write_png(name, size, span, ttf):
     out = Image.new("RGB", (size, size), PAPER)
     out.paste(Image.new("RGB", mask.size, INK),
               ((size - width) // 2, (size - height) // 2), mask)
-    out.save(os.path.join(ROOT, name), optimize=True)
+    out.save(os.path.join(ROOT, IMAGES, name), optimize=True)
     return out.size
 
 
@@ -131,7 +132,8 @@ def main():
         os.remove(ttf)
 
     for f in ("favicon.svg", "favicon.png", "og.png"):
-        print("  {:<12} {:>6,} bytes".format(f, os.path.getsize(os.path.join(ROOT, f))))
+        print("  {:<12} {:>6,} bytes".format(
+            f, os.path.getsize(os.path.join(ROOT, IMAGES, f))))
 
 
 if __name__ == "__main__":

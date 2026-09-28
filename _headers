@@ -1,3 +1,7 @@
+# Cloudflare Pages reads this file. Rules match the REQUEST path, not the file
+# on disk, so the project pages are still addressed here as /crucible/*, /tiny/*
+# and /cosmos/*, whatever _redirects rewrites them to.
+
 /*
   X-Content-Type-Options: nosniff
   Referrer-Policy: strict-origin-when-cross-origin

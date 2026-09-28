@@ -1,10 +1,46 @@
+# Cloudflare Pages reads this file. Three kinds of rule live here: rewrites that
+# keep a published URL working after the file behind it moved, and 301s for
+# pages and files that were retired or renamed.
+
+# ---- moved in the repo, not on the web ----------------------------------
+# The pages live under pages/ now, and the icons and documents under files/.
+# A 200 is a rewrite, not a redirect: the address bar keeps the short URL and
+# Cloudflare serves the file from its new path. Order matters, first match
+# wins, so the bare and trailing-slash forms come before the splat.
+/crucible        /pages/projects/crucible/index.html  200
+/crucible/       /pages/projects/crucible/index.html  200
+/crucible/*      /pages/projects/crucible/:splat      200
+
+/tiny            /pages/projects/tiny/index.html      200
+/tiny/           /pages/projects/tiny/index.html      200
+/tiny/*          /pages/projects/tiny/:splat          200
+
+/cosmos          /pages/projects/cosmos/index.html    200
+/cosmos/         /pages/projects/cosmos/index.html    200
+/cosmos/*        /pages/projects/cosmos/:splat        200
+
+/misc            /pages/misc/index.html               200
+/misc/           /pages/misc/index.html               200
+/misc/*          /pages/misc/:splat                   200
+
+# The old file URLs. Every page here points at the new paths already; these are
+# for links that left the site: the resume URL in particular is on a CV and in
+# applications, and the preview image is cached by anything that has scraped a
+# link to the site.
+/favicon.svg                               /files/images/favicon.svg                  301
+/favicon.png                               /files/images/favicon.png                  301
+/og.png                                    /files/images/og.png                       301
+/files/matthew-saunders-resume.pdf         /files/docs/matthew-saunders-resume.pdf    301
+/files/fundamentals-of-remote-sensing.pdf  /files/docs/fundamentals-of-remote-sensing.pdf  301
+
+# ---- retired pages -------------------------------------------------------
 # The two pages folded into /misc/. Both were live and indexed, so they redirect
 # rather than 404.
 /hobbies/*  /misc/  301
 /gallery/*  /misc/  301
 
-# The projects are portfolio entries on the About page now, linking straight out
-# to their own sites; nothing lives under /projects/ any more. The index and all
-# three writeups were live and indexed, so the whole tree redirects home.
+# The projects are portfolio entries on the About page now, linking to their own
+# pages; nothing lives under /projects/ any more. The index and all three
+# writeups were live and indexed, so the whole tree redirects home.
 /projects/*  /  301
 /projects  /  301

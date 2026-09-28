@@ -10,20 +10,20 @@
 <meta name="description" content="Under construction.">
 <meta name="theme-color" content="#000000">
 <meta name="robots" content="noindex">
-<link rel="icon" href="/favicon.svg?v=44bd860a" type="image/svg+xml">
-<link rel="alternate icon" href="/favicon.png?v=44fa8bc1">
+<link rel="icon" href="/files/images/favicon.svg?v=44bd860a" type="image/svg+xml">
+<link rel="alternate icon" href="/files/images/favicon.png?v=44fa8bc1">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="msaunders.dev">
 <meta property="og:url" content="https://msaunders.dev/misc/">
 <meta property="og:title" content="Misc / Matthew Saunders">
 <meta property="og:description" content="Under construction.">
-<meta property="og:image" content="https://msaunders.dev/og.png">
+<meta property="og:image" content="https://msaunders.dev/files/images/og.png">
 <meta name="twitter:card" content="summary">
 <!-- The stylesheet only asks for the font once it has parsed, and the
      planetarium sizes itself against the font it finds, so start the
      fetch alongside the CSS rather than after it. -->
 <link rel="preload" href="/fonts/jetbrains-mono-latin.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="/css/site.css?v=ea528084">
+<link rel="stylesheet" href="/css/site.css?v=e7f65c35">
 </head>
 <body>
 <a class="skip" href="#main">Skip to content</a>
@@ -48,11 +48,15 @@
 
 <footer class="foot">
   <div class="wrap">
-    <p class="foot__note">&copy; 2026 Matthew Saunders</p>
+    <!-- Copyleft: the copyright glyph mirrored, which is what the mark is.
+         Drawn from the same character rather than U+1F12F, which the page's
+         Latin subset does not carry and which would fall back to whatever the
+         system has. role/aria-label so it is announced for what it is. -->
+    <p class="foot__note"><span class="foot__mark" role="img" aria-label="Copyleft">&copy;</span> 2026 Matthew Saunders</p>
   </div>
 </footer>
 
-<script src="/js/cosmos.js?v=f71356a4" defer></script>
+<script src="/js/cosmos.js?v=a2a4e83f" defer></script>
 <script src="/js/site.js?v=baacc670" defer></script>
 </body>
 </html>

@@ -1,12 +1,25 @@
 #!/usr/bin/env python3
 """
-Generates the static pages for msaunders.dev from a shared shell.
+Generates the static pages for msaunders.dev from a shared shell, and stamps a
+content hash onto every asset URL in every page.
 
 This is a convenience script, not a deploy step: it writes plain .html files
-that are committed to the repo and served as-is by Cloudflare Pages.
-Run it after editing NAV/FOOT or any page body below:
+that are committed to the repo and served as-is by Cloudflare Pages. Run it
+after editing the footer or a page body below, and after editing anything in
+ASSETS, or returning visitors keep the copy their browser cached:
 
     python3 tools/build_pages.py
+
+What it writes:
+
+  404.html                  the not-found page, which Pages wants in the root
+  pages/misc/index.html     Misc, currently a holding screen (MISC_LIVE)
+  every page                asset URLs restamped, index.html included
+  pages/projects/cosmos/    the site's own top bar, over the vendored tool
+
+The generated pages are written fresh every run, so they are always among the
+pages stamped; index.html only changes when a hash actually moved, and git is
+the thing to check for whether a run changed anything.
 """
 import hashlib, os, re
 
@@ -19,7 +32,6 @@ TABS = [("About", "/"), ("Misc", "/misc/")]
 # publish it (and put /misc/ back in sitemap.xml).
 MISC_LIVE = False
 
-SOCIAL_SVG = {}
 with open(os.path.join(ROOT, "index.html"), encoding="utf-8") as f:
     _idx = f.read()
 FOOT = re.search(r'<footer class="foot">.*?</footer>', _idx, re.S).group(0)
@@ -39,16 +51,19 @@ def crumb(trail):
 
 
 ASSETS = ("css/site.css", "js/site.js", "js/cosmos.js", "js/install.js",
-          "crucible/css/crucible.css", "crucible/js/flame.js",
-          "tiny/css/tiny.css", "tiny/app/term.js",
-          "favicon.svg", "favicon.png",
-          "files/matthew-saunders-resume.pdf")
+          "pages/projects/crucible/css/crucible.css",
+          "pages/projects/crucible/js/flame.js",
+          "pages/projects/tiny/css/tiny.css",
+          "pages/projects/tiny/app/term.js",
+          "files/images/favicon.svg", "files/images/favicon.png",
+          "files/docs/matthew-saunders-resume.pdf")
 
 
 #  The site's top bar over the cosmos.js tool
 # ---------------------------------------------------------------------------
-# cosmos/ is a copy of the tool's own web/ directory, re-synced from that repo
-# whenever it changes. The bar over it belongs to this site, not to the tool:
+# pages/projects/cosmos/ is a copy of the tool's own web/ directory, re-synced
+# from that repo whenever it changes. The bar over it belongs to this site, not
+# to the tool:
 # it carries a link home, and upstream ships a folder that also opens over
 # file://, where "/" means nothing. So the site owns the whole bar rather than
 # reaching into upstream's markup to add one control to it.
@@ -129,9 +144,9 @@ OWN_CSS = re.compile(r'<style>\s*/\* The site\'s bar over the tool\..*?</style>\
 
 def cosmos_bar():
     """Give the hosted copy of the cosmos.js tool this site's top bar."""
-    path = os.path.join(ROOT, "cosmos", "index.html")
+    path = os.path.join(ROOT, "pages", "projects", "cosmos", "index.html")
     if not os.path.exists(path):
-        print("  cosmos/: not present, skipped")
+        print("  cosmos page: not present, skipped")
         return
     with open(path, encoding="utf-8") as fh:
         html = fh.read()
@@ -147,17 +162,17 @@ def cosmos_bar():
     html = OWN_CSS.sub("", html, count=1)
 
     if "<body>" not in html or "</head>" not in html:
-        print("  cosmos/index.html                      SHAPE CHANGED, bar NOT added")
+        print("  pages/projects/cosmos/index.html       SHAPE CHANGED, bar NOT added")
         return
     html = html.replace("</head>", COSMOS_BAR_CSS + "</head>", 1)
     html = html.replace("<body>\n", "<body>\n\n" + COSMOS_BAR, 1)
 
     if html == before:
-        print("  cosmos/index.html                      site bar already current")
+        print("  pages/projects/cosmos/index.html       site bar already current")
         return
     with open(path, "w", encoding="utf-8") as fh:
         fh.write(html)
-    print("  cosmos/index.html                      site bar {}".format(
+    print("  pages/projects/cosmos/index.html       site bar {}".format(
         "replaced upstream's" if had_upstream else "written"))
 
 
@@ -183,7 +198,7 @@ def stamp_assets():
         return '{}="/{}?v={}"'.format(m.group("attr"), m.group("path"), vers[m.group("path")])
 
     touched = 0
-    clone = os.path.join(ROOT, "tiny", "web")
+    clone = os.path.join(ROOT, "pages", "projects", "tiny", "web")
     for root, dirs, files in os.walk(ROOT):
         # The tiny clone is a Rust checkout: a build directory of tens of
         # thousands of files and not a page among them. Pruned here so the walk
@@ -219,14 +234,14 @@ def page(path, *, title, desc, body, canonical, trail=(), noindex=False):
 <meta name="description" content="{desc}">
 <meta name="theme-color" content="#000000">
 {'<meta name="robots" content="noindex">' if noindex else f'<link rel="canonical" href="{canonical}">'}
-<link rel="icon" href="/favicon.svg" type="image/svg+xml">
-<link rel="alternate icon" href="/favicon.png">
+<link rel="icon" href="/files/images/favicon.svg" type="image/svg+xml">
+<link rel="alternate icon" href="/files/images/favicon.png">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="msaunders.dev">
 <meta property="og:url" content="{canonical}">
 <meta property="og:title" content="{title}">
 <meta property="og:description" content="{desc}">
-<meta property="og:image" content="https://msaunders.dev/og.png">
+<meta property="og:image" content="https://msaunders.dev/files/images/og.png">
 <meta name="twitter:card" content="summary">
 <!-- The stylesheet only asks for the font once it has parsed, and the
      planetarium sizes itself against the font it finds, so start the
@@ -362,7 +377,7 @@ NOTFOUND = """
 # ==================================================================
 if __name__ == "__main__":
     print("building pages...")
-    page("misc/index.html", title="Misc / Matthew Saunders",
+    page("pages/misc/index.html", title="Misc / Matthew Saunders",
          desc=("Astrophotography, aerospace, computer building, camping, hiking, climbing, music and film, "
                "plus the photographs that come out of them.") if MISC_LIVE else "Under construction.",
          body=MISC if MISC_LIVE else MISC_SOON,
