@@ -210,8 +210,31 @@ respects `prefers-reduced-motion` by drawing the art and freezing the spin.
 Placement is computed, not hand-tuned: `cosmos.js` measures the resolved
 monospace font's actual glyph advance at init (rather than assuming 0.6), uses it
 to derive each body's column count so the disks stay circular, and from that
-works out an x position that keeps every body fully on screen at any viewport.
-Anything still too wide for the screen is scaled down to fit.
+works out an x position. On a desktop a body is centered on the gutter beside
+the panels, so it overhangs both ways and the visible mass sits out in the
+margin; on the phone layout there is no gutter, so bodies are centered on the
+screen and fitted to it instead.
+
+A desktop body is drawn at one size, whatever the window: `BASE_MAX * SCALE *
+sz`, the size a wide window gives it. The viewport-derived `base` still sets the
+horizon's grid and the copyright sitting in it, because those span the window
+and have to follow it, but a drifting body that resizes with the window reads as
+the art breathing every time a window is dragged.
+
+A body's glyph has two sizes worth knowing. `EASY_CELL` (3 CSS px) is what it
+is given when nothing is forcing it smaller: under that the shading ramp starts
+to lump, and a body that already fits has nothing to gain by being smaller. The
+floor it may be pushed down to is in **device** pixels, not CSS ones: under
+about 3 device pixels the ink per cell holds but the peak brightness does not,
+the ramp's steps stop reading apart, and the body dims into the page. Holding
+that floor in CSS pixels would stop a body shrinking long before it had to on a
+phone, where one CSS pixel is two or three device ones.
+
+Shrinking only happens when it is needed, and only as far as needed. A body
+counts as fitting while its limb sits within `PHONE_SLACK` (15%) of the window
+either side, because the outermost cells of a disk are nearly blank: insisting
+on the last pixel there costs a whole step of cell size, and a step at these
+sizes is the difference between a shaded sphere and a lumpy one.
 
 To retune: `BODIES` at the top of the file holds every knob: frame extents, grid
 rows, axial tilt, rotation rate, ambient light, ring radii and gaps, and which

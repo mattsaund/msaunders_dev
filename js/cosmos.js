@@ -20,10 +20,40 @@
   var RAMP = " .:-=+*#%@";
   var CHAR_ASPECT = 0.6;           // glyph advance / line height (measured at init)
   var SCALE = 1.15;                // global size trim for every body
-  /* The floor for a body's glyph, in CSS pixels. 3 is where the ramp still
-     separates: at 5px a '@' peaks around 70 of 255 against this ink color, at
-     3px around 56, at 2px 40, and by 1px the whole ramp is a flat haze. */
-  var MIN_CELL = 3;
+  /* The floor for a body's glyph, in DEVICE pixels. 3 is where the ramp still
+     separates: rendered at 5 device pixels a '@' peaks around 70 of 255 against
+     this ink color, at 3 around 56, at 2 around 40, and by 1 the whole ramp is
+     a flat haze. Device rather than CSS pixels because that is what the glyph
+     is rasterised at: a 1px cell on a phone at dpr 3 is the same ink as a 3px
+     cell on a desktop, and holding the floor in CSS pixels would stop a body
+     shrinking to fit a phone long before it had to. */
+  var MIN_DEVICE_CELL = 3;
+  function minCell() {
+    return Math.max(1, Math.ceil(MIN_DEVICE_CELL / (window.devicePixelRatio || 1)));
+  }
+  /* What a body is sized at when nothing is forcing it smaller. The floor above
+     is how small a glyph may go before it stops reading; this is how small one
+     is allowed to go for no reason. Under 3 CSS pixels the shading ramp starts
+     to lump, and a body that already fits the screen has nothing to gain by it. */
+  var EASY_CELL = 3;
+  /* The ends of the clamp that turns a viewport into a cell size. BASE_MAX is
+     what a wide desktop gives a body, which is the largest any body is ever
+     drawn and so the cap the phone sizes up to. */
+  var BASE_MIN = 6, BASE_MAX = 13;
+  /* How far a limb may sit past the edge before a body counts as not fitting.
+     The outermost cells of a disk are nearly blank, so a slice of the window
+     either side is a limb touching the edge, not a crop. It is deliberately
+     generous: cell sizes are whole pixels, so insisting on the last pixel here
+     costs a whole step, and a step at these sizes is the difference between a
+     shaded sphere and a lumpy one. */
+  var PHONE_SLACK = 0.15;
+
+  /* The phone layout, in the same terms css/site.css states it. The bodies are
+     centered and sized to the screen there, because there is no gutter beside
+     the panels to hang them in. */
+  var PHONE = window.matchMedia
+    ? window.matchMedia('(max-width: 860px), (pointer: coarse) and (max-width: 900px)')
+    : null;
   /* Brightness for the drifting bodies, none of which set a gain of their
      own. The horizon does set one, so it keeps its own and is not touched
      by this. There is room for it: the ramp sits around index 3 of 9 and
@@ -796,7 +826,17 @@
   function measure() {
     /* clientWidth, not innerWidth: the scrollbar is not usable space. */
     var vw = document.documentElement.clientWidth, vh = window.innerHeight;
-    var base = clamp(Math.min(vw, vh * 1.7) / 108, 6, 13) * SCALE;
+    /* Two sizes come out of the viewport here, and only one of them still
+       follows it. `base` sets the horizon's grid and the copyright that sits in
+       it, which have to scale with the window because they span it. A drifting
+       body does not: it used to shrink as the window narrowed, which reads as
+       the art breathing every time a window is dragged, so on a desktop a body
+       is drawn at one size, the size a wide window gave it. The phone layout
+       sizes bodies to the screen instead, further down. */
+    var base = clamp(Math.min(vw, vh * 1.7) / 108, BASE_MIN, BASE_MAX) * SCALE;
+    var bodyBase = BASE_MAX * SCALE;
+    var phone = !!(PHONE && PHONE.matches);
+    var cell = minCell();
 
     /* The copyright's own line box, and the size it has always been. The floor
        keeps it legible on a small screen, where `base` shrinks; because the
@@ -833,25 +873,23 @@
       if (i >= count) { s.el.style.display = 'none'; continue; }
       s.el.style.display = '';
 
-      var fs = base * p.sz;
+      var fs = bodyBase * p.sz;
       var w = p.cols * fs * CHAR_ASPECT;
       /* Never wider than the viewport, whatever the screen. */
       if (w > vw) { fs *= vw / w; w = vw; }
       /* Whole pixels: line-height is 1, so the cell height IS the font size and
          a fraction here puts every glyph row after the first on a fractional
          offset inside the <pre>. Rounding costs a little size accuracy, which
-         these already give up on every resize: base is a clamp of the viewport,
-         so no body has a fixed size to lose. Column width stays fractional at
+         a body gives up anyway at the one place it is resized, the phone fit
+         below. Column width stays fractional at
          0.6 * fs unless fs is a multiple of 5, which at these sizes would
          quantise the bodies far too coarsely to be worth it. */
-      /* Never below MIN_CELL. A glyph this small is not a small glyph, it is a
+      /* Never below the floor. A glyph under it is not a small glyph, it is a
          smudge: the ink per cell holds but the peak brightness does not, so the
-         ramp's steps stop reading apart and the body dims into the page. It
-         happens where the fit rule above bites hardest, a narrow window, and
-         page zoom makes it worse by shrinking the CSS viewport the rule works
-         from. Past this point the body is allowed to be wider than the window
-         and clipped, which it already is on the outer side. */
-      fs = Math.max(MIN_CELL, Math.round(fs));
+         ramp's steps stop reading apart and the body dims into the page. Past
+         this point a body is allowed to be wider than the window and clipped,
+         which it already is on its outer side. */
+      fs = Math.max(EASY_CELL, Math.round(fs));
       w = p.cols * fs * CHAR_ASPECT;
 
       /* Centered on the gutter beside the panels, not tucked against the window
@@ -866,11 +904,35 @@
          edge hug fades back in as the gutter runs out. The gutter is half of
          (vw - --wrap), measured off the panels themselves rather than restated
          here, so the two agree exactly where it reaches zero. */
-      var gut = (p.side === 'right') ? (vw - rail.right) : rail.left;
-      var hug = Math.min(gut, 32);
-      var edge = (p.side === 'right') ? vw - w - hug : hug;
-      var mid = (p.side === 'right') ? (rail.right + vw) / 2 : rail.left / 2;
-      var x = edge + (mid - w / 2 - edge) * clamp(gut / 120, 0, 1);
+      var x;
+      if (phone) {
+        /* No gutter to hang in and no room to overhang, so a body is fitted to
+           the screen and centered on it. Shrinking is the whole point here, so
+           it goes right down to the floor above rather than stopping at the
+           size the viewport clamp left it. */
+        /* Sized to the screen here, not to the base above. The base is a clamp
+           of the viewport, so on a phone it bottoms out and every body comes
+           out smaller than the screen could hold: the widest one has to shrink,
+           but the others were shrinking with it for no reason.
+
+           So take the largest whole cell that fits, capped at the size the body
+           would get on a wide desktop, because these are background art and one
+           should not become a phone's whole screen, and floored at the smallest
+           cell that still reads. A body only ends up below EASY_CELL when its
+           own width forces it there. */
+        var room = vw * (1 + PHONE_SLACK);
+        var fits = Math.floor(room / (p.cols * CHAR_ASPECT));
+        var wide = Math.max(EASY_CELL, Math.round(BASE_MAX * SCALE * p.sz));
+        fs = Math.max(cell, Math.min(wide, fits));
+        w = p.cols * fs * CHAR_ASPECT;
+        x = (vw - w) / 2;
+      } else {
+        var gut = (p.side === 'right') ? (vw - rail.right) : rail.left;
+        var hug = Math.min(gut, 32);
+        var edge = (p.side === 'right') ? vw - w - hug : hug;
+        var mid = (p.side === 'right') ? (rail.right + vw) / 2 : rail.left / 2;
+        x = edge + (mid - w / 2 - edge) * clamp(gut / 120, 0, 1);
+      }
 
       s.el.style.fontSize = fs + 'px';
       s.left = Math.round(x);
