@@ -5,13 +5,13 @@
 ## Files
 
 ```
-index.html                     the whole site, hand-written
+index.html                     the whole site
 404.html                       generated
 
-pages/misc/                    /misc/      parked behind a holding screen
-pages/projects/crucible/       /crucible/  local LLM engine
-pages/projects/tiny/           /tiny/      terminal PKMS, running in the page
-pages/projects/cosmos/         /cosmos/    the cosmos.js tool, vendored
+pages/misc/                    /misc/      
+pages/projects/crucible/       /crucible/  
+pages/projects/tiny/           /tiny/      
+pages/projects/cosmos/         /cosmos/    
 
 css/site.css                   tokens and every component on my own pages
 js/site.js                     typed name, folding lists, lightbox
