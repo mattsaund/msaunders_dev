@@ -1,10 +1,7 @@
-/* ============================================================
-   tiny page : black, white, forest green
+/* The tiny page : black, white, forest green.
 
-   Built the same way as the Crucible page: flat fills only, nothing
-   translucent, and every length written here a whole number of
-   pixels. What differs between the two is the accent and the mark.
-   ============================================================ */
+   Built like the Crucible page: flat fills, nothing translucent, whole pixels.
+   What differs is the accent and the mark. */
 
 /* --- webfont ----------------------------------------------- *
    The file /css/site.css serves, by the same URL, so every page on
@@ -108,18 +105,15 @@ body {
    floats high, while the descender of the "y" hangs below it. */
 .hero__unit { display: flex; align-items: center; gap: 28px; }
 
-/* The mark: a disk of glyphs with JetBrains Mono's own lowercase t cut out of
-   it. Built once, not at runtime. A canvas drew the disk, knocked the t out of
-   it in weight 800 from this same font file, and measured how much of every
-   cell stayed inked. Full cells are "@"; cells an edge only partly covers step
-   down the ramp " .:-=+*#%@" by coverage, which is what rounds the circle and
-   the t instead of leaving them stair-stepped.
+/* The mark: a disk of glyphs with the font's own lowercase t knocked out of
+   it, built once rather than at runtime. A canvas drew the disk, cut the t at
+   weight 800, and measured how much of each cell stayed inked; full cells are
+   "@" and partial ones step down " .:-=+*#%@" by coverage, which is what
+   rounds the circle instead of leaving it stair-stepped. "@" not "#" for the
+   fill: at this size "#" is an open lattice and the t sank into it.
 
-   "@" rather than "#" for the fill: at this size "#" is an open lattice, and
-   the knocked-out t sank into the gaps between its strokes.
-
-   5px cells, because the advance is 0.6 em and a size divisible by 5 puts
-   every column on a whole pixel. 24 rows by 40 columns is 120px square. */
+   5px cells: the advance is 0.6 em, so a multiple of 5 puts every column on a
+   whole pixel. 24 rows by 40 columns is 120px square. */
 .logo {
   margin: 0;
   font: 400 5px/5px var(--mono);

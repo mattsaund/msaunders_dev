@@ -1,35 +1,34 @@
 #!/usr/bin/env python3
-"""
-Generates the static pages for msaunders.dev from a shared shell, and stamps a
-content hash onto every asset URL in every page.
+"""Generate the pages that are not hand-written, and stamp the asset URLs.
 
-This is a convenience script, not a deploy step: it writes plain .html files
-that are committed to the repo and served as-is by Cloudflare Pages. Run it
-after editing the footer or a page body below, and after editing anything in
-ASSETS, or returning visitors keep the copy their browser cached:
+Not a deploy step. It writes plain .html that is committed and served as-is, so
+run it after editing the footer, a page body below, or anything in ASSETS:
 
     python3 tools/build_pages.py
 
-What it writes:
+It writes:
 
   404.html                  the not-found page, which Pages wants in the root
   pages/misc/index.html     Misc, currently a holding screen (MISC_LIVE)
-  every page                asset URLs restamped, index.html included
   pages/projects/cosmos/    the site's own top bar, over the vendored tool
+  every page                asset URLs restamped, index.html included
 
-The generated pages are written fresh every run, so they are always among the
-pages stamped; index.html only changes when a hash actually moved, and git is
-the thing to check for whether a run changed anything.
+The generated pages are rewritten every run, so they always show up as stamped.
+Check git to see whether a run actually changed anything.
 """
 import hashlib, os, re
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-TABS = [("About", "/"), ("Misc", "/misc/")]
 
 # Misc is finished enough to build but not to show, so /misc/ serves the holding
 # screen instead and carries noindex. The real body is still MISC below and is
 # still the thing this script would emit: flip this to True and rebuild to
-# publish it (and put /misc/ back in sitemap.xml).
+# publish it, then put this back in sitemap.xml and give the page a link:
+#   <url><loc>https://msaunders.dev/misc/</loc><priority>0.5</priority></url>
+# A link matters because
+# the About page's button that used to point here is the Blog link now.
+# Until then the page is parked: reachable only by typing the URL, and by the
+# /hobbies/ and /gallery/ redirects that outlived the pages they came from.
 MISC_LIVE = False
 
 with open(os.path.join(ROOT, "index.html"), encoding="utf-8") as f:
@@ -62,19 +61,14 @@ ASSETS = ("css/site.css", "js/site.js", "js/cosmos.js", "js/install.js",
 #  The site's top bar over the cosmos.js tool
 # ---------------------------------------------------------------------------
 # pages/projects/cosmos/ is a copy of the tool's own web/ directory, re-synced
-# from that repo whenever it changes. The bar over it belongs to this site, not
-# to the tool:
-# it carries a link home, and upstream ships a folder that also opens over
-# file://, where "/" means nothing. So the site owns the whole bar rather than
-# reaching into upstream's markup to add one control to it.
+# whenever that repo changes. The bar over it belongs to this site: it carries a
+# link home, which upstream cannot, since its folder also opens over file://
+# where "/" means nothing.
 #
-# That means this replaces upstream's <header class="bar"> when it is there and
-# supplies the bar when it is not, which is what lets the tool drop its own bar
-# without this needing to change. Both the markup and its style live in this
-# one file, so no upstream stylesheet drifts, and the bar is exactly --bar-h
-# tall (58px, border included) because app.css sizes the tool's first row off
-# that token. Nothing wraps: the repo link truncates instead, so the bar cannot
-# grow and put that sizing out.
+# So this replaces upstream's <header class="bar"> when there is one and adds
+# the bar when there is not. Markup and style both live here, so no upstream
+# file drifts. Nothing in the bar wraps: the repo link truncates instead, and
+# the height stays what app.css sizes the tool's first row against.
 
 COSMOS_BAR_CSS = """<style>
 /* The site's bar over the tool. Added by tools/build_pages.py; not part of
@@ -152,10 +146,9 @@ def cosmos_bar():
         html = fh.read()
     before = html
 
-    # Take out whatever is there now: upstream's bar, and any bar this script
-    # put in on an earlier run. Re-injecting rather than skipping when one is
-    # already present is what lets the markup and style above be edited: a
-    # presence check alone would leave the old copy in place for good.
+    # Take out whatever is there: upstream's bar, and any bar an earlier run
+    # of this script left. Re-injecting rather than skipping is what lets the
+    # markup above be edited; a presence check would freeze the old copy.
     had_upstream = bool(UPSTREAM_BAR.search(html))
     html = UPSTREAM_BAR.sub("", html, count=1)
     html = OWN_BAR.sub("", html, count=1)
@@ -178,12 +171,11 @@ def cosmos_bar():
 
 # ---------------------------------------------------------------------------
 def stamp_assets():
-    """Append a content hash to every CSS/JS URL in every page.
+    """Append a content hash to every asset URL in every page.
 
-    Without a version in the URL, a browser that cached an asset under the old
-    long max-age keeps serving it against freshly deployed HTML until its TTL
-    expires. Changing the header alone cannot evict what is already cached, but
-    changing the URL can, so the hash is what actually rescues a stale visitor.
+    A browser holding a cached copy keeps serving it against fresh HTML until
+    its TTL expires. Changing a header cannot evict what is already cached;
+    changing the URL can, so the hash is what rescues a stale visitor.
     """
     vers = {}
     for a in ASSETS:
@@ -319,7 +311,7 @@ MISC = """
         <div class="empty__icon">&#9633;</div>
         <h2>No images yet</h2>
         <p>
-          Drop image files into <span class="mono" style="color:var(--fg-2)">/img/gallery/</span> and add a
+          Drop image files into <span class="mono" style="color:var(--fg-2)">/files/images/gallery/</span> and add a
           <span class="mono" style="color:var(--fg-2)">&lt;figure class="shot" data-zoom&gt;</span> entry to
           this page. The lightbox and responsive grid already work.
         </p>
@@ -328,7 +320,7 @@ MISC = """
       <!-- Template entry. Duplicate one of these per image.
       <div class="shots" style="margin-top:30px">
         <figure class="shot" data-zoom>
-          <img src="/img/gallery/example.jpg" width="1200" height="800" loading="lazy" decoding="async" alt="Describe the image">
+          <img src="/files/images/gallery/example.jpg" width="1200" height="800" loading="lazy" decoding="async" alt="Describe the image">
           <figcaption>Caption, date</figcaption>
         </figure>
       </div>

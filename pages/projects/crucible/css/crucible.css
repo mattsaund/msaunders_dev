@@ -1,23 +1,11 @@
-/* ============================================================
-   crucible.dev page : black, orange, white
+/* The Crucible page : black, orange, white.
 
-   Flat color only. Nothing here is translucent: every fill is a
-   solid hex, so anything over the page is the page's color rather
-   than a blend of it.
+   Flat color only, no translucency, and every length here a whole number of
+   pixels, the same rule the main stylesheet follows. That is a rule about the
+   source: centering in a container of odd width still lands on a half pixel. */
 
-   Every length written here is a whole number of pixels, the same
-   rule the main site's stylesheet follows. That is a rule about the
-   source, not a promise about the render: centering the hero in a
-   container of odd width puts it on a half pixel, and a run of text
-   is as wide as its glyphs make it. Neither is something a
-   stylesheet can round.
-   ============================================================ */
-
-/* --- webfont ----------------------------------------------- *
-   The same file /css/site.css serves, referenced by the same URL so
-   the two pages share one cache entry. One variable file covers the
-   whole 400-800 axis.
-   ============================================================ */
+/* The same font file /css/site.css serves, by the same URL, so the two pages
+   share one cache entry. */
 @font-face {
   font-family: "JetBrains Mono";
   src: url("/fonts/jetbrains-mono-latin.woff2") format("woff2");
@@ -116,23 +104,18 @@ body {
   padding: 48px 28px 72px;
 }
 /* Bottom aligned, not centered: the flame stands on the title's baseline and
-   grows upward from there. flex-end would put its foot on the bottom of the
-   heading's line box, which is lower than the letters, because a line box
-   carries room for descenders and "Crucible" has none. The flame's bottom
-   margin takes that space back off. */
+   grows up from there. The line box carries room for descenders that
+   "Crucible" has none of, so the flame's bottom margin takes that back. */
 .hero__unit { display: flex; align-items: flex-end; gap: 28px; }
 
-/* 20 rows of a 6px cell is 120px, half again the 80px title it stands next
-   to, and it rises out of the top of the heading rather than sinking past
-   the bottom of it. 20 rows rather than the 16 it started at: the shape is
-   a resampled drawing, and at 16 the taper down the left wing collapsed into
-   about three rows and read as a flat wall.
+/* 20 rows of a 6px cell is 120px, half again the title it stands beside, and
+   it rises out of the top of the heading rather than sinking past the bottom.
+   20 rather than 16: at 16 the taper down the left wing collapsed into three
+   rows and read as a wall.
 
-   The margin is the leading below the title's baseline, 0.142 em of it, less
-   the same 0.142 of a cell that the bottom glyph's own baseline sits above
-   its cell edge: a box flush to the baseline still draws high by that much,
-   which is a visible gap at this size. Rounded up so the foot lands a
-   fraction above the letters rather than a fraction below. */
+   The margin is the leading below the title's baseline less the same fraction
+   of a cell that the bottom glyph sits above its own cell edge. Rounded up, so
+   the foot lands just above the letters rather than just below. */
 .flame {
   margin: 0 0 11px;
   font: 400 6px/6px var(--mono);

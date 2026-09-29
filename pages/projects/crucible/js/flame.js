@@ -1,32 +1,26 @@
-/* ============================================================
-   crucible : the hero flame
+/* Crucible : the hero flame.
 
-   A fire simulation on a character grid, clipped to a fixed
-   silhouette. Heat is seeded along the base, rises, drifts a
-   column either way and decays, and what survives is mapped to a
-   ramp of glyphs. One color throughout, so the flame reads
-   through glyph density rather than hue, which is the same trick
-   the planetarium on the main site uses.
+   A fire simulation on a character grid, clipped to a fixed silhouette. Heat is
+   seeded along the base, rises, drifts a column either way and decays, and what
+   survives maps to a ramp of glyphs. One color throughout, so it reads through
+   glyph density rather than hue.
 
-   Presentation only. The page says nothing that needs this to be
-   read, so if the script never runs the hero is simply the title
-   and the button.
-   ============================================================ */
+   Presentation only: if the script never runs, the hero is the title and the
+   button. */
 (function () {
   'use strict';
 
   var el = document.getElementById('flame');
   if (!el) return;
 
-  /* --- the shape ------------------------------------------- *
-     THIS is the flame. Swap the block and the flame changes; nothing
-     below reads anything about it but its dimensions. Any non-space
-     character counts as inside, rows may be ragged, and the grid sizes
-     itself off the longest one.
+  /* --- the shape ---
+     This is the flame. Swap the block and the flame changes; nothing below
+     reads anything about it but its dimensions. Any non-space character counts
+     as inside, rows may be ragged, and the grid sizes off the longest.
 
-     It is an outer bound, not the drawn edge: heat decays as it climbs,
-     so the fire thins out well inside the tip most frames and only
-     occasionally fills it. That gap is what flickers.
+     It is an outer bound, not the drawn edge: heat decays as it climbs, so most
+     frames thin out well inside the tip and only occasionally fill it. That gap
+     is the flicker.
 
      This one is crucible/flame.md resampled. That file draws the flame in
      braille, which packs 2x4 dots into a cell and decodes to a 28 by 45 dot

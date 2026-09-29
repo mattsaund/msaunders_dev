@@ -1,15 +1,12 @@
-/* ============================================================
-   tiny, running in the page
+/* tiny, running in the page.
 
-   tiny is a terminal program and this page has no terminal. The
-   program runs as tiny.wasm, built from the web branch of the clone
-   in tiny/web (see tools/build_tiny.py), and this file stands in for everything a terminal
-   would have given it: a filesystem with a project in it, the
-   keyboard, and a screen to paint its frames on.
+   tiny is a terminal program and this page has no terminal. It runs here as
+   tiny.wasm, built by tools/build_tiny.py from the web branch of the clone, and
+   this file stands in for what a terminal would have given it: a filesystem
+   with a project in it, a keyboard, and a screen to paint frames on.
 
-   Nothing downloads until someone asks for it. The program is a few
-   megabytes, and most people who open this page only read it.
-   ============================================================ */
+   Nothing downloads until someone presses start. The program is a few
+   megabytes and most people who open this page only read it. */
 
 import { WASI, File, Directory, OpenFile, PreopenDirectory, ConsoleStdout } from "./wasi/index.js";
 

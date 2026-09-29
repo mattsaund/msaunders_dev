@@ -1,56 +1,49 @@
-/* ============================================================
-   msaunders.dev : ASCII planetarium
+/* msaunders.dev : ASCII planetarium.
 
-   Renders shaded ASCII spheres (plus Saturn's and Uranus' ring
-   systems) into fixed background layers. Every body is computed
-   at runtime from real lighting maths, with no image or pre-baked
-   frame assets. The bodies are pinned to document coordinates, so
-   they scroll up and off the page with everything else, and they
-   turn on their own clock: a slow constant rotation independent of
-   scrolling. A scattered ASCII starfield covers the whole page.
-   ============================================================ */
+   Shaded ASCII spheres, plus Saturn's and Uranus' rings, drawn into background
+   layers behind the page. Nothing is pre-baked: every body is computed at
+   runtime from a lighting model, and the rings are intersected against the ring
+   plane and depth sorted against the globe. Bodies are pinned to document
+   coordinates so they scroll off with everything else, and they turn on
+   wall-clock time rather than on scroll, one turn every 45 to 85 seconds. A
+   seeded ASCII starfield covers the whole page; no star is ever placed on a
+   body. The loop stops on a hidden tab and freezes for prefers-reduced-motion.
+
+   BODIES at the top holds every knob: frame extents, grid rows, tilt, rotation
+   rate, ambient light, ring radii and which edge to hug. EARTH holds the
+   horizon's own: span, reveal, tilt, gain and rate. window.__cosmos exposes
+   { render, bodies, live, horizon, measure, draw } for tuning in the console. */
 (function () {
   'use strict';
 
   /* --- tunables ------------------------------------------- */
-  /* Bourke's 10-level ramp. Ink density rises monotonically, which the
-     obvious-looking ".,:;=+ic*ox%#@" does not: 'i' and 'c' read lighter
-     than '=' and '+', so gradients came out mottled. Index 0 is a space,
-     which gives the empty-sky threshold for free. */
+  /* Bourke's 10-level ramp. Ink rises monotonically along it, which the
+     obvious ".,:;=+ic*ox%#@" does not: 'i' and 'c' read lighter than '=' and
+     '+', and gradients came out mottled. Index 0 is a space. */
   var RAMP = " .:-=+*#%@";
   var CHAR_ASPECT = 0.6;           // glyph advance / line height (measured at init)
   var SCALE = 1.15;                // global size trim for every body
-  /* The floor for a body's glyph, in DEVICE pixels. 3 is where the ramp still
-     separates: rendered at 5 device pixels a '@' peaks around 70 of 255 against
-     this ink color, at 3 around 56, at 2 around 40, and by 1 the whole ramp is
-     a flat haze. Device rather than CSS pixels because that is what the glyph
-     is rasterised at: a 1px cell on a phone at dpr 3 is the same ink as a 3px
-     cell on a desktop, and holding the floor in CSS pixels would stop a body
-     shrinking to fit a phone long before it had to. */
+  /* Floor for a body's glyph, in device pixels, because that is what a glyph
+     is rasterised at: a 1px cell at dpr 3 is the same ink as a 3px cell at
+     dpr 1. Measured against this ink color, a '@' peaks around 70 of 255 at 5
+     device pixels, 56 at 3, 40 at 2, and by 1 the ramp is a flat haze. */
   var MIN_DEVICE_CELL = 3;
   function minCell() {
     return Math.max(1, Math.ceil(MIN_DEVICE_CELL / (window.devicePixelRatio || 1)));
   }
-  /* What a body is sized at when nothing is forcing it smaller. The floor above
-     is how small a glyph may go before it stops reading; this is how small one
-     is allowed to go for no reason. Under 3 CSS pixels the shading ramp starts
-     to lump, and a body that already fits the screen has nothing to gain by it. */
+  /* How small a body is allowed to go for no reason, as opposed to the floor
+     above, which is how small it may go at all. */
   var EASY_CELL = 3;
-  /* The ends of the clamp that turns a viewport into a cell size. BASE_MAX is
-     what a wide desktop gives a body, which is the largest any body is ever
-     drawn and so the cap the phone sizes up to. */
+  /* Ends of the clamp that turns a viewport into a cell size. BASE_MAX is what
+     a wide desktop gives a body, and so the cap a phone sizes up to. */
   var BASE_MIN = 6, BASE_MAX = 13;
   /* How far a limb may sit past the edge before a body counts as not fitting.
-     The outermost cells of a disk are nearly blank, so a slice of the window
-     either side is a limb touching the edge, not a crop. It is deliberately
-     generous: cell sizes are whole pixels, so insisting on the last pixel here
-     costs a whole step, and a step at these sizes is the difference between a
-     shaded sphere and a lumpy one. */
+     The outermost cells of a disk are nearly blank, and cell sizes are whole
+     pixels, so insisting on the last pixel costs a whole step of size. */
   var PHONE_SLACK = 0.15;
 
-  /* The phone layout, in the same terms css/site.css states it. The bodies are
-     centered and sized to the screen there, because there is no gutter beside
-     the panels to hang them in. */
+  /* The phone layout, in the terms css/site.css states it. No gutter beside the
+     panels there, so bodies are centered and sized to the screen instead. */
   var PHONE = window.matchMedia
     ? window.matchMedia('(max-width: 860px), (pointer: coarse) and (max-width: 900px)')
     : null;
@@ -345,11 +338,9 @@
       rings: { inner: 1.28, outer: 2.30, gaps: [[1.68, 1.78], [2.04, 2.09]] },
       side: 'right' },
 
-    /* Every body renders on a 100-row grid. Font size is base * sz and never
-       looks at rows, so the two are inverse: raising rows without cutting sz
-       scales the body up on screen instead of adding detail to it. Each sz
-       here is the old value times the old rows over 100, which is what keeps
-       these the size they have always been. */
+    /* Every body is on a 100-row grid. Font size is base * sz and never looks
+       at rows, so raising rows without cutting sz scales the body up on screen
+       instead of adding detail to it. */
     { name: 'ice', tex: texIce, rows: 100, extX: 1.14, extY: 1.14, sz: 0.2106,
       tilt: 0.28, roll: 0.10, rate: -0.062, amb: 0.16, phase: 1.9,
       side: 'left' },
@@ -378,21 +369,16 @@
   ];
 
 
-  /* The horizon body: a gas giant so large it is mostly below the page, with
-     only a shallow band of its limb showing along the very bottom.
+  /* The horizon: a gas giant large enough to sit mostly below the page, with a
+     shallow band of its limb showing along the bottom.
        span   : sphere diameter in viewport widths
        reveal : px of globe left visible above the document bottom
 
-     Only about 29 degrees of arc is ever on screen, so tilt decides which
-     latitudes that band lands on, and that is what decides whether this reads
-     as a gas giant at all. At tilt 0 the apex is the pole: the bands become
-     rings round it, barely one cycle spans the cap, and the whole thing
-     flattens into a smooth dome. Tilting brings the mid-latitudes up, where
-     the banding actually lives. Past about 1.0 the dome visibly skews and
-     stops reading as a horizon, so this sits short of that.
-
-     A smaller span than a true horizon shot keeps the cap off the extreme
-     limb, where the texture would smear into stripes. */
+     Only ~29 degrees of arc is ever on screen, so tilt decides which latitudes
+     land in that band. At tilt 0 the apex is the pole, the bands close into
+     rings and the whole thing flattens into a dome; tilting brings the
+     mid-latitudes up, where the banding lives. Past about 1.0 the dome skews
+     and stops reading as a horizon. */
   var EARTH = {
     name: 'gasgiant', tex: texJupiter, pin: true,
     span: 2.2, reveal: 200, sz: 1.00,
@@ -570,8 +556,8 @@
     host.appendChild(pre);
     live.push({ p: p, el: pre, drawn: null, left: 0, top: 0, w: 0, h: 0 });
   }
-  /* The horizon is not one of the drifters: it is pinned to the foot of the
-     document and always on, so it stays out of `live` and its count logic. */
+  /* The horizon is not a drifter: pinned to the foot of the document and always
+     on, so it stays out of `live` and its count logic. */
   var horizonEl = document.createElement('pre');
   horizonEl.className = 'cosmos__body cosmos__horizon';
   host.appendChild(horizonEl);
@@ -580,19 +566,17 @@
   /* The copyright line sits over the foot of the globe. */
   var note = document.querySelector('.foot__note');
 
-  /* The block of globe cells the copyright covers, worked out in measure()
-     from where the line actually lands. The line used to be sized to exactly
-     one cell, so clearing it meant clearing part of one row; now that the
-     grid is finer than the type, it spans several and the gap is a rectangle.
-     noteRow1 < noteRow0 means "nothing measured yet". */
+  /* The block of globe cells the copyright covers, worked out in measure() from
+     where the line lands. The grid is finer than the type, so it spans several
+     rows and the gap is a rectangle. noteRow1 < noteRow0 means not measured
+     yet. */
   var noteFrom = 0, noteTo = 0, noteRow0 = 0, noteRow1 = -1;
 
-  /* Where the copyright sits, in globe columns. Measured rather than predicted:
-     a count derived from the character count assumes the glyph advance scales
-     with font-size, which stops being true at the sizes this drops to on a
-     narrow screen, and is wrong outright when a browser enforces a minimum font
-     size. Measuring also keeps the gap centered on the line instead of on the
-     viewport, so page zoom cannot slide one off the other. */
+  /* Where the copyright sits, in globe columns. Measured, not predicted from
+     the character count: that assumes the advance scales with font-size, which
+     fails at these sizes and fails outright under a browser's minimum font
+     size. Measuring also keeps the gap centered on the line rather than on the
+     viewport, so zoom cannot slide one off the other. */
   function noteSpan(colPx, cols, rowPx, rows, topPx) {
     noteFrom = noteTo = 0;
     noteRow0 = 0; noteRow1 = -1;
@@ -601,12 +585,9 @@
     rng.selectNodeContents(note);
     var b = rng.getBoundingClientRect();
     if (!b.width) return;
-    /* Inclusive start, exclusive end, with a margin either side. The margin is
-       the point: cutting the gap to the text's exact box leaves terrain butted
-       against the first and last letter. That used to be hidden, because a
-       column was as wide as the type and flooring to one gave most of a
-       character's clearance for free; at a fraction of that width the free
-       clearance goes too. Tie it to the line box so it holds at any size. */
+    /* Inclusive start, exclusive end, with a margin either side. Cut to the
+       text's exact box and terrain butts against the first and last letter.
+       The margin is tied to the line box so it holds at any size. */
     /* Floor the near edge and ceil the far one. Rounding either edge lets that
        side come out under the margin while the other keeps a full cell, which
        is what threw the gap off center; going outwards on both puts each
@@ -616,13 +597,13 @@
     noteFrom = clamp(Math.floor((b.left - padX) / colPx), 0, cols);
     noteTo   = clamp(Math.ceil((b.right + padX) / colPx), 0, cols);
 
-    /* The rows it covers. getBoundingClientRect is viewport-relative and the
-       globe's top is a document offset, so the scroll position is what puts
-       the two in the same frame. Floor the top and ceil the bottom: a row the
-       line only grazes still has ink behind the type, so it has to go. */
+    /* The rows it covers. The rect is viewport-relative and the globe's top is
+       a document offset, so the scroll position puts them in one frame. Floor
+       the top and ceil the bottom: a row the line only grazes still has ink
+       behind the type. */
     var y0 = b.top + (window.scrollY || window.pageYOffset || 0) - topPx;
-    /* Same outward rounding vertically. The line box already carries its own
-       leading above and below the ink, so this needs no pad of its own. */
+    /* Same outward rounding vertically. The line box carries its own leading,
+       so no extra pad here. */
     noteRow0 = clamp(Math.floor(y0 / rowPx), 0, rows - 1);
     noteRow1 = clamp(Math.ceil((y0 + b.height) / rowPx) - 1, 0, rows - 1);
   }
@@ -681,11 +662,10 @@
       var sy = (1 - 2 * (cy - s.top) / s.h) * p.extY;
       var d2 = sx * sx + sy * sy;
 
-      /* Both sides of this are boxes, not points: the star is a glyph up to
-         14px tall, and so is every cell of the body, which is inked whenever
-         its center lands on the surface. Grow the body by both half-diagonals
-         so neither can straddle an edge. One frame unit is s.h / (2 * extY)
-         px, and the disk is drawn round, so that scale holds on both axes. */
+      /* Both sides are boxes, not points: a star is a glyph up to 14px tall and
+         so is every cell of the body. Grow the body by both half-diagonals so
+         neither can straddle an edge. One frame unit is s.h / (2 * extY) px,
+         and the disk is round, so that scale holds on both axes. */
       var unit = s.h / (2 * p.extY);
       var cw = s.w / p.cols, ch = s.h / p.rows;
       var pad = (Math.sqrt(w * w + h * h) + Math.sqrt(cw * cw + ch * ch)) / 2 / unit;
@@ -701,11 +681,10 @@
              star sitting in one would read as a mistake, not as a gap. */
           var zr = -(nx * sx + ny * sy) / nz;
           var rr = Math.sqrt(d2 + zr * zr);
-          /* Ring radius is measured in the ring plane, which is foreshortened,
-             so `pad` screen units is not `pad` of rr: near the minor axis a
-             step across the screen runs several times as far out the ring.
-             |grad rr| is that stretch, so it converts the pad exactly instead
-             of the worst case, which would clear a wide halo of empty sky. */
+          /* Ring radius is measured in the foreshortened ring plane, so `pad`
+             screen units is not `pad` of rr: near the minor axis a step across
+             the screen runs several times as far out the ring. |grad rr| is
+             that stretch and converts the pad exactly. */
           if (rr > 1e-6) {
             var gx = (sx - zr * nx / nz) / rr, gy = (sy - zr * ny / nz) / rr;
             var g = Math.max(1, Math.sqrt(gx * gx + gy * gy));
@@ -718,11 +697,8 @@
   }
 
   function buildStars(vw, docH) {
-    /* The whole page, not just the margins. The field used to be confined to
-       the gutters so no star sat behind body copy; the section panels now dim
-       whatever is behind them, so a star under text reads as sky rather than
-       as noise, and the gutter-only field no longer has to exist. That also
-       retires the width floor: there is no longer a margin to run out of. */
+    /* The whole page, not just the margins. The panels dim whatever is behind
+       them, so a star under copy reads as sky rather than noise. */
     var r = rng(0x5EEDB0);
     var n = clamp(Math.round(vw * docH / 3200), 0, 1200);
     var buf = [];
@@ -732,17 +708,15 @@
       var y = r() * docH;
       var g = STAR_GLYPHS.charAt((r() * STAR_GLYPHS.length) | 0);
       var fs = 9 + (r() * 5 | 0);
-      /* Sky only: nothing is placed on a body. The whole glyph box is tested,
-         not the corner it is positioned from, because a star is up to 14px
-         tall and a corner test let one hang over a limb by its own height. */
+      /* Sky only. The whole glyph box is tested, not the corner it is
+         positioned from: a star is up to 14px tall, and a corner test let one
+         hang over a limb by its own height. */
       var gw = fs * CHAR_ASPECT, gh = fs;
       if (onHorizon(x, y, gw, gh, vw)) continue;
       if (onBody(x, y, gw, gh)) continue;
-      /* A minority twinkles. The fraction is down from 0.62 now the field
-         covers the whole page rather than two gutters: each animated star is a
-         composited layer, and at the old fraction a desktop page carried ~780
-         of them. A third of a four-times-larger field still leaves nearly twice
-         as many twinkling as before, and real skies are mostly steady anyway. */
+      /* A third twinkles. Each animated star is a composited layer, and this
+         field covers the whole page, so more than that costs real frames.
+         Real skies are mostly steady anyway. */
       var twinkle = r() < 0.32;
       var cls = 'star';
       if (twinkle) cls += (r() < 0.6) ? ' star--blink' : ' star--shimmer';
@@ -826,42 +800,34 @@
   function measure() {
     /* clientWidth, not innerWidth: the scrollbar is not usable space. */
     var vw = document.documentElement.clientWidth, vh = window.innerHeight;
-    /* Two sizes come out of the viewport here, and only one of them still
-       follows it. `base` sets the horizon's grid and the copyright that sits in
-       it, which have to scale with the window because they span it. A drifting
-       body does not: it used to shrink as the window narrowed, which reads as
-       the art breathing every time a window is dragged, so on a desktop a body
-       is drawn at one size, the size a wide window gave it. The phone layout
-       sizes bodies to the screen instead, further down. */
+    /* Two sizes, and only one follows the window. `base` sets the horizon's
+       grid and the copyright in it, both of which span the window. A drifting
+       body does not: resizing with the window reads as the art breathing, so on
+       a desktop it holds one size. The phone sizes bodies to the screen
+       instead, further down. */
     var base = clamp(Math.min(vw, vh * 1.7) / 108, BASE_MIN, BASE_MAX) * SCALE;
     var bodyBase = BASE_MAX * SCALE;
     var phone = !!(PHONE && PHONE.matches);
     var cell = minCell();
 
-    /* The copyright's own line box, and the size it has always been. The floor
-       keeps it legible on a small screen, where `base` shrinks; because the
-       horizon's grid is derived from this, the same floor still stops the
-       terrain getting denser on a phone than on a desktop. Rounded to a whole
-       multiple of HORIZON_DETAIL so the cell below divides out whole as well.
+    /* The copyright's line box. The floor keeps it legible on a small screen,
+       and since the horizon's grid derives from it, that floor also stops the
+       terrain getting denser on a phone. A whole multiple of HORIZON_DETAIL so
+       the cell below divides out whole.
 
-       Sized here, before the page is measured, because the line is the last
-       thing in the document and its height is part of what is being measured.
-       Setting it afterwards, which is where this used to live, left the layer
-       holding a height the content no longer had, and the horizon sat that far
-       below the line it carries. */
+       Sized before the page is measured, because this line is the last thing in
+       the document and its height is part of what is being measured. */
     var notePx = Math.max(Math.round(base * horizon.p.sz / HORIZON_DETAIL) * HORIZON_DETAIL, 9);
     if (note) {
       note.style.fontSize = Math.round(notePx * NOTE_SCALE) + 'px';
       note.style.lineHeight = notePx + 'px';
     }
 
-    /* The body's own height, not scrollHeight. Two things inflate scrollHeight
-       here, and either one puts the horizon below the line it carries: this
-       layer is absolutely positioned and as tall as the page, so once sized it
-       holds scrollHeight at whatever the page measured then, and a glyph set
-       larger than its line box, which the copyleft mark is, spills a few
-       pixels of scrollable page under the copyright. The body measures the
-       content itself, and the copyright is the last of it. */
+    /* The body's height, not scrollHeight. Two things inflate scrollHeight and
+       either one drops the horizon below the line it carries: this layer is
+       absolute and as tall as the page, so it holds scrollHeight at whatever
+       was measured last, and a glyph bigger than its line box (the copyleft
+       mark) spills a few scrollable pixels under the copyright. */
     var docH = Math.round(document.body.getBoundingClientRect().height);
     host.style.height = docH + 'px';
 
@@ -877,49 +843,37 @@
       var w = p.cols * fs * CHAR_ASPECT;
       /* Never wider than the viewport, whatever the screen. */
       if (w > vw) { fs *= vw / w; w = vw; }
-      /* Whole pixels: line-height is 1, so the cell height IS the font size and
-         a fraction here puts every glyph row after the first on a fractional
-         offset inside the <pre>. Rounding costs a little size accuracy, which
-         a body gives up anyway at the one place it is resized, the phone fit
-         below. Column width stays fractional at
-         0.6 * fs unless fs is a multiple of 5, which at these sizes would
-         quantise the bodies far too coarsely to be worth it. */
-      /* Never below the floor. A glyph under it is not a small glyph, it is a
-         smudge: the ink per cell holds but the peak brightness does not, so the
-         ramp's steps stop reading apart and the body dims into the page. Past
-         this point a body is allowed to be wider than the window and clipped,
-         which it already is on its outer side. */
+      /* Whole pixels. Line-height is 1, so the cell height is the font size,
+         and a fraction puts every row after the first on a fractional offset
+         inside the <pre>. Column width stays fractional at 0.6 * fs; forcing
+         that whole too would quantise the bodies far too coarsely.
+
+         Never below EASY_CELL. Under it the ink per cell holds but the peak
+         does not, the ramp's steps stop reading apart, and the body dims into
+         the page. A body wider than the window is clipped instead. */
       fs = Math.max(EASY_CELL, Math.round(fs));
       w = p.cols * fs * CHAR_ASPECT;
 
-      /* Centered on the gutter beside the panels, not tucked against the window
-         edge. A body is several times wider than that strip, so centering it
-         there means it overhangs both ways: .cosmos clips the outer side and the
-         panel dims the inner one, which is what puts the visible mass of the
-         body out in the margin rather than behind the copy.
+      /* Centered on the gutter beside the panels, not tucked against the
+         window edge. A body is several times wider than that strip, so it
+         overhangs both ways: .cosmos clips the outer side, the panel dims the
+         inner one, and the visible mass ends up out in the margin.
 
-         The panels stop short of the window only while it is wider than --wrap.
-         Below that the gutter closes, its center becomes the window edge, and
-         centering on it would hang every body half off the screen, so the old
-         edge hug fades back in as the gutter runs out. The gutter is half of
-         (vw - --wrap), measured off the panels themselves rather than restated
-         here, so the two agree exactly where it reaches zero. */
+         The gutter only exists while the window is wider than --wrap. As it
+         closes its center becomes the window edge, so the old edge hug fades
+         back in. It is measured off the panels rather than restated here, so
+         the two agree exactly where it reaches zero. */
       var x;
       if (phone) {
         /* No gutter to hang in and no room to overhang, so a body is fitted to
            the screen and centered on it. Shrinking is the whole point here, so
            it goes right down to the floor above rather than stopping at the
            size the viewport clamp left it. */
-        /* Sized to the screen here, not to the base above. The base is a clamp
-           of the viewport, so on a phone it bottoms out and every body comes
-           out smaller than the screen could hold: the widest one has to shrink,
-           but the others were shrinking with it for no reason.
-
-           So take the largest whole cell that fits, capped at the size the body
-           would get on a wide desktop, because these are background art and one
-           should not become a phone's whole screen, and floored at the smallest
-           cell that still reads. A body only ends up below EASY_CELL when its
-           own width forces it there. */
+        /* Sized to the screen, not to the base above: the base bottoms out on a
+           phone and leaves every body smaller than the screen could hold. The
+           largest whole cell that fits, capped at the size a wide desktop gives
+           it (this is background art, not the whole screen) and floored at the
+           smallest cell that still reads. */
         var room = vw * (1 + PHONE_SLACK);
         var fits = Math.floor(room / (p.cols * CHAR_ASPECT));
         var wide = Math.max(EASY_CELL, Math.round(BASE_MAX * SCALE * p.sz));
@@ -946,15 +900,14 @@
     }
 
     /* ---- the horizon ----
-       Only the shallow band that is actually on screen gets rendered, rather
-       than a full globe four viewports wide that is then clipped away. The
-       frame's extents are derived straight from pixels, so the curve stays a
-       true circular arc. */
+       Only the band that is on screen is rendered, not a globe four viewports
+       wide that then gets clipped. Extents come straight from pixels, so the
+       curve stays a true circular arc. */
     var E = horizon.p;
     var R = (E.span * vw) / 2;                       // sphere radius in px
     /* The globe's cell, HORIZON_DETAIL of them to a line of copyright. The
-       type no longer has to be one cell tall, so this is free to go finer
-       than legible text, which is what the drifting bodies already do. */
+       type does not have to be one cell tall, so this can go finer than
+       legible text. */
     var efs = notePx / HORIZON_DETAIL;
     var revealPx = Math.min(E.reveal, vh * 0.30, R);
 
@@ -964,12 +917,10 @@
     E.extY = (E.rows * efs) / 2 / R;
     E.yc = 1 - E.extY;                               // band's top edge at the apex
 
-    /* Sized against notePx, not the cell, so making the terrain finer does not
-       drag the copyright down with it. punch() clears whatever block of cells
-       the line turns out to cover, so the two no longer have to agree on a
-       size at all. */
     /* Read the line back after sizing it: this is what the gap is cut from.
-       horizon.top is set below, so pass the value rather than reading it. */
+       punch() clears whatever block of cells it covers, so the line and the
+       terrain need not agree on a size. horizon.top is set below, so pass the
+       value rather than reading it. */
     noteSpan(efs * CHAR_ASPECT, E.cols, efs, E.rows,
              Math.round(docH - E.rows * efs));
     horizon.drawn = null;
@@ -1066,13 +1017,11 @@
   /* Images and fonts settling changes the document height. */
   addEventListener('load', function () { measure(); restar(); draw(0); });
 
-  /* The webfont lands after the first paint, and its glyph advance is not the
+  /* The webfont lands after the first paint and its advance is not the
      fallback's. Column counts come from that advance, so a body measured
-     against the fallback keeps the wrong proportions and reads as an ellipse.
-     sizeBodies() is the only thing that re-derives them, and the load handler
-     above does not call it, so hang it off the font instead. measure() clears
-     every drawn cache, which is what lets draw() paint the new grid rather
-     than skip it as already current. */
+     against the fallback reads as an ellipse. sizeBodies() is the only thing
+     that re-derives them and the load handler does not call it, so hang it off
+     the font. measure() clears the drawn caches so draw() repaints. */
   if (document.fonts && document.fonts.ready) {
     document.fonts.ready.then(function () {
       sizeBodies(); measure(); restar(); draw(0);

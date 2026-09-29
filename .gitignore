@@ -1,4 +1,26 @@
-# The browser build of tiny: a clone of github.com/mattsaund/tiny with its
-# own git history. It is built locally into pages/projects/tiny/app/; only that
-# output ships.
+# Everything tracked here is deployed, so nothing local belongs in it.
+
+# The tiny clone. It is github.com/mattsaund/tiny with its own git history,
+# built locally into pages/projects/tiny/app/. Only that output ships.
 pages/projects/tiny/web/
+
+# Toolchains the build scripts install for themselves
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+
+# Editors and OS
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Local scratch: previews, logs, notes I do not want published
+*.log
+.env
+scratch/

@@ -1,4 +1,7 @@
-# Cloudflare Pages reads this file. Three kinds of rule live here: rewrites that
+# Cloudflare Pages reads this file. The project is set up there with no
+# framework preset, no build command, and / as the output directory, so a push
+# to main deploys the repo as it stands.
+# Three kinds of rule live here: rewrites that
 # keep a published URL working after the file behind it moved, and 301s for
 # pages and files that were retired or renamed.
 

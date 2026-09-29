@@ -1,14 +1,12 @@
 #!/usr/bin/env python3
-"""Cut the site mark, a blue "~/", from the site's own font.
+"""Cut the site mark, a blue "~/", out of the site's own font.
 
-The mark used to be a hand-drawn chevron. It is now the two characters the
-top bars already print in front of every page name, so the tab icon, the link
-preview and the bars are all the same shape in the same typeface.
-
-Both glyphs come out of fonts/jetbrains-mono-latin.woff2 at weight 800, the
-heaviest the file carries: at 16 pixels a regular stroke thins out to nothing.
-The SVG gets the outlines themselves; the two PNGs are the same outlines
-rendered large and resampled down, framed the same way, so all three agree.
+The mark is the two characters the top bars print in front of every page name,
+so the tab icon, the link preview and the bars are all one shape in one
+typeface. Both glyphs come from fonts/jetbrains-mono-latin.woff2 at weight 800,
+the heaviest the file carries: at 16 pixels a regular stroke disappears. The
+SVG gets the outlines; the PNGs are the same outlines rendered large and
+resampled down, framed the same way, so all three agree.
 
 Writes favicon.svg, favicon.png and og.png. Needs fonttools, brotli (woff2 is
 brotli-compressed) and pillow, none of which the site itself needs, so run it
