@@ -1,7 +1,5 @@
 # msaunders.dev
 
-My personal site. Static HTML, CSS, and JS. Ran on Cloudflare Pages.
-
 **See it here: https://msaunders.dev**
 
 ## Files
