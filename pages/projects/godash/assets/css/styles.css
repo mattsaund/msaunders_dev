@@ -1,407 +1,267 @@
-/* =========================================================================
-   GoDash | msaunders.dev/godash
-   Dark theme mirroring the app: true-black canvas, iOS-gray cards,
-   GoDash green (#00c200) accent, SF system typography.
-   ========================================================================= */
+/* GoDash | msaunders.dev/godash
+   Dark like the app: true black, iOS grays, GoDash green. Three pages share
+   this file: the home page, the privacy policy and the contact page. */
 
-/* ----- Reset / base ----- */
-*,
-*::before,
-*::after { box-sizing: border-box; }
-
-html { -webkit-text-size-adjust: 100%; scroll-behavior: smooth; }
+*, *::before, *::after { box-sizing: border-box; }
 
 :root {
-  /* Surfaces */
-  --bg:        #000000;
-  --bg-elev:   #0b0b0d;
-  --card:      #1c1c1e;   /* iOS systemGray6 dark */
-  --card-2:    #2c2c2e;   /* iOS systemGray5 dark */
-  --border:    rgba(255,255,255,.09);
-  --border-2:  rgba(255,255,255,.14);
+  color-scheme: dark;
 
-  /* Text */
-  --text:      #f5f5f7;
-  --text-dim:  #a1a1a6;
-  --text-mut:  #6e6e73;
+  --bg:      #000;
+  --card:    #121214;
+  --card-2:  #1c1c1e;   /* iOS systemGray6, dark */
+  --line:    rgba(255, 255, 255, .09);
+  --line-2:  rgba(255, 255, 255, .16);
 
-  /* Brand */
-  --green:      #00c200;
-  --green-bri:  #22e04a;
-  --green-deep: #009c00;
-  --green-glow: rgba(0,194,0,.35);
+  --text:    #f5f5f7;
+  --body:    #c7c7cc;   /* long-form text */
+  --dim:     #a1a1a6;
+  --faint:   #86868b;   /* smallest text; still clears 4.5:1 on black */
 
-  /* Layout */
-  --maxw: 1140px;
-  --radius: 22px;
-  --radius-sm: 14px;
-  /* One vertical rhythm for every section, so the gaps between them are even.
-     Each section pads top+bottom by --sp, so every section-to-section gap is
-     2×--sp. */
-  --sp: clamp(36px, 4.5vw, 52px);
+  --green:     #00c200; /* the app's accent */
+  --green-hi:  #22e04a; /* the same green, lifted for text on black */
+  --green-dim: rgba(0, 194, 0, .12);
 
+  --maxw: 1120px;
+  --sp: clamp(56px, 7vw, 96px);   /* one vertical rhythm for every section */
   --font: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text",
-          "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+          "Helvetica Neue", "Segoe UI", Roboto, Arial, sans-serif;
 }
+
+html { -webkit-text-size-adjust: 100%; scroll-behavior: smooth; scroll-padding-top: 76px; }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
 
 body {
   margin: 0;
-  font-family: var(--font);
+  min-height: 100vh;
+  display: flex; flex-direction: column;
   background: var(--bg);
   color: var(--text);
-  line-height: 1.5;
+  font: 400 17px/1.5 var(--font);
   -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
   overflow-x: hidden;
 }
+main { flex: 1; }
 
-img { max-width: 100%; display: block; }
+img { display: block; max-width: 100%; height: auto; }
+h1, h2, h3 { margin: 0; font-weight: 700; letter-spacing: -.02em; line-height: 1.1; }
+p { margin: 0; }
 a { color: inherit; text-decoration: none; }
+a:focus-visible, button:focus-visible { outline: 2px solid var(--green-hi); outline-offset: 3px; border-radius: 6px; }
 
-/* ----- Shared layout ----- */
-.wrap {
-  width: 100%;
-  max-width: var(--maxw);
-  margin-inline: auto;
-  padding-inline: 24px;
-}
+.wrap { width: 100%; max-width: var(--maxw); margin-inline: auto; padding-inline: 24px; }
+@media (max-width: 480px) { .wrap { padding-inline: 16px; } }
 
-section { position: relative; }
+/* The app icon is a full square; iOS rounds it, so the page does too. */
+.icon { border-radius: 22.5%; }
 
-.eyebrow {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  font-size: .82rem;
-  font-weight: 600;
-  letter-spacing: .04em;
-  text-transform: uppercase;
-  color: var(--green-bri);
-  background: rgba(0,194,0,.10);
-  border: 1px solid rgba(0,194,0,.28);
-  padding: 7px 14px;
-  border-radius: 999px;
-}
+.accent { color: var(--green-hi); }
 
-h1, h2, h3 { margin: 0; letter-spacing: -.02em; line-height: 1.06; font-weight: 700; }
-
-.section-head { max-width: 640px; margin: 0 auto; text-align: center; }
-.section-head h2 { font-size: clamp(1.9rem, 4vw, 2.9rem); }
-.section-head p {
-  margin: 18px auto 0;
-  color: var(--text-dim);
-  font-size: 1.08rem;
-}
-
-/* ----- Buttons ----- */
+/* ---- Buttons ---- */
 .btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 9px;
-  font-size: 1rem;
-  font-weight: 600;
-  padding: 13px 22px;
-  border-radius: 999px;
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  padding: 12px 22px; border-radius: 999px;
+  font-size: 16px; font-weight: 600; white-space: nowrap;
   border: 1px solid transparent;
-  cursor: pointer;
-  transition: transform .15s ease, background .2s ease, border-color .2s ease;
-  white-space: nowrap;
+  transition: background-color .2s, border-color .2s;
 }
-.btn:active { transform: scale(.97); }
+.btn svg { width: 18px; height: 18px; }
+.btn--green { background: var(--green); color: #fff; }
+.btn--green:hover { background: #00d400; }
+.btn--ghost { border-color: var(--line-2); color: var(--text); }
+.btn--ghost:hover { background: rgba(255, 255, 255, .06); }
 
-.btn-green {
-  background: var(--green);
-  color: #fff;
-  box-shadow: 0 6px 20px -6px var(--green-glow);
-}
-.btn-green:hover { background: var(--green-bri); }
+.store img { height: 52px; width: auto; }
 
-.btn-ghost {
-  background: rgba(255,255,255,.04);
-  color: var(--text);
-  border-color: var(--border-2);
-}
-.btn-ghost:hover { background: rgba(255,255,255,.09); }
-
-/* App Store badge */
-.badge-appstore { display: inline-block; transition: transform .15s ease, opacity .2s ease; }
-.badge-appstore img { height: 54px; width: auto; }
-.badge-appstore:hover { transform: translateY(-2px); }
-.badge-appstore:active { transform: scale(.97); }
-
-/* =========================================================================
-   NAV
-   ========================================================================= */
+/* ---- Nav ---- */
 .nav {
-  position: sticky;
-  top: 0;
-  z-index: 50;
-  background: rgba(0,0,0,.62);
-  backdrop-filter: saturate(180%) blur(20px);
+  position: sticky; top: 0; z-index: 10;
+  background: rgba(0, 0, 0, .7);
   -webkit-backdrop-filter: saturate(180%) blur(20px);
-  border-bottom: 1px solid var(--border);
+  backdrop-filter: saturate(180%) blur(20px);
+  border-bottom: 1px solid var(--line);
 }
-.nav-inner {
-  height: 62px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 20px;
+.nav__inner { display: flex; align-items: center; justify-content: space-between; gap: 20px; height: 60px; }
+.brand { display: inline-flex; align-items: center; gap: 10px; font-size: 18px; font-weight: 700; letter-spacing: -.01em; }
+.brand .icon { width: 30px; height: 30px; }
+.nav__links { display: flex; align-items: center; gap: 28px; font-size: 15px; font-weight: 500; }
+.nav__links a:not(.btn) { color: var(--dim); transition: color .2s; }
+.nav__links a:not(.btn):hover, .nav__links a[aria-current="page"] { color: var(--text); }
+.nav__links .btn { padding: 8px 16px; font-size: 14px; }
+/* Phones: everything stays in the bar, just tighter. The links get taller hit
+   areas than their text, and the narrowest phones drop the wordmark and keep
+   the icon. */
+@media (max-width: 600px) {
+  .nav__inner { gap: 12px; }
+  .brand { gap: 8px; font-size: 17px; }
+  .brand .icon { width: 28px; height: 28px; }
+  .nav__links { gap: 16px; font-size: 14px; }
+  .nav__links a:not(.btn) { padding-block: 12px; }
+  .nav__links .btn { padding: 8px 14px; }
 }
-.brand { display: inline-flex; align-items: center; gap: 11px; font-weight: 700; font-size: 1.12rem; letter-spacing: -.01em; }
-.brand .mark {
-  width: 34px; height: 34px;
-  display: grid; place-items: center;
-  background: linear-gradient(160deg, #f4f4f6, #d5d6da);
-  border-radius: 9px;
-  box-shadow: 0 2px 8px rgba(0,0,0,.5), inset 0 1px 0 rgba(255,255,255,.6);
-}
-.brand .mark svg { width: 22px; height: 18px; }
-.nav-links { display: flex; align-items: center; gap: 26px; }
-.nav-links a { color: var(--text); font-size: .95rem; font-weight: 500; transition: color .2s ease; }
-.nav-links a:not(.nav-cta):hover { color: var(--green-bri); }
-.nav-cta { padding: 9px 18px; font-size: .92rem; }
-.nav-toggle { display: none; }
+@media (max-width: 385px) { .nav .brand__name { display: none; } }
 
-@media (max-width: 720px) {
-  .nav-links a:not(.nav-cta) { display: none; }
-}
-
-/* =========================================================================
-   HERO
-   ========================================================================= */
-.hero { padding: var(--sp) 0; overflow: hidden; }
-.hero-grid {
-  display: grid;
-  grid-template-columns: 1.05fr .95fr;
-  gap: 48px;
-  align-items: center;
-}
-.hero h1 {
-  font-size: clamp(2.5rem, 6vw, 4.3rem);
-  margin-top: 22px;
-}
-.hero h1 .accent { color: var(--green-bri); }
-.hero-sub {
-  margin-top: 22px;
-  font-size: clamp(1.05rem, 1.6vw, 1.25rem);
-  color: var(--text-dim);
-  max-width: 33ch;
-}
-.hero-cta { margin-top: 32px; display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
-.hero-note { margin-top: 18px; font-size: .9rem; color: var(--text-mut); display: flex; align-items: center; gap: 8px; }
-.hero-note svg { width: 15px; height: 15px; color: var(--green-bri); }
-
-/* Hero visual */
-.hero-visual { position: relative; display: grid; place-items: center; }
-.hero-visual::before {
-  content: "";
-  position: absolute;
-  width: 78%; aspect-ratio: 1;
-  background: radial-gradient(circle, var(--green-glow), transparent 66%);
-  filter: blur(30px);
-  z-index: 0;
-}
-/* Hero screenshot carousel */
-.carousel { position: relative; z-index: 1; width: min(340px, 82%); }
-.carousel-viewport {
-  overflow: hidden;
-  border-radius: 30px;
-  box-shadow: 0 40px 90px -30px rgba(0,0,0,.85), 0 0 0 1px rgba(255,255,255,.05);
-}
-.carousel-track {
-  display: flex;
-  transition: transform .55s cubic-bezier(.22,.61,.36,1);
-}
-.carousel-slide { position: relative; min-width: 100%; margin: 0; }
-.carousel-slide img { display: block; width: 100%; aspect-ratio: 9 / 16; object-fit: cover; }
-.carousel-arrow {
-  position: absolute; top: 50%; transform: translateY(-50%);
-  width: 44px; height: 44px; border-radius: 999px;
-  display: grid; place-items: center;
-  background: rgba(10,10,12,.6);
-  backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
-  border: 1px solid var(--border-2); color: #fff; cursor: pointer;
-  transition: background .2s ease, border-color .2s ease, transform .15s ease;
-  z-index: 2;
-}
-.carousel-arrow svg { width: 22px; height: 22px; }
-.carousel-arrow:hover { background: var(--green); border-color: var(--green); }
-.carousel-arrow:active { transform: translateY(-50%) scale(.9); }
-.carousel-arrow.prev { left: -18px; }
-.carousel-arrow.next { right: -18px; }
-.carousel-dots { display: flex; justify-content: center; gap: 8px; margin-top: 18px; }
-.carousel-dots button {
-  width: 8px; height: 8px; padding: 0; border: none; border-radius: 999px;
-  background: rgba(255,255,255,.28); cursor: pointer;
-  transition: width .25s ease, background .25s ease;
-}
-.carousel-dots button.active { width: 22px; background: var(--green-bri); }
-@media (max-width: 900px) { .carousel { margin-inline: auto; } }
-@media (max-width: 420px) {
-  .carousel-arrow.prev { left: 8px; }
-  .carousel-arrow.next { right: 8px; }
-}
+/* ---- Hero ---- */
+.hero { padding-block: var(--sp); overflow: hidden; }
+.hero__grid { display: grid; grid-template-columns: 1.1fr .9fr; gap: 56px; align-items: center; }
+/* Two lines, never three: each line is held together, and the size tracks
+   the column so "Your Dash Cam" (about 7.4em wide) always fits it. */
+.hero h1 { font-size: clamp(52px, 7vw - 8px, 72px); line-height: 1.02; letter-spacing: -.035em; font-weight: 800; }
+.hero h1 > span { display: block; white-space: nowrap; }
+.hero__sub { margin-top: 24px; max-width: 34ch; text-wrap: pretty; font-size: clamp(18px, 1.7vw, 21px); color: var(--dim); }
+.hero .store { display: inline-block; margin-top: 36px; }
+.hero__note { margin-top: 14px; font-size: 14px; color: var(--faint); }
 
 @media (max-width: 900px) {
-  .hero-grid { grid-template-columns: 1fr; text-align: center; gap: 8px; }
-  .hero-sub { max-width: 46ch; margin-inline: auto; }
-  .hero-cta { justify-content: center; }
-  .hero-note { justify-content: center; }
-  .hero-visual { margin-top: 36px; }
+  .hero__grid { grid-template-columns: 1fr; gap: 48px; text-align: center; }
+  .hero h1 { font-size: clamp(34px, 12.5vw - 6px, 64px); }
+  .hero__sub { margin-inline: auto; }
 }
 
-/* =========================================================================
-   FEATURES
-   ========================================================================= */
-.features { padding: var(--sp) 0; }
-.feature-grid {
-  margin-top: clamp(34px, 4vw, 44px);
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 20px;
+/* ---- Carousel ---- */
+.hero__visual { position: relative; display: grid; place-items: center; }
+/* A soft pool of the app's green behind the phone. */
+.hero__visual::before {
+  content: ""; position: absolute; inset: 10% 0;
+  background: radial-gradient(closest-side, rgba(0, 194, 0, .28), transparent);
+  filter: blur(40px);
 }
-.feature-card {
-  background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: 26px 24px;
-  transition: transform .2s ease, border-color .2s ease, background .2s ease;
+.carousel { position: relative; width: min(340px, 78%); }
+.carousel__viewport {
+  overflow: hidden; border-radius: 32px;
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, .08), 0 40px 80px -30px rgba(0, 0, 0, .9);
 }
-.feature-card:hover { transform: translateY(-4px); border-color: var(--border-2); background: #202022; }
-.feature-icon {
-  width: 46px; height: 46px;
+.carousel__track { display: flex; transition: transform .5s cubic-bezier(.22, .61, .36, 1); }
+.carousel__slide { flex: 0 0 100%; margin: 0; }
+.carousel__slide img { width: 100%; aspect-ratio: 9 / 16; object-fit: cover; background: var(--card); }
+.carousel__arrow {
+  position: absolute; top: 50%; z-index: 1;
+  width: 40px; height: 40px; margin-top: -32px;  /* centred on the image, not the dots under it */
+  display: grid; place-items: center; padding: 0;
+  border-radius: 999px; border: 1px solid var(--line-2);
+  background: rgba(20, 20, 22, .75); color: #fff; cursor: pointer;
+  -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px);
+  transition: background-color .2s, border-color .2s;
+}
+.carousel__arrow:hover { background: var(--green); border-color: var(--green); }
+.carousel__arrow svg { width: 20px; height: 20px; }
+.carousel__arrow.prev { left: -20px; }
+.carousel__arrow.next { right: -20px; }
+.carousel__dots { display: flex; justify-content: center; gap: 8px; margin-top: 10px; }
+/* The button is a taller, invisible tap target; the dot is drawn inside it so
+   it keeps its own fully rounded ends. */
+.carousel__dots button {
+  position: relative; width: 7px; height: 27px; padding: 0; border: 0;
+  background: none; cursor: pointer;
+  transition: width .25s;
+}
+.carousel__dots button::before {
+  content: ""; position: absolute; inset: 10px 0;
+  border-radius: 999px; background: rgba(255, 255, 255, .25);
+  transition: background-color .25s;
+}
+.carousel__dots button.active { width: 22px; }
+.carousel__dots button.active::before { background: var(--green-hi); }
+@media (prefers-reduced-motion: reduce) {
+  .carousel__track, .carousel__dots button, .carousel__dots button::before { transition: none; }
+}
+
+/* ---- Features ---- */
+.features { padding-block: 0 var(--sp); }
+.features__grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+.feature {
+  padding: 28px 24px 26px;
+  background: var(--card); border: 1px solid var(--line); border-radius: 22px;
+}
+/* Round, like the app's own buttons: white glyph on a flat green circle.
+   Some glyphs are nudged through their viewBox so they read as centred in it:
+   the arrow by its centre of mass (it points up-right, and centring its outline
+   leaves it looking high and right), the note, tray and triangle part of the
+   way toward where their weight sits. */
+.feature__icon {
+  width: 44px; height: 44px; margin-bottom: 18px;
   display: grid; place-items: center;
-  border-radius: 12px;
-  background: var(--green);
-  margin-bottom: 18px;
+  background: var(--green); border-radius: 50%; color: #fff;
 }
-.feature-icon svg { width: 24px; height: 24px; color: #fff; }
-.feature-card h3 { font-size: 1.2rem; display: flex; align-items: center; gap: 9px; flex-wrap: wrap; }
-.feature-card p { margin: 10px 0 0; color: var(--text-dim); font-size: .97rem; }
-@media (max-width: 900px) { .feature-grid { grid-template-columns: repeat(2, 1fr); } }
-@media (max-width: 560px) { .feature-grid { grid-template-columns: 1fr; } }
-
-/* =========================================================================
-   PRIVACY BAND
-   ========================================================================= */
-.privacy-band { padding: var(--sp) 0; background: var(--bg-elev); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
-.privacy-band .wrap { display: grid; grid-template-columns: 76px 1fr auto; gap: 26px; align-items: center; }
-.privacy-band .lock {
-  width: 76px; height: 76px; border-radius: 20px;
-  display: grid; place-items: center;
-  background: rgba(0,194,0,.10);
-  border: 1px solid rgba(0,194,0,.28);
-}
-.privacy-band .lock svg { width: 38px; height: 38px; color: var(--green-bri); }
-.privacy-band h2 { font-size: clamp(1.5rem, 3vw, 2.1rem); }
-.privacy-band p { margin: 10px 0 0; color: var(--text-dim); max-width: 60ch; }
-@media (max-width: 800px) {
-  .privacy-band .wrap { grid-template-columns: 1fr; text-align: center; justify-items: center; }
-  .privacy-band p { margin-inline: auto; }
+.feature__icon svg { width: 24px; height: 24px; }
+.feature h3 { font-size: 19px; font-weight: 600; letter-spacing: -.01em; }
+.feature p { margin-top: 8px; font-size: 16px; color: var(--dim); }
+@media (max-width: 900px) { .features__grid { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 560px) {
+  .features__grid { grid-template-columns: 1fr; gap: 12px; }
+  .feature { display: grid; grid-template-columns: 44px 1fr; column-gap: 16px; padding: 20px; border-radius: 18px; }
+  .feature__icon { grid-row: span 2; margin-bottom: 0; }
+  .feature h3 { font-size: 17px; align-self: end; }
+  .feature p { margin-top: 4px; font-size: 15px; }
 }
 
-/* =========================================================================
-   DOWNLOAD / GET
-   ========================================================================= */
-.get { padding: var(--sp) 0; }
-.get-card {
-  position: relative;
-  overflow: hidden;
-  border-radius: 30px;
-  border: 1px solid var(--border-2);
+/* ---- Download ---- */
+.get { padding-bottom: var(--sp); }
+.get__card {
+  display: grid; grid-template-columns: 1fr auto; gap: 40px; align-items: center;
+  padding: clamp(32px, 5vw, 56px);
+  border: 1px solid var(--line-2); border-radius: 32px;
   background:
-    radial-gradient(120% 140% at 100% 0%, rgba(0,194,0,.16), transparent 55%),
-    linear-gradient(180deg, #161618, #0e0e10);
-  padding: clamp(36px, 5vw, 60px);
-  display: grid;
-  grid-template-columns: 1fr auto;
-  gap: 44px;
-  align-items: center;
+    radial-gradient(90% 120% at 100% 0%, rgba(0, 194, 0, .14), transparent 60%),
+    var(--card);
 }
-.get-card h2 { font-size: clamp(1.9rem, 4vw, 2.9rem); }
-.get-card p { margin: 16px 0 0; color: var(--text-dim); font-size: 1.06rem; max-width: 42ch; }
-.get-cta { margin-top: 30px; display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
-.get-sub { margin-top: 18px; font-size: .88rem; color: var(--text-mut); }
-
-.qr-card {
-  background: #fff;
-  border-radius: 20px;
-  padding: 18px;
-  width: 210px;
-  text-align: center;
-  box-shadow: 0 24px 60px -20px rgba(0,0,0,.7);
-}
-.qr-card img { width: 174px; height: 174px; margin: 0 auto; }
-.qr-card span { display: block; margin-top: 12px; font-size: .82rem; font-weight: 600; color: #1c1c1e; }
+.get h2 { font-size: clamp(32px, 4vw, 44px); letter-spacing: -.03em; }
+.get__sub { margin-top: 12px; font-size: 18px; color: var(--dim); text-wrap: balance; }
+.get .store { display: inline-block; margin-top: 28px; }
+.qr { width: 200px; padding: 16px 16px 14px; background: #fff; border-radius: 22px; text-align: center; }
+.qr img { width: 168px; height: 168px; margin: 0 auto; }
+.qr span { display: block; margin-top: 10px; font-size: 13px; font-weight: 600; color: #1c1c1e; }
+/* A code to scan is no use on the phone that would scan it. */
 @media (max-width: 820px) {
-  .get-card { grid-template-columns: 1fr; text-align: center; justify-items: center; }
-  .get-card p { margin-inline: auto; }
-  .get-cta { justify-content: center; }
+  .get__card { grid-template-columns: 1fr; text-align: center; }
+  .qr { display: none; }
 }
 
-/* =========================================================================
-   FOOTER
-   ========================================================================= */
-.footer { border-top: 1px solid var(--border); padding: 44px 0 40px; }
-.footer-inner {
-  display: flex; align-items: center; justify-content: space-between;
-  gap: 20px; flex-wrap: wrap;
+/* ---- Privacy ---- */
+.privacy { padding-bottom: var(--sp); }
+.privacy__card {
+  display: grid; grid-template-columns: auto 1fr auto; gap: 28px; align-items: center;
+  padding: 32px; border: 1px solid var(--line); border-radius: 26px; background: var(--card);
 }
-.footer .brand { font-size: 1rem; }
-.footer-links { display: flex; align-items: center; gap: 24px; flex-wrap: wrap; }
-.footer-links a { color: var(--text-dim); font-size: .92rem; transition: color .2s ease; }
-.footer-links a:hover { color: var(--text); }
-.footer-legal { margin-top: 22px; color: var(--text-mut); font-size: .82rem; }
-
-/* =========================================================================
-   PRIVACY POLICY PAGE
-   ========================================================================= */
-.policy { padding: clamp(48px, 7vw, 92px) 0 80px; }
-.policy-inner { max-width: 760px; margin: 0 auto; }
-.policy .back {
-  display: inline-flex; align-items: center; gap: 7px;
-  color: var(--text-dim); font-size: .92rem; font-weight: 500; margin-bottom: 30px;
+.privacy__lock {
+  width: 64px; height: 64px; display: grid; place-items: center;
+  border-radius: 18px; background: var(--green-dim); border: 1px solid rgba(0, 194, 0, .3); color: var(--green-hi);
 }
-.policy .back:hover { color: var(--green-bri); }
-.policy .back svg { width: 15px; height: 15px; }
-.policy h1 { font-size: clamp(2rem, 5vw, 3rem); }
-.policy .effective { margin-top: 12px; color: var(--text-mut); font-size: .95rem; }
-.policy .lead {
-  margin-top: 22px; color: var(--text-dim); font-size: 1.05rem;
-  padding-bottom: 26px; border-bottom: 1px solid var(--border);
-}
-.policy h2 {
-  font-size: 1.25rem; margin-top: 44px; letter-spacing: 0;
-  color: var(--text);
-}
-.policy .summary-box {
-  margin-top: 26px;
-  background: var(--card); border: 1px solid var(--border);
-  border-left: 3px solid var(--green);
-  border-radius: var(--radius-sm);
-  padding: 20px 22px;
-}
-.policy .summary-box h2 { margin-top: 0; font-size: 1rem; text-transform: uppercase; letter-spacing: .05em; color: var(--green-bri); }
-.policy .summary-box p { margin: 10px 0 0; color: var(--text-dim); }
-.policy p { color: var(--text-dim); margin: 14px 0 0; }
-.policy ul { margin: 16px 0 0; padding-left: 0; list-style: none; }
-.policy li { position: relative; padding-left: 26px; margin: 14px 0; color: var(--text-dim); }
-.policy li::before {
-  content: ""; position: absolute; left: 6px; top: 10px;
-  width: 7px; height: 7px; border-radius: 2px; background: var(--green);
-}
-.policy li b, .policy p b { color: var(--text); font-weight: 600; }
-.policy a[href^="mailto"], .policy a[href^="http"] { color: var(--green-bri); text-decoration: underline; text-underline-offset: 3px; }
-.policy .contact {
-  margin-top: 40px; padding-top: 26px; border-top: 1px solid var(--border);
-  color: var(--text-dim);
+.privacy__lock svg { width: 30px; height: 30px; }
+.privacy h2 { font-size: 24px; letter-spacing: -.02em; }
+.privacy p { margin-top: 8px; max-width: 60ch; color: var(--dim); }
+@media (max-width: 800px) {
+  .privacy__card { grid-template-columns: 1fr; justify-items: center; text-align: center; }
 }
 
-/* Contact page */
-.policy .contact-actions { margin-top: 32px; display: flex; flex-wrap: wrap; gap: 14px; }
-/* Override the generic .policy mailto link styling for the button itself. */
-.policy .contact-actions .btn { text-decoration: none; color: #fff; }
-.policy .contact-actions .btn svg { width: 18px; height: 18px; }
-.policy .contact-alt { margin-top: 22px; color: var(--text-mut); font-size: .95rem; }
+/* ---- Footer ---- */
+.foot { border-top: 1px solid var(--line); padding-block: 36px 40px; font-size: 14px; color: var(--dim); }
+.foot__row { display: flex; align-items: center; justify-content: space-between; gap: 16px 24px; flex-wrap: wrap; }
+.foot .brand { font-size: 16px; color: var(--text); }
+.foot .brand .icon { width: 26px; height: 26px; }
+.foot nav { display: flex; gap: 24px; flex-wrap: wrap; }
+.foot nav a:hover, .foot__made a:hover { color: var(--text); }
+.foot__made { margin-top: 20px; }
+.foot__made a { color: var(--text); text-decoration: underline; text-decoration-color: var(--faint); text-underline-offset: 3px; }
+.foot__legal { margin-top: 6px; font-size: 12px; color: var(--faint); }
+
+/* ---- Privacy policy and contact ---- */
+.doc { padding-block: clamp(40px, 7vw, 80px) var(--sp); }
+.doc__inner { max-width: 720px; }
+.doc h1 { font-size: clamp(36px, 5vw, 48px); letter-spacing: -.03em; font-weight: 800; }
+.doc__date { margin-top: 10px; font-size: 15px; color: var(--faint); }
+.doc__lead { margin-top: 24px; font-size: 19px; color: var(--body); text-wrap: pretty; }
+.doc h2 { margin-top: 44px; font-size: 21px; font-weight: 600; letter-spacing: -.01em; }
+.doc p, .doc li { color: var(--body); }
+.doc p { margin-top: 14px; }
+.doc ul { margin: 14px 0 0; padding-left: 0; list-style: none; }
+.doc li { position: relative; margin-top: 12px; padding-left: 22px; }
+.doc li::before { content: ""; position: absolute; left: 4px; top: .68em; width: 6px; height: 6px; border-radius: 2px; background: var(--green); }
+.doc b { color: var(--text); font-weight: 600; }
+.doc a:not(.btn) { color: var(--green-hi); text-decoration: underline; text-underline-offset: 3px; }
+.doc__summary {
+  margin-top: 28px; padding: 20px 22px;
+  background: var(--card); border: 1px solid var(--line); border-left: 3px solid var(--green); border-radius: 14px;
+}
+.doc__summary p:first-child { margin-top: 0; }
+.doc__actions { margin-top: 32px; }

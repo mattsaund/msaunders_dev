@@ -1,229 +1,159 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>GoDash: Smart iPhone Dashcam</title>
-  <meta name="description" content="GoDash turns your iPhone into a smart dashcam: looping recording, built-in navigation, live speed & g-force telemetry, and your music, all in one clean dashboard. Everything stays on your device." />
-  <meta name="theme-color" content="#000000" />
-  <link rel="canonical" href="https://msaunders.dev/godash" />
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>GoDash: Your Phone, Your Dash Cam</title>
+  <meta name="description" content="GoDash turns your iPhone into a dash cam, with navigation, live telemetry and your music on one screen. Everything stays on your device.">
+  <meta name="theme-color" content="#000000">
+  <link rel="canonical" href="https://msaunders.dev/godash">
 
-  <!-- Icons -->
-  <link rel="icon" type="image/png" sizes="32x32" href="/godash/assets/img/favicon-32.png" />
-  <link rel="apple-touch-icon" href="/godash/assets/img/apple-touch-icon.png" />
+  <link rel="icon" type="image/png" sizes="32x32" href="/godash/assets/img/favicon-32.png">
+  <link rel="apple-touch-icon" href="/godash/assets/img/apple-touch-icon.png">
 
-  <!-- Open Graph / social -->
-  <meta property="og:type" content="website" />
-  <meta property="og:title" content="GoDash: Smart iPhone Dashcam" />
-  <meta property="og:description" content="Looping dashcam, navigation, live telemetry, and music in one clean dashboard. Private by design." />
-  <meta property="og:url" content="https://msaunders.dev/godash" />
-  <meta property="og:image" content="https://msaunders.dev/godash/assets/img/og-image.png" />
-  <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:title" content="GoDash: Smart iPhone Dashcam" />
-  <meta name="twitter:description" content="Looping dashcam, navigation, live telemetry, and music in one clean dashboard. Private by design." />
-  <meta name="twitter:image" content="https://msaunders.dev/godash/assets/img/og-image.png" />
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="GoDash: Your Phone, Your Dash Cam">
+  <meta property="og:description" content="Loop recording, navigation, live telemetry and your music on one screen. Everything stays on your iPhone.">
+  <meta property="og:url" content="https://msaunders.dev/godash">
+  <meta property="og:image" content="https://msaunders.dev/godash/assets/img/og-image.png">
+  <meta name="twitter:card" content="summary_large_image">
 
-  <link rel="stylesheet" href="/godash/assets/css/styles.css" />
+  <link rel="stylesheet" href="/godash/assets/css/styles.css">
 </head>
 <body>
 
-  <!-- ===================== NAV ===================== -->
-  <header class="nav">
-    <div class="wrap nav-inner">
-      <a class="brand" href="#top" aria-label="GoDash home">
-        <span class="mark" aria-hidden="true">
-          <svg viewBox="0 0 29.8535 23.1543" xmlns="http://www.w3.org/2000/svg"><path fill="#00c200" d="M0 17.0605C0 18.7012 0.917969 19.7949 2.62695 19.7949L26.8652 19.7949C28.5742 19.7949 29.4922 18.7012 29.4922 17.0605L29.4922 13.3496C29.4922 11.2012 29.1406 9.9707 27.9199 8.59375L26.6797 7.20703L25.332 3.34961C24.6094 1.29883 23.2715 0.429688 21.543 0.234375C20.6934 0.126953 17.9004 0.0488281 14.7461 0.0488281C11.5918 0.0488281 8.79883 0.126953 7.94922 0.234375C6.2207 0.429688 4.88281 1.29883 4.16016 3.34961L2.8125 7.20703L1.57227 8.59375C0.351562 9.9707 0 11.2012 0 13.3496ZM1.43555 16.6602L1.43555 13.3496C1.43555 11.6113 1.66016 10.7227 2.71484 9.48242L4.15039 7.8125L5.44922 4.00391C5.98633 2.41211 6.88477 1.83594 8.125 1.68945C8.92578 1.60156 11.5039 1.48438 14.7461 1.48438C17.9883 1.48438 20.5664 1.60156 21.3672 1.68945C22.6074 1.83594 23.5059 2.41211 24.043 4.00391L25.3516 7.8125L26.7773 9.48242C27.832 10.7227 28.0566 11.6113 28.0566 13.3496L28.0566 16.6602C28.0566 17.6953 27.5977 18.3594 26.5039 18.3594L2.99805 18.3594C1.89453 18.3594 1.43555 17.6953 1.43555 16.6602ZM6.47461 7.48047L23.0176 7.48047C23.5645 7.48047 23.7598 7.07031 23.584 6.55273L22.832 4.3457C22.5195 3.41797 22.0312 3.06641 21.1914 2.95898C20.332 2.8418 18.1543 2.76367 14.7461 2.76367C11.3379 2.76367 9.16016 2.8418 8.30078 2.95898C7.4707 3.06641 6.98242 3.41797 6.66016 4.3457L5.9082 6.55273C5.73242 7.07031 5.92773 7.48047 6.47461 7.48047ZM4.90234 14.9316C5.58594 14.9316 6.09375 14.4336 6.09375 13.7402L6.09375 11.8262C6.09375 11.1328 5.58594 10.6348 4.90234 10.6348C4.18945 10.6348 3.69141 11.1426 3.69141 11.8262L3.69141 13.7402C3.69141 14.4238 4.18945 14.9316 4.90234 14.9316ZM11.9824 14.3945L17.4414 14.3945C18.0078 14.3945 18.3691 14.0332 18.3691 13.4375L18.3691 12.1094C18.3691 11.5234 18.0078 11.1719 17.4414 11.1719L11.9824 11.1719C11.4355 11.1719 11.084 11.5234 11.084 12.1094L11.084 13.4375C11.084 14.0332 11.4355 14.3945 11.9824 14.3945ZM24.6973 14.9316C25.4004 14.9316 25.9082 14.4336 25.9082 13.7402L25.9082 11.8262C25.9082 11.1328 25.4004 10.6348 24.6973 10.6348C24.0234 10.6348 23.4961 11.1426 23.4961 11.8262L23.4961 13.7402C23.4961 14.4141 24.0234 14.9316 24.6973 14.9316ZM2.28516 23.1543L3.75 23.1543C4.67773 23.1543 5.39062 22.4414 5.39062 21.5234L5.39062 19.1895L0.644531 18.5156L0.644531 21.5234C0.644531 22.4316 1.35742 23.1543 2.28516 23.1543ZM25.7422 23.1543L27.207 23.1543C28.1348 23.1543 28.8477 22.4414 28.8477 21.5234L28.8477 18.5156L24.1016 19.1895L24.1016 21.5234C24.1016 22.4414 24.8145 23.1543 25.7422 23.1543Z"/></svg>
-        </span>
-        <span>GoDash</span>
-      </a>
-      <nav class="nav-links">
-        <a href="#features">Features</a>
-        <a href="#get">Download</a>
-        <a href="/godash/privacy">Privacy</a>
-        <a href="/godash/contact">Contact</a>
-        <a class="btn btn-green nav-cta" href="https://apps.apple.com/us/app/godash-dashcam-app/id6792043434?itscg=30200&itsct=apps_box_link&mttnsubad=6792043434" target="_blank" rel="noopener">Get the app</a>
-      </nav>
-    </div>
-  </header>
+<header class="nav">
+  <div class="wrap nav__inner">
+    <a class="brand" href="/godash" aria-label="GoDash home"><img class="icon" src="/godash/assets/img/apple-touch-icon.png" width="30" height="30" alt=""><span class="brand__name">GoDash</span></a>
+    <nav class="nav__links">
+      <a href="/godash/privacy">Privacy</a>
+      <a href="/godash/contact">Contact</a>
+      <a class="btn btn--green" href="https://apps.apple.com/us/app/godash-dashcam-app/id6792043434?itscg=30200&amp;itsct=apps_box_link&amp;mttnsubad=6792043434">Get the app</a>
+    </nav>
+  </div>
+</header>
 
-  <span id="top"></span>
-
-  <!-- ===================== HERO ===================== -->
+<main>
   <section class="hero">
-    <div class="wrap hero-grid">
-      <div class="hero-copy">
-        <h1>Your Phone,&nbsp;Your <span class="accent">Dash Cam</span></h1>
-        <p class="hero-sub">
-          GoDash turns your iPhone into a smart dashcam. loop recording,
-          navigation, live telemetry, and your music, all in one clean view.
-        </p>
-        <div class="hero-cta">
-          <a class="badge-appstore" href="https://apps.apple.com/us/app/godash-dashcam-app/id6792043434?itscg=30200&itsct=apps_box_link&mttnsubad=6792043434" target="_blank" rel="noopener" aria-label="Download GoDash on the App Store">
-            <img src="/godash/assets/img/appstore-badge.svg" alt="Download on the App Store" />
-          </a>
-        </div>
+    <div class="wrap hero__grid">
+      <div>
+        <h1><span>Your Phone,</span> <span>Your <span class="accent">Dash Cam</span></span></h1>
+        <p class="hero__sub">GoDash turns your iPhone into a dash cam, with navigation, live telemetry and your music on one screen.</p>
+        <a class="store" href="https://apps.apple.com/us/app/godash-dashcam-app/id6792043434?itscg=30200&amp;itsct=apps_box_link&amp;mttnsubad=6792043434">
+          <img src="/godash/assets/img/appstore-badge.svg" width="156" height="52" alt="Download on the App Store">
+        </a>
+        <p class="hero__note">Free. Requires iOS 17 or later.</p>
       </div>
-      <div class="hero-visual">
+
+      <div class="hero__visual">
         <div class="carousel" id="heroCarousel" tabindex="0" aria-roledescription="carousel" aria-label="GoDash screenshots">
-          <div class="carousel-viewport">
-            <div class="carousel-track">
-              <figure class="carousel-slide">
-                <img src="/godash/assets/img/nav-now-playing.jpg" alt="GoDash in a car mount showing turn-by-turn navigation above the Now Playing music player" />
-              </figure>
-              <figure class="carousel-slide">
-                <img src="/godash/assets/img/now-playing-telemetry.jpg" alt="GoDash showing the Now Playing music player above live speed, g-force and heading telemetry" loading="lazy" />
-              </figure>
-              <figure class="carousel-slide">
-                <img src="/godash/assets/img/nav-music-bar.jpg" alt="GoDash showing turn-by-turn navigation above a compact now-playing music bar" loading="lazy" />
-              </figure>
-              <figure class="carousel-slide">
-                <img src="/godash/assets/img/nav-album-art.jpg" alt="GoDash showing navigation above the Now Playing music player with full album artwork" loading="lazy" />
-              </figure>
-              <figure class="carousel-slide">
-                <img src="/godash/assets/img/In%20car%20picture%20maps%20and%20podcast.jpg" alt="GoDash in a car mount showing turn-by-turn navigation above the Podcasts module browsing technology shows" loading="lazy" />
-              </figure>
-              <figure class="carousel-slide">
-                <img src="/godash/assets/img/nav-live-telemetry.jpg" alt="GoDash showing turn-by-turn navigation above live speed, g-force, trip, heading and altitude telemetry" loading="lazy" />
-              </figure>
-              <figure class="carousel-slide">
-                <img src="/godash/assets/img/nav-music-home.jpg" alt="GoDash showing navigation above the music Home tab browsing albums" loading="lazy" />
-              </figure>
-              <figure class="carousel-slide">
-                <img src="/godash/assets/img/saved-clips.jpg" alt="GoDash saved dashcam clips list with dates, durations and file sizes" loading="lazy" />
-              </figure>
-              <figure class="carousel-slide">
-                <img src="/godash/assets/img/clip-playback.jpg" alt="Playback of recorded GoDash dashcam footage with speed, g-force, heading and altitude overlaid" loading="lazy" />
-              </figure>
+          <div class="carousel__viewport">
+            <div class="carousel__track">
+              <figure class="carousel__slide"><img src="/godash/assets/img/nav-now-playing.jpg" width="720" height="1557" alt="GoDash in a car mount showing turn-by-turn navigation above the Now Playing music player"></figure>
+              <figure class="carousel__slide"><img src="/godash/assets/img/now-playing-telemetry.jpg" width="720" height="1557" alt="GoDash showing the Now Playing music player above live speed, g-force and heading telemetry" loading="lazy"></figure>
+              <figure class="carousel__slide"><img src="/godash/assets/img/nav-music-bar.jpg" width="720" height="1557" alt="GoDash showing turn-by-turn navigation above a compact now-playing music bar" loading="lazy"></figure>
+              <figure class="carousel__slide"><img src="/godash/assets/img/nav-album-art.jpg" width="720" height="1557" alt="GoDash showing navigation above the Now Playing music player with full album artwork" loading="lazy"></figure>
+              <figure class="carousel__slide"><img src="/godash/assets/img/nav-podcasts.jpg" width="720" height="1557" alt="GoDash showing turn-by-turn navigation above the Podcasts module browsing technology shows" loading="lazy"></figure>
+              <figure class="carousel__slide"><img src="/godash/assets/img/nav-live-telemetry.jpg" width="720" height="1557" alt="GoDash showing turn-by-turn navigation above live speed, g-force, trip, heading and altitude telemetry" loading="lazy"></figure>
+              <figure class="carousel__slide"><img src="/godash/assets/img/nav-music-home.jpg" width="720" height="1557" alt="GoDash showing navigation above the music Home tab browsing albums" loading="lazy"></figure>
+              <figure class="carousel__slide"><img src="/godash/assets/img/saved-clips.jpg" width="720" height="1557" alt="The GoDash list of saved dash cam clips with dates, lengths and file sizes" loading="lazy"></figure>
+              <figure class="carousel__slide"><img src="/godash/assets/img/clip-playback.jpg" width="720" height="1557" alt="A recorded GoDash clip playing back with speed, g-force, heading and altitude overlaid" loading="lazy"></figure>
             </div>
           </div>
-          <button class="carousel-arrow prev" type="button" aria-label="Previous screenshot">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+          <button class="carousel__arrow prev" type="button" aria-label="Previous screenshot">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>
           </button>
-          <button class="carousel-arrow next" type="button" aria-label="Next screenshot">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+          <button class="carousel__arrow next" type="button" aria-label="Next screenshot">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>
           </button>
-          <div class="carousel-dots" aria-label="Choose screenshot"></div>
+          <div class="carousel__dots" aria-label="Choose screenshot"></div>
         </div>
       </div>
     </div>
   </section>
 
-  <!-- ===================== FEATURES ===================== -->
-  <section class="features" id="features">
-    <div class="wrap">
-      <div class="section-head">
-        
+  <section class="features" id="features" aria-label="Features">
+    <div class="wrap features__grid">
+      <div class="feature">
+        <div class="feature__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="6" width="14" height="12" rx="2"/><path d="m22 8-6 4 6 4V8z"/></svg></div>
+        <h3>Loop recording</h3>
+        <p>A rolling buffer runs the whole drive. One tap saves up to 10 minutes of video.</p>
       </div>
-
-      <div class="feature-grid">
-        <div class="feature-card">
-          <div class="feature-icon">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="14" height="12" rx="2"/><path d="m22 8-6 4 6 4V8z"/></svg>
-          </div>
-          <h3>Loop recording</h3>
-          <p>A continuous rolling buffer runs the whole time you drive. Tap once to save up to 10 minutes of video with speed, g-force, heading, and altitude baked onto the footage.</p>
-        </div>
-
-        <div class="feature-card">
-          <div class="feature-icon">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg>
-          </div>
-          <h3>Built-in navigation</h3>
-          <p>Turn-by-turn directions with a clean driving mini map. Powered by Apple Maps.</p>
-        </div>
-
-        <div class="feature-card">
-          <div class="feature-icon">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 14a2 2 0 1 0 0-4 2 2 0 0 0 0 4z"/><path d="M4 20a10 10 0 1 1 16 0"/><path d="m13.5 10.5 3-3"/></svg>
-          </div>
-          <h3>Live telemetry</h3>
-          <p>Speed, g-force, heading, trip distance, and altitude at a glance.</p>
-        </div>
-
-        <div class="feature-card">
-          <div class="feature-icon">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
-          </div>
-          <h3>Apple Music</h3>
-          <p>Fully featured Apple Music without leaving the app. Prevents app switching while driving so you keep your eyes on the road.</p>
-        </div>
-
-        <div class="feature-card">
-          <div class="feature-icon">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-          </div>
-          <h3>Save &amp; export</h3>
-          <p>Every clip lands in a tidy list you can play back on the spot. Export the ones you want straight to your Photos library.</p>
-        </div>
-
-        <div class="feature-card">
-          <div class="feature-icon">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-          </div>
-          <h3>Crash detection</h3>
-          <p>GoDash can watch for a collision or hard brake and auto-save the moment, the run-up and the aftermath, without you touching the phone.</p>
-        </div>
+      <div class="feature">
+        <div class="feature__icon"><svg viewBox="1.5 -1.5 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg></div>
+        <h3>Built-in navigation</h3>
+        <p>Turn-by-turn directions and a clean driving map, powered by Apple Maps.</p>
+      </div>
+      <div class="feature">
+        <div class="feature__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 14a2 2 0 1 0 0-4 2 2 0 0 0 0 4z"/><path d="M4 20a10 10 0 1 1 16 0"/><path d="m13.5 10.5 3-3"/></svg></div>
+        <h3>Live telemetry</h3>
+        <p>Speed, g-force, heading, trip distance and altitude at a glance, and on your clips if you want.</p>
+      </div>
+      <div class="feature">
+        <div class="feature__icon"><svg viewBox="0.5 0.25 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg></div>
+        <h3>Apple Music and podcasts</h3>
+        <p>Your music and podcasts play right inside the app, so you never switch apps while driving.</p>
+      </div>
+      <div class="feature">
+        <div class="feature__icon"><svg viewBox="0 1 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></div>
+        <h3>Save and export</h3>
+        <p>Saved clips land in one list. Play them back on the spot or export them to Photos.</p>
+      </div>
+      <div class="feature">
+        <div class="feature__icon"><svg viewBox="0 0.75 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></div>
+        <h3>Crash detection</h3>
+        <p>Can watch for a hard brake or a collision and save the clip on its own, no hands needed.</p>
       </div>
     </div>
   </section>
 
-  <!-- ===================== GET ===================== -->
   <section class="get" id="get">
     <div class="wrap">
-      <div class="get-card">
+      <div class="get__card">
         <div>
           <h2>Get GoDash</h2>
-          <p>Free to download and start recording.</p>
-          <div class="get-cta">
-            <a class="badge-appstore" href="https://apps.apple.com/us/app/godash-dashcam-app/id6792043434?itscg=30200&itsct=apps_box_link&mttnsubad=6792043434" target="_blank" rel="noopener" aria-label="Download GoDash on the App Store">
-              <img src="/godash/assets/img/appstore-badge.svg" alt="Download on the App Store" />
-            </a>
-          </div>
-          <p class="get-sub">Requires iPhone on iOS&nbsp;17 or later.</p>
+          <p class="get__sub">Free to download. Requires iOS 17 or later.</p>
+          <a class="store" href="https://apps.apple.com/us/app/godash-dashcam-app/id6792043434?itscg=30200&amp;itsct=apps_box_link&amp;mttnsubad=6792043434">
+            <img src="/godash/assets/img/appstore-badge.svg" width="156" height="52" alt="Download on the App Store">
+          </a>
         </div>
-        <a class="qr-card" href="https://apps.apple.com/us/app/godash-dashcam-app/id6792043434?itscg=30200&itsct=apps_box_link&mttnsubad=6792043434" target="_blank" rel="noopener" aria-label="Scan to download GoDash">
-          <img src="/godash/assets/img/qr-code.jpg" alt="QR code linking to GoDash on the App Store" />
-          <span>Scan to download</span>
+        <a class="qr" href="https://apps.apple.com/us/app/godash-dashcam-app/id6792043434?itscg=30200&amp;itsct=apps_box_link&amp;mttnsubad=6792043434" aria-label="GoDash on the App Store">
+          <img src="/godash/assets/img/qr-code.jpg" width="168" height="168" alt="QR code for GoDash on the App Store" loading="lazy">
+          <span>Scan with your iPhone</span>
         </a>
       </div>
     </div>
   </section>
 
-  <!-- ===================== PRIVACY BAND ===================== -->
-  <section class="privacy-band">
+  <section class="privacy">
     <div class="wrap">
-      <div class="lock" aria-hidden="true">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+      <div class="privacy__card">
+        <div class="privacy__lock"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div>
+        <div>
+          <h2>Private by design</h2>
+          <p>Your recordings and telemetry stay on your iPhone. There are no ads, analytics or tracking, and I don't run any servers that collect your data.</p>
+        </div>
+        <a class="btn btn--ghost" href="/godash/privacy">Privacy policy</a>
       </div>
-      <div>
-        <h2>Your Privacy Matters</h2>
-        <p>Your recordings, telemetry, and account details stay on your device. GoDash runs no servers that collect your data, and uses no ads, analytics, or cross-app tracking. The only things that leave your phone go to the Apple services you choose to use.</p>
-      </div>
-      <a class="btn btn-ghost" href="/godash/privacy">Read the Privacy Policy</a>
     </div>
   </section>
+</main>
 
-  <!-- ===================== FOOTER ===================== -->
-  <footer class="footer">
-    <div class="wrap">
-      <div class="footer-inner">
-        <a class="brand" href="#top">
-          <span class="mark" aria-hidden="true">
-            <svg viewBox="0 0 29.8535 23.1543" xmlns="http://www.w3.org/2000/svg"><path fill="#00c200" d="M0 17.0605C0 18.7012 0.917969 19.7949 2.62695 19.7949L26.8652 19.7949C28.5742 19.7949 29.4922 18.7012 29.4922 17.0605L29.4922 13.3496C29.4922 11.2012 29.1406 9.9707 27.9199 8.59375L26.6797 7.20703L25.332 3.34961C24.6094 1.29883 23.2715 0.429688 21.543 0.234375C20.6934 0.126953 17.9004 0.0488281 14.7461 0.0488281C11.5918 0.0488281 8.79883 0.126953 7.94922 0.234375C6.2207 0.429688 4.88281 1.29883 4.16016 3.34961L2.8125 7.20703L1.57227 8.59375C0.351562 9.9707 0 11.2012 0 13.3496ZM1.43555 16.6602L1.43555 13.3496C1.43555 11.6113 1.66016 10.7227 2.71484 9.48242L4.15039 7.8125L5.44922 4.00391C5.98633 2.41211 6.88477 1.83594 8.125 1.68945C8.92578 1.60156 11.5039 1.48438 14.7461 1.48438C17.9883 1.48438 20.5664 1.60156 21.3672 1.68945C22.6074 1.83594 23.5059 2.41211 24.043 4.00391L25.3516 7.8125L26.7773 9.48242C27.832 10.7227 28.0566 11.6113 28.0566 13.3496L28.0566 16.6602C28.0566 17.6953 27.5977 18.3594 26.5039 18.3594L2.99805 18.3594C1.89453 18.3594 1.43555 17.6953 1.43555 16.6602ZM6.47461 7.48047L23.0176 7.48047C23.5645 7.48047 23.7598 7.07031 23.584 6.55273L22.832 4.3457C22.5195 3.41797 22.0312 3.06641 21.1914 2.95898C20.332 2.8418 18.1543 2.76367 14.7461 2.76367C11.3379 2.76367 9.16016 2.8418 8.30078 2.95898C7.4707 3.06641 6.98242 3.41797 6.66016 4.3457L5.9082 6.55273C5.73242 7.07031 5.92773 7.48047 6.47461 7.48047ZM4.90234 14.9316C5.58594 14.9316 6.09375 14.4336 6.09375 13.7402L6.09375 11.8262C6.09375 11.1328 5.58594 10.6348 4.90234 10.6348C4.18945 10.6348 3.69141 11.1426 3.69141 11.8262L3.69141 13.7402C3.69141 14.4238 4.18945 14.9316 4.90234 14.9316ZM11.9824 14.3945L17.4414 14.3945C18.0078 14.3945 18.3691 14.0332 18.3691 13.4375L18.3691 12.1094C18.3691 11.5234 18.0078 11.1719 17.4414 11.1719L11.9824 11.1719C11.4355 11.1719 11.084 11.5234 11.084 12.1094L11.084 13.4375C11.084 14.0332 11.4355 14.3945 11.9824 14.3945ZM24.6973 14.9316C25.4004 14.9316 25.9082 14.4336 25.9082 13.7402L25.9082 11.8262C25.9082 11.1328 25.4004 10.6348 24.6973 10.6348C24.0234 10.6348 23.4961 11.1426 23.4961 11.8262L23.4961 13.7402C23.4961 14.4141 24.0234 14.9316 24.6973 14.9316ZM2.28516 23.1543L3.75 23.1543C4.67773 23.1543 5.39062 22.4414 5.39062 21.5234L5.39062 19.1895L0.644531 18.5156L0.644531 21.5234C0.644531 22.4316 1.35742 23.1543 2.28516 23.1543ZM25.7422 23.1543L27.207 23.1543C28.1348 23.1543 28.8477 22.4414 28.8477 21.5234L28.8477 18.5156L24.1016 19.1895L24.1016 21.5234C24.1016 22.4414 24.8145 23.1543 25.7422 23.1543Z"/></svg>
-          </span>
-          <span>GoDash</span>
-        </a>
-        <div class="footer-links">
-          <a href="#features">Features</a>
-          <a href="/godash/privacy">Privacy Policy</a>
-          <a href="/godash/contact">Contact</a>
-          <a href="https://apps.apple.com/us/app/godash-dashcam-app/id6792043434?itscg=30200&itsct=apps_box_link&mttnsubad=6792043434" target="_blank" rel="noopener">App Store</a>
-        </div>
-      </div>
-      <p class="footer-legal">© 2026 GoDash. All rights reserved. Apple, the Apple logo, iPhone, Apple Music, and the App Store are trademarks of Apple Inc.</p>
+<footer class="foot">
+  <div class="wrap">
+    <div class="foot__row">
+      <a class="brand" href="/godash"><img class="icon" src="/godash/assets/img/apple-touch-icon.png" width="26" height="26" alt="">GoDash</a>
+      <nav>
+        <a href="/godash/privacy">Privacy</a>
+        <a href="/godash/contact">Contact</a>
+        <a href="https://apps.apple.com/us/app/godash-dashcam-app/id6792043434?itscg=30200&amp;itsct=apps_box_link&amp;mttnsubad=6792043434">App Store</a>
+      </nav>
     </div>
-  </footer>
+    <p class="foot__made">Made by <a href="/">Matthew Saunders</a>, an independent developer.</p>
+    <p class="foot__legal">© 2026 Matthew Saunders. Apple, the Apple logo, iPhone, Apple Music and the App Store are trademarks of Apple Inc.</p>
+  </div>
+</footer>
 
-  <script src="/godash/assets/js/carousel.js" defer></script>
+<script src="/godash/assets/js/carousel.js" defer></script>
 </body>
 </html>
