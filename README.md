@@ -9,7 +9,7 @@ index.html                     the whole site
 404.html                       generated
 
 pages/misc/                    /misc/      
-pages/projects/godash/         /godash     
+pages/projects/godash/         /godash/    
 pages/projects/crucible/       /crucible/  
 pages/projects/tiny/           /tiny/      
 pages/projects/cosmos/         /cosmos/    
