@@ -27,12 +27,11 @@
 /cosmos/*        /pages/projects/cosmos/:splat    200
 
 # GoDash's subpages are published without a trailing slash (/godash/privacy),
-# but each one is a directory on disk, and through the splat alone Pages would
-# add the slash with a visible redirect. So each is named here, above the
-# splat, with the directory as its target.
+# so they are privacy.html and contact.html rather than directories. Pages
+# serves a .html file at its bare name, which is what the splat hands it. As
+# directories they were the long-path 307 described above: the bare name of a
+# directory is not canonical, the slashed one is.
 /godash          /pages/projects/godash/          200
-/godash/privacy  /pages/projects/godash/privacy/  200
-/godash/contact  /pages/projects/godash/contact/  200
 /godash/*        /pages/projects/godash/:splat    200
 
 /misc            /pages/misc/                     200

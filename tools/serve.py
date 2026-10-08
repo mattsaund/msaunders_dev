@@ -81,14 +81,19 @@ class Handler(http.server.SimpleHTTPRequestHandler):
                     self.send_header("Location", target)
                     self.end_headers()
                     return None
+        # Pages serves page.html at /page, and a rewrite target gets the same
+        # treatment, so /godash/privacy lands on privacy.html.
+        path = urllib.parse.urlsplit(self.path).path
+        if os.path.isfile(self.translate_path(path) + ".html"):
+            self.path = path + ".html"
         return super().send_head()
 
     def exists(self, path):
-        """Is there a file to serve for this URL, index.html included?"""
+        """Is there a file to serve for this URL, index.html and .html included?"""
         local = self.translate_path(path)
         if os.path.isdir(local):
             return os.path.exists(os.path.join(local, "index.html"))
-        return os.path.exists(local)
+        return os.path.exists(local) or os.path.isfile(local + ".html")
 
     def log_message(self, fmt, *args):
         """One line per request, minus the date noise."""
