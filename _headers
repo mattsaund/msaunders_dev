@@ -1,6 +1,6 @@
 # Cloudflare Pages reads this file. Rules match the REQUEST path, not the file
-# on disk, so the project pages are still addressed here as /crucible/*, /tiny/*
-# and /cosmos/*, whatever _redirects rewrites them to.
+# on disk, so the project pages are still addressed here as /crucible/*, /tiny/*,
+# /cosmos/* and /godash/*, whatever _redirects rewrites them to.
 
 /*
   X-Content-Type-Options: nosniff
@@ -41,6 +41,11 @@
 # The cosmos.js tool, copied in from its own repo. Its URLs carry no content
 # hash, so revalidate rather than risk serving a stale build after a re-sync.
 /cosmos/*
+  Cache-Control: public, max-age=0, must-revalidate
+
+# The GoDash site, copied in from the app's repo. Same as cosmos: its asset URLs
+# carry no content hash, so they revalidate.
+/godash/assets/*
   Cache-Control: public, max-age=0, must-revalidate
 
 # PDFs keep their public URLs when they are replaced, so a day's max-age left
