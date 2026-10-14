@@ -136,7 +136,7 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--green-hi); outl
 .carousel__slide img { width: 100%; aspect-ratio: 9 / 16; object-fit: cover; background: var(--card); }
 .carousel__arrow {
   position: absolute; top: 50%; z-index: 1;
-  width: 40px; height: 40px; margin-top: -32px;  /* centred on the image, not the dots under it */
+  width: 40px; height: 40px; margin-top: -32px;  /* centered on the image, not the dots under it */
   display: grid; place-items: center; padding: 0;
   border-radius: 999px; border: 1px solid var(--line-2);
   background: rgba(20, 20, 22, .75); color: #fff; cursor: pointer;
@@ -168,31 +168,102 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--green-hi); outl
 
 /* ---- Features ---- */
 .features { padding-block: 0 var(--sp); }
-.features__grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+.features__grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+/* Compact: the icon beside the text, so the six cards stay a short block and
+   the "New in GoDash 3" section sits close under them. */
 .feature {
-  padding: 28px 24px 26px;
-  background: var(--card); border: 1px solid var(--line); border-radius: 22px;
+  display: grid; grid-template-columns: 40px 1fr; column-gap: 14px;
+  padding: 18px 20px;
+  background: var(--card); border: 1px solid var(--line); border-radius: 18px;
 }
 /* Round, like the app's own buttons: white glyph on a flat green circle.
-   Some glyphs are nudged through their viewBox so they read as centred in it:
-   the arrow by its centre of mass (it points up-right, and centring its outline
+   Some glyphs are nudged through their viewBox so they read as centered in it:
+   the arrow by its center of mass (it points up-right, and centering its outline
    leaves it looking high and right), the note, tray and triangle part of the
    way toward where their weight sits. */
 .feature__icon {
-  width: 44px; height: 44px; margin-bottom: 18px;
+  width: 44px; height: 44px;
   display: grid; place-items: center;
   background: var(--green); border-radius: 50%; color: #fff;
 }
 .feature__icon svg { width: 24px; height: 24px; }
-.feature h3 { font-size: 19px; font-weight: 600; letter-spacing: -.01em; }
-.feature p { margin-top: 8px; font-size: 16px; color: var(--dim); }
+.feature > .feature__icon { width: 40px; height: 40px; grid-row: span 2; }
+.feature > .feature__icon svg { width: 21px; height: 21px; }
+.feature h3 { font-size: 17px; font-weight: 600; letter-spacing: -.01em; align-self: end; }
+.feature p { margin-top: 3px; font-size: 15px; line-height: 1.4; color: var(--dim); }
 @media (max-width: 900px) { .features__grid { grid-template-columns: repeat(2, 1fr); } }
 @media (max-width: 560px) {
-  .features__grid { grid-template-columns: 1fr; gap: 12px; }
-  .feature { display: grid; grid-template-columns: 44px 1fr; column-gap: 16px; padding: 20px; border-radius: 18px; }
-  .feature__icon { grid-row: span 2; margin-bottom: 0; }
-  .feature h3 { font-size: 17px; align-self: end; }
-  .feature p { margin-top: 4px; font-size: 15px; }
+  .features__grid { grid-template-columns: 1fr; gap: 10px; }
+}
+
+/* ---- New in GoDash 3: photo + text, alternating sides ---- */
+.new { padding-bottom: var(--sp); }
+.new__head { text-align: center; margin-bottom: clamp(40px, 6vw, 72px); }
+.eyebrow { font-size: 14px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: var(--green-hi); }
+.new__head h2 { margin-top: 10px; font-size: clamp(34px, 4.4vw, 48px); letter-spacing: -.03em; }
+.new__head p { margin-top: 12px; font-size: 18px; color: var(--dim); }
+
+.spot { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(32px, 6vw, 80px); align-items: center; }
+.spot + .spot { margin-top: clamp(64px, 9vw, 112px); }
+.spot--flip .spot__text { order: 2; }
+.spot h3 { font-size: clamp(28px, 3.4vw, 38px); letter-spacing: -.03em; }
+.spot p { margin-top: 14px; max-width: 38ch; font-size: 18px; color: var(--dim); text-wrap: pretty; }
+.spot ul { margin: 22px 0 0; padding: 0; list-style: none; display: grid; gap: 10px; }
+.spot li { position: relative; padding-left: 24px; color: var(--body); }
+/* The same small green bullet as the privacy policy's lists. */
+.spot li::before {
+  content: ""; position: absolute; left: 6px; top: .62em;
+  width: 7px; height: 7px; border-radius: 50%; background: var(--green);
+}
+
+.spot__visual { position: relative; display: grid; place-items: center; }
+.spot__visual::before {
+  content: ""; position: absolute; inset: 12% 8%;
+  background: radial-gradient(closest-side, rgba(0, 194, 0, .2), transparent);
+  filter: blur(40px);
+}
+/* The photo frame, the same shape as the hero's. Until a photo is added the
+   frame shows its placeholder (shots.js removes an <img> that fails to load). */
+.shot {
+  position: relative; width: min(320px, 76%); aspect-ratio: 9 / 16;
+  border-radius: 32px; overflow: hidden;
+  background: radial-gradient(120% 80% at 50% 0%, #1a2a1a, var(--card) 60%);
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, .08), 0 40px 80px -30px rgba(0, 0, 0, .9);
+}
+.shot img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; color: transparent; }
+.shot__empty {
+  position: absolute; inset: 0; display: grid; place-content: center; justify-items: center; gap: 14px;
+  color: var(--faint); font-size: 14px; font-weight: 500;
+}
+.shot__empty .feature__icon { width: 64px; height: 64px; margin: 0; }
+.shot__empty .feature__icon svg { width: 32px; height: 32px; }
+
+@media (max-width: 860px) {
+  .spot { grid-template-columns: 1fr; gap: 36px; text-align: center; }
+  .spot--flip .spot__text { order: 0; }
+  .spot p { margin-inline: auto; }
+  .spot ul { display: inline-grid; text-align: left; }
+}
+
+/* A link to the new section, above the hero's headline: just green text. */
+.hero__new {
+  display: inline-block; margin-bottom: 18px;
+  font-size: 16px; font-weight: 600; color: var(--green-hi);
+  text-underline-offset: 4px;
+}
+.hero__new:hover { text-decoration: underline; }
+
+/* ---- Invite friends ---- */
+.invite { padding-bottom: var(--sp); }
+.invite__card {
+  display: grid; grid-template-columns: auto 1fr; gap: 24px; align-items: center;
+  padding: 28px 32px; border: 1px solid rgba(0, 194, 0, .3); border-radius: 26px;
+  background: radial-gradient(80% 140% at 0% 0%, rgba(0, 194, 0, .12), transparent 60%), var(--card);
+}
+.invite h2 { font-size: 24px; letter-spacing: -.02em; }
+.invite p { margin-top: 6px; max-width: 62ch; color: var(--dim); }
+@media (max-width: 640px) {
+  .invite__card { grid-template-columns: 1fr; justify-items: center; text-align: center; padding: 26px 22px; }
 }
 
 /* ---- Download ---- */
