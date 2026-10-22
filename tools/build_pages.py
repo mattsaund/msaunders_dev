@@ -135,11 +135,17 @@ COSMOS_BAR = """<header class="site-bar">
 </header>
 """
 
+# Keeps Firefox's Night Mode (Dark Reader) from recoloring the tool, as on every
+# other page of the site; see the same line in index.html. Upstream does not
+# carry it, so it goes in with the bar.
+COSMOS_LOCK = '<meta name="darkreader-lock">\n'
+
 # Upstream's own bar, however much whitespace it carries around it, and the
-# two blocks this script writes, so a rerun replaces them instead of stacking.
+# three things this script writes, so a rerun replaces them instead of stacking.
 UPSTREAM_BAR = re.compile(r'<header class="bar">.*?</header>\s*', re.S)
 OWN_BAR = re.compile(r'<header class="site-bar">.*?</header>\s*', re.S)
 OWN_CSS = re.compile(r'<style>\s*/\* The site\'s bar over the tool\..*?</style>\s*', re.S)
+OWN_LOCK = re.compile(re.escape(COSMOS_LOCK))
 
 
 def cosmos_bar():
@@ -159,10 +165,18 @@ def cosmos_bar():
     html = UPSTREAM_BAR.sub("", html, count=1)
     html = OWN_BAR.sub("", html, count=1)
     html = OWN_CSS.sub("", html, count=1)
+    html = OWN_LOCK.sub("", html, count=1)
 
-    if "<body>" not in html or "</head>" not in html:
+    if "<body>" not in html or "</head>" not in html or "<head>\n" not in html:
         print("  pages/projects/cosmos/index.html       SHAPE CHANGED, bar NOT added")
         return
+    # Early in the head, behind the charset where upstream has one first, so the
+    # lock is there before Dark Reader has drawn anything.
+    charset = '<head>\n<meta charset="utf-8">\n'
+    if charset in html:
+        html = html.replace(charset, charset + COSMOS_LOCK, 1)
+    else:
+        html = html.replace("<head>\n", "<head>\n" + COSMOS_LOCK, 1)
     html = html.replace("</head>", COSMOS_BAR_CSS + "</head>", 1)
     html = html.replace("<body>\n", "<body>\n\n" + COSMOS_BAR, 1)
 
@@ -270,6 +284,9 @@ def page(path, *, title, desc, body, canonical, trail=(), noindex=False):
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<!-- Keeps Firefox's Night Mode (Dark Reader) from recoloring a page that is
+     dark already; see the same line in index.html. -->
+<meta name="darkreader-lock">
 <title>{title}</title>
 <meta name="description" content="{desc}">
 <meta name="theme-color" content="#000000">
