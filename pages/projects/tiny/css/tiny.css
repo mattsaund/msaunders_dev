@@ -8,11 +8,12 @@
    the site shares one cache entry for it.
    ============================================================ */
 @font-face {
-  font-family: "JetBrains Mono";
-  src: url("/fonts/jetbrains-mono-latin.woff2") format("woff2");
-  font-weight: 400 800;
+  font-family: "Paper Mono";
+  src: url("/fonts/paper-mono.woff2") format("woff2");
+  font-weight: 100 800;
   font-style: normal;
   font-display: swap;
+  size-adjust: 103.1353%;   /* 0.606 em advance up to 0.625: see /css/site.css */
 }
 
 /* --- tokens ------------------------------------------------ */
@@ -32,7 +33,7 @@
   /* Hover. Lighter, but only as far as white text allows: 4.59:1. */
   --forest-hi: #3f8352;
 
-  --mono: "JetBrains Mono", ui-monospace, "SF Mono", SFMono-Regular,
+  --mono: "Paper Mono", ui-monospace, "SF Mono", SFMono-Regular,
           "Cascadia Mono", Menlo, Consolas, "Liberation Mono", monospace;
 }
 
@@ -82,7 +83,13 @@ body {
   text-decoration: none;
   letter-spacing: 0; flex: none;
 }
-.bar__name::before { content: "~/"; color: var(--forest-hi); }
+/* The mark is markup rather than ::before so its tilde can be lifted. */
+.bar__mark { color: var(--forest-hi); }
+/* Paper Mono sets its tilde at hyphen height, under the middle of the slash
+   beside it, so "~/" reads as a tilde that has slipped. Lifted 0.09375 em,
+   1.5px at the 16px of a section label, picked by eye against lifts from 0
+   to 2px. The icons get the same lift (make_icons.py). */
+.tilde { position: relative; top: -0.09375em; }
 .bar__name:hover { color: var(--forest-hi); }
 .bar__repo {
   font: 400 12px/15px var(--mono);
@@ -105,18 +112,20 @@ body {
    floats high, while the descender of the "y" hangs below it. */
 .hero__unit { display: flex; align-items: center; gap: 28px; }
 
-/* The mark: a disk of glyphs with the font's own lowercase t knocked out of
-   it, built once rather than at runtime. A canvas drew the disk, cut the t at
-   weight 800, and measured how much of each cell stayed inked; full cells are
-   "@" and partial ones step down " .:-=+*#%@" by coverage, which is what
-   rounds the circle instead of leaving it stair-stepped. "@" not "#" for the
-   fill: at this size "#" is an open lattice and the t sank into it.
+/* The mark: a disk of glyphs with JetBrains Mono's lowercase t knocked out of
+   it (the site's face when it was cut), built once rather than at runtime. A
+   canvas drew the disk, cut the t at weight 800, and measured how much of
+   each cell stayed inked; full cells are "@" and partial ones step down
+   " .:-=+*#%@" by coverage, which is what rounds the circle instead of
+   leaving it stair-stepped. "@" not "#" for the fill: at this size "#" is an
+   open lattice and the t sank into it.
 
-   5px cells: the advance is 0.6 em, so a multiple of 5 puts every column on a
-   whole pixel. 24 rows by 40 columns is 120px square. */
+   5px cells, 3px wide: the face advances 0.625 em, so 4.8px of it sets the
+   3px columns the mark was cut on (5px did, at the 0.6 em the site used
+   before). 24 rows by 40 columns is 120px square. */
 .logo {
   margin: 0;
-  font: 400 5px/5px var(--mono);
+  font: 400 4.8px/5px var(--mono);
   color: var(--forest);
   white-space: pre;
   user-select: none; -webkit-user-select: none;
@@ -126,7 +135,8 @@ body {
    holds 5px at the middle step and only drops to 4px at the smallest. */
 .logo--sm { display: none; }
 
-/* 80px is divisible by 5 for the same reason as the cells. Whole
+/* 80px, and 64 and 48 at the steps below, are multiples of 8, so at the
+   face's 0.625 em every column is a whole pixel (50px here). Whole
    letter-spacing keeps the advance whole, since tracking adds to it. */
 .hero__title {
   margin: 0;
@@ -162,11 +172,11 @@ body {
    against its own command, which is wider than a phone. */
 .get { display: flex; flex-direction: column; align-items: center; gap: 20px; width: 100%; }
 
-/* Wide enough that the whole command shows at 13px: the longer of the two
-   is 86 characters of a 0.6 em advance, plus the padding and the button.
+/* Wide enough that the whole command shows: the longer of the two is 86
+   characters at 8px (see .cmd__text), 688px, plus the padding and the button.
    Narrower than that it scrolls rather than wraps, since a wrapped shell
    command reads as two commands. */
-.cmd { width: 100%; max-width: 900px; }
+.cmd { position: relative; width: 100%; max-width: 900px; }
 
 /* The marks stand outside the box, in a column of their own, so the two boxes
    keep one left edge whether that column holds one mark or two. */
@@ -200,7 +210,9 @@ body {
   overflow-x: auto;
   white-space: pre;
   padding: 14px 16px;
-  font: 400 13px/20px var(--mono);
+  /* 12.8, not 13: at the face's 0.625 em that is 8px a character, every
+     column on a whole pixel. */
+  font: 400 12.8px/20px var(--mono);
   color: var(--fg);
   /* Only ever seen on a narrow window, where the command runs past the box.
      Thin, because the box is one line tall and a full-width bar would take a
@@ -238,6 +250,21 @@ body {
   text-align: center;
 }
 
+/* The installed sizes, in the row the status line keeps empty, laid over it
+   rather than given a row of their own, so nothing above or below moves. They
+   step aside while the status line is saying "copied". On a narrow phone they
+   take a second line, which hangs into the space under the hero: there is
+   room for exactly one, so keep the text short enough to stay at two. */
+.cmd__sizes {
+  position: absolute; left: 0; right: 0; top: calc(100% - 16px);
+  margin: 0;
+  font: 400 12px/16px var(--mono);
+  color: var(--fg-2);
+  text-align: center;
+  text-wrap: balance;
+}
+.cmd__note:not(:empty) + .cmd__sizes { visibility: hidden; }
+
 /* --- responsive steps -------------------------------------- *
    Whole pixels per step, the same way the main site handles its scale.
    ============================================================ */
@@ -256,6 +283,10 @@ body {
   .cmd__os svg { width: 16px; height: 16px; }
   .cmd__text { font-size: 12px; padding: 12px 12px; }
   .cmd__copy { font-size: 11px; padding: 12px 12px; min-width: 92px; }
+  /* 7.2px columns, so the sizes still break into the two lines the space
+     under the hero has room for, down to a 320px phone. At 12px they take
+     three there and the third runs into "Try it out here". */
+  .cmd__sizes { font-size: 11.52px; }
   .bar { padding: 0 14px; }
   .hero { gap: 24px; padding: 28px 20px 24px; }
   .hero__unit { gap: 14px; }
@@ -263,14 +294,16 @@ body {
   /* 4px: 80px tall, the same ratio to the title as Crucible's flame here. The
      glyphs read as texture at this size, but the t is carried by which cells
      are blank, and that survives. */
-  .logo--sm { font-size: 4px; line-height: 4px; }
+  .logo--sm { font-size: 3.84px; line-height: 4px; }   /* 2.4px columns, as before */
 }
 
 /* --- try it ------------------------------------------------ */
-/* The terminal's own face: JetBrains Mono again, but a subset carrying the
-   arrows, shapes and symbols tiny draws, which the site's Latin-only file does
-   not. Blocking rather than swapping: the program is only drawn once this has
-   loaded, and a fallback face would put glyphs in the wrong columns. */
+/* The terminal's own face: a subset of JetBrains Mono carrying the arrows,
+   shapes and symbols tiny draws. The site's Paper Mono lacks hundreds of them,
+   the triangles on the file tree's folders among them, so the terminal keeps
+   this face. Blocking rather than swapping: the program is only drawn once
+   this has loaded, and a fallback face would put glyphs in the wrong
+   columns. */
 @font-face {
   font-family: "tiny term";
   src: url("/tiny/app/term.woff2") format("woff2");

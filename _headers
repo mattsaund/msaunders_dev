@@ -11,7 +11,7 @@
 # CSS and JS revalidate on every load. Their URLs carry a content hash (see
 # stamp_assets in tools/build_pages.py) so they are cheap 304s in practice, but
 # revalidating means a hand edit that skips the stamper can never leave anyone
-# on a stale stylesheet. This site is 45KB of CSS+JS; correctness wins.
+# on a stale stylesheet. This site is under 90KB of CSS+JS; correctness wins.
 /css/*
   Cache-Control: public, max-age=0, must-revalidate
 
@@ -38,8 +38,9 @@
 /tiny/app/*
   Cache-Control: public, max-age=0, must-revalidate
 
-# The cosmos.js tool, copied in from its own repo. Its URLs carry no content
-# hash, so revalidate rather than risk serving a stale build after a re-sync.
+# The cosmos.js tool, copied in from its own repo. Its CSS and JS URLs are
+# stamped (stamp_cosmos in tools/build_pages.py) but the page and its font are
+# not, so revalidate rather than risk serving a stale build after a re-sync.
 /cosmos/*
   Cache-Control: public, max-age=0, must-revalidate
 

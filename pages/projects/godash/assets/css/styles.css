@@ -111,6 +111,13 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--green-hi); outl
 .hero__sub { margin-top: 24px; max-width: 34ch; text-wrap: pretty; font-size: clamp(18px, 1.7vw, 21px); color: var(--dim); }
 .hero .store { display: inline-block; margin-top: 36px; }
 .hero__note { margin-top: 14px; font-size: 14px; color: var(--faint); }
+/* A link to the new section, above the hero's headline: just green text. */
+.hero__new {
+  display: inline-block; margin-bottom: 18px;
+  font-size: 16px; font-weight: 600; color: var(--green-hi);
+  text-underline-offset: 4px;
+}
+.hero__new:hover { text-decoration: underline; }
 
 @media (max-width: 900px) {
   .hero__grid { grid-template-columns: 1fr; gap: 48px; text-align: center; }
@@ -244,14 +251,6 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--green-hi); outl
   .spot p { margin-inline: auto; }
   .spot ul { display: inline-grid; text-align: left; }
 }
-
-/* A link to the new section, above the hero's headline: just green text. */
-.hero__new {
-  display: inline-block; margin-bottom: 18px;
-  font-size: 16px; font-weight: 600; color: var(--green-hi);
-  text-underline-offset: 4px;
-}
-.hero__new:hover { text-decoration: underline; }
 
 /* ---- Invite friends ---- */
 .invite { padding-bottom: var(--sp); }

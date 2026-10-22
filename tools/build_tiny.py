@@ -1,20 +1,26 @@
 #!/usr/bin/env python3
 """Build the browser version of tiny into pages/projects/tiny/app/.
 
-pages/projects/tiny/web/ is a clone of github.com/mattsaund/tiny. Its `main` branch is tiny as
-published; its `web` branch adds what lets tiny run in a page instead of a
-terminal. This script turns that clone into what the page loads:
+pages/projects/tiny/web/ is a clone of github.com/mattsaund/tiny. Its `main`
+branch is tiny as published; its `web` branch adds what lets tiny run in a page
+instead of a terminal. This script turns that clone into what the page loads:
 
   app/tiny.wasm      the program, built for wasm32-wasip1 and shrunk
-  app/project.json   the project it opens: tiny's own source, exactly as
-                          it stands on `main`, plus the answers Source Control
-                          asks git for, recorded from a real checkout of it
-  app/start.json     the first frame tiny draws, at every size the page
-                          can give it, which the page shows dimmed behind the
-                          start button until the program itself takes over
-  app/manifest.json  sizes and content hashes of all three, which the page
-                          reads to fetch each under a URL that changes when the
-                          file does
+  app/project.json   the project it opens: tiny's own source, exactly as it
+                     stands on `main`, plus the answers Source Control asks
+                     git for, recorded from a real checkout of it
+  app/start.json     the first frame tiny draws, at every size the page can
+                     give it, which the page shows dimmed behind the start
+                     button until the program itself takes over
+  app/manifest.json  the content hash of each of those three, which the page
+                     reads to fetch each under a URL that changes when the
+                     file does
+  app/LICENSE, app/THIRD-PARTY-NOTICES.txt, app/SYNTAX-ACKNOWLEDGMENTS.md
+                     what tiny.wasm carries and under what terms: tiny's own
+                     license, its third-party notices (with a note on what the
+                     browser build leaves out of them), and the syntax
+                     definitions' acknowledgments, which only the program
+                     itself can list
 
 Nothing here touches the real tiny repository. The demo's files come out of
 the clone's `main` branch, and its git answers from a throwaway clone of that.
@@ -31,11 +37,13 @@ import hashlib
 import io
 import json
 import os
+import re
 import shutil
 import subprocess
 import sys
 import tarfile
 import tempfile
+import textwrap
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 CLONE = os.path.join(ROOT, "pages", "projects", "tiny", "web")
@@ -137,11 +145,19 @@ def project():
     commit = run(["git", "rev-parse", "--short", "main"], cwd=CLONE).decode().strip()
 
     # The files: tiny as published, not the web branch this clone builds from.
-    files = {}
+    # Text only. The page builds its filesystem from strings, and the binary
+    # files (the README's screenshots, so far) would add their weight to every
+    # visit for a tree entry nobody opens in a terminal editor. They are left
+    # out, and named in the summary so it is plain what the demo lacks.
+    files, skipped = {}, []
     with tarfile.open(fileobj=io.BytesIO(run(["git", "archive", "main"], cwd=CLONE))) as tar:
         for m in tar.getmembers():
             if m.isfile():
-                files[m.name] = tar.extractfile(m).read().decode("utf-8")
+                data = tar.extractfile(m).read()
+                try:
+                    files[m.name] = data.decode("utf-8")
+                except UnicodeDecodeError:
+                    skipped.append(m.name)
 
     # The git answers, asked of a real checkout so they are exactly what git
     # says, decorations and all. The same flags tiny's own Repo passes.
@@ -165,6 +181,8 @@ def project():
         fh.write(data)
     print("  project.json   {} files at {}   {} raw, ~{} gzipped".format(
         len(files), commit, kb(len(data)), kb(len(gzip.compress(data, 9)))))
+    if skipped:
+        print("                 left out, not text: " + ", ".join(sorted(skipped)))
 
 
 def wasm():
@@ -184,6 +202,65 @@ def wasm():
         gz = len(gzip.compress(fh.read(), 9))
     print("  tiny.wasm      {} raw, ~{} gzipped   (cargo output {})".format(
         kb(raw), kb(gz), kb(os.path.getsize(built))))
+
+
+def licenses():
+    """Ship tiny's license and third-party notices beside tiny.wasm.
+
+    The wasm is tiny plus every crate compiled into it, so it carries their
+    notices the way tiny's own release downloads do: tiny's LICENSE and
+    THIRD-PARTY-NOTICES.txt, both from `main`. The notices are tiny's, written
+    for its terminal builds, and the browser build carries a subset (no Lua,
+    no terminal or Windows crates), so a note at the top names what of it is
+    not in this one. A crate in the browser build that the notices do not list
+    stops the build: its notice would be missing.
+    """
+    os.makedirs(OUT, exist_ok=True)
+    with open(os.path.join(OUT, "LICENSE"), "wb") as fh:
+        fh.write(run(["git", "show", "main:LICENSE"], cwd=CLONE))
+    notices = run(["git", "show", "main:THIRD-PARTY-NOTICES.txt"], cwd=CLONE).decode("utf-8")
+    commit = run(["git", "rev-parse", "--short", "main"], cwd=CLONE).decode().strip()
+
+    # Every crate the notices list, a line each: "name 1.2.3", or
+    # "name 1.2.3, 2.0.0" for one used at two versions.
+    listed = set()
+    crates = notices.split("---- crates ", 1)[1].split("\n---- ", 1)[0]
+    for m in re.finditer(r"^([A-Za-z0-9_-]+) (\d\S*(?:, \d\S*)*)$", crates, re.M):
+        for version in m.group(2).split(", "):
+            listed.add((m.group(1), version))
+
+    # Every crate inside the wasm: normal dependencies for the browser target,
+    # without the proc-macro crates, which run in the compiler and are not in
+    # the program.
+    tree = run(["cargo", "tree", "--target", TARGET, "-e", "normal,no-proc-macro",
+                "--prefix", "none", "--no-dedupe"], cwd=CLONE).decode("utf-8")
+    inside = set()
+    for line in tree.splitlines():
+        m = re.match(r"^(\S+) v(\S+)", line)
+        if m and m.group(1) != "tiny":
+            inside.add((m.group(1), m.group(2)))
+
+    unlisted = sorted(inside - listed)
+    if unlisted:
+        sys.exit("the browser build carries crates tiny's notices do not list: "
+                 + ", ".join("{} {}".format(*c) for c in unlisted)
+                 + "\nwrite the notices again in tiny (see its src/licenses.rs)")
+    left_out = sorted(listed - inside)
+    names = ", ".join("{} {}".format(*c) for c in left_out)
+    note = ("This copy ships with the browser build of tiny at msaunders.dev/tiny/, "
+            "built from tiny {} for WebAssembly. Below this note is tiny's own "
+            "notices file, unchanged. The browser build carries every crate it "
+            "lists except the ones named here, and it does not carry Lua, which "
+            "it leaves out along with plugins. The syntax definitions' "
+            "acknowledgments are in SYNTAX-ACKNOWLEDGMENTS.md beside this file."
+            ).format(commit)
+    wrap = dict(width=76, break_on_hyphens=False, break_long_words=False)
+    wrapped = (textwrap.fill(note, **wrap) + "\n\nNot in the browser build:\n"
+               + textwrap.fill(names + ".", initial_indent="    ", subsequent_indent="    ", **wrap))
+    with open(os.path.join(OUT, "THIRD-PARTY-NOTICES.txt"), "w", encoding="utf-8") as fh:
+        fh.write(wrapped + "\n\n" + "=" * 76 + "\n\n" + notices)
+    print("  licenses       LICENSE, THIRD-PARTY-NOTICES.txt ({} crates in the wasm, all listed; "
+          "{} listed ones not in it)".format(len(inside), len(left_out)))
 
 
 def start_frames():
@@ -261,20 +338,27 @@ def start_worker():
         len(frames), time.time() - began, kb(len(data)), kb(len(gzip.compress(data, 9))),
         kb(len(brotli.compress(data, quality=5)))))
 
+    # The syntax definitions' acknowledgments live in tiny's code rather than
+    # in a file (see licenses() above), so they are asked of the same program
+    # the page runs, and shipped beside it.
+    store = wasmtime.Store(engine)
+    store.set_wasi(wasmtime.WasiConfig())
+    ex = linker.instantiate(store, module).exports(store)
+    ex["tiny_acknowledgments"](store)
+    text = read(store, ex, "tiny_acknowledgments")
+    with open(os.path.join(OUT, "SYNTAX-ACKNOWLEDGMENTS.md"), "wb") as fh:
+        fh.write(text)
+    print("  acknowledgments SYNTAX-ACKNOWLEDGMENTS.md   {} for the syntax definitions".format(kb(len(text))))
+
 
 def manifest():
-    """Write the sizes and content hashes of what is built, for the page."""
+    """Write the content hash of each file that is built, for the page."""
     man = {}
     for key, name in (("wasm", "tiny.wasm"), ("project", "project.json"), ("start", "start.json")):
         path = os.path.join(OUT, name)
         if os.path.exists(path):
             with open(path, "rb") as fh:
-                data = fh.read()
-            # gzip is what the page quotes as the download: the host compresses
-            # both files, and Cloudflare's brotli only does better than this.
-            man[key] = {"file": name, "bytes": len(data),
-                        "gzip": len(gzip.compress(data, 9)),
-                        "hash": hashlib.md5(data).hexdigest()[:8]}
+                man[key] = {"file": name, "hash": hashlib.md5(fh.read()).hexdigest()[:8]}
     with open(os.path.join(OUT, "manifest.json"), "w") as fh:
         json.dump(man, fh, indent=2)
         fh.write("\n")
@@ -296,6 +380,7 @@ def main():
         project()
     if every or a.wasm:
         wasm()
+        licenses()
     if every or a.start:
         start_frames()
     manifest()

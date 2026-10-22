@@ -88,6 +88,14 @@ class Handler(http.server.SimpleHTTPRequestHandler):
             self.path = path + ".html"
         return super().send_head()
 
+    def end_headers(self):
+        # Pages sends this with every file: keep a copy, but ask before using
+        # it. Without it a browser guesses how long a file stays fresh from its
+        # age, and after a rebuild or a cosmos re-sync it can run the new page
+        # on the old CSS and JS without asking the server at all.
+        self.send_header("Cache-Control", "public, max-age=0, must-revalidate")
+        super().end_headers()
+
     def exists(self, path):
         """Is there a file to serve for this URL, index.html and .html included?"""
         local = self.translate_path(path)

@@ -25,10 +25,10 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # still the thing this script would emit: flip this to True and rebuild to
 # publish it, then put this back in sitemap.xml and give the page a link:
 #   <url><loc>https://msaunders.dev/misc/</loc><priority>0.5</priority></url>
-# A link matters because
-# the About page's button that used to point here is the Blog link now.
-# Until then the page is parked: reachable only by typing the URL, and by the
-# /hobbies/ and /gallery/ redirects that outlived the pages they came from.
+# A link matters because nothing points here now: the hero button that used to
+# is the Blog link. Until then the page is parked: reachable only by typing the
+# URL, and by the /hobbies/ and /gallery/ redirects that outlived the pages
+# they came from.
 MISC_LIVE = False
 
 with open(os.path.join(ROOT, "index.html"), encoding="utf-8") as f:
@@ -67,8 +67,8 @@ ASSETS = ("css/site.css", "js/site.js", "js/cosmos.js", "js/install.js",
 #
 # So this replaces upstream's <header class="bar"> when there is one and adds
 # the bar when there is not. Markup and style both live here, so no upstream
-# file drifts. Nothing in the bar wraps: the repo link truncates instead, and
-# the height stays what app.css sizes the tool's first row against.
+# file drifts. Nothing in the bar wraps: the repo link truncates instead, so
+# the bar keeps the one height the tool is shortened by.
 
 COSMOS_BAR_CSS = """<style>
 /* The site's bar over the tool. Added by tools/build_pages.py; not part of
@@ -82,14 +82,15 @@ COSMOS_BAR_CSS = """<style>
   padding: 0 20px;
   border-bottom: 1px solid var(--line);
 }
-/* The tool sizes its first row against the window so the preview fills the
-   screen. With its own bar gone it no longer discounts one, but this page has
-   a bar, so the row has to give the height back or the preview overshoots the
-   fold and pushes the code panel down. Same rule and breakpoint as app.css,
-   restated with the bar in it. */
-@media (min-width: 901px) {
-  .app { grid-template-rows: calc(100vh - var(--site-bar-h) - 2 * var(--app-pad) - var(--code-peek)) auto; }
-  .app { grid-template-rows: calc(100dvh - var(--site-bar-h) - 2 * var(--app-pad) - var(--code-peek)) auto; }
+/* The tool is exactly one window tall (.app is 100dvh) and turns the page's
+   scroll off, so under this bar its bottom 40px would sit past the window's
+   edge with no way to reach them. The app gives the bar's height back. Only
+   where app.css lays the tool out across one screen: this query is the exact
+   complement of its (max-width: 900px), so a fractional width from zoom or
+   display scaling cannot fall between the two. At 900 and under the panels
+   stack, the page scrolls again, and the bar just sits on top. */
+@media (width > 900px) {
+  .app { height: calc(100dvh - var(--site-bar-h)); }
 }
 .site-bar__back {
   display: inline-flex; align-items: center;
@@ -97,9 +98,9 @@ COSMOS_BAR_CSS = """<style>
   padding: 5px 2px; flex: none;
   transition: color .15s;
 }
-/* Drawn, not typed. This page loads no webfont, so a "<-" ligated nowhere and
-   an arrow character would have come from whatever mono the system happens to
-   supply. A path is the same on every one of them. */
+/* Drawn, not typed, like the arrow in the Crucible and tiny bars: a "<-" is
+   whatever the font makes of it, and Paper Mono makes ligatures of arrows. A
+   path is the same in every face. */
 .site-bar__back svg {
   width: 14px; height: 14px; display: block;
   fill: none; stroke: currentColor; stroke-width: 1.5;
@@ -107,13 +108,16 @@ COSMOS_BAR_CSS = """<style>
 }
 .site-bar__back:hover { color: var(--fg); }
 .site-bar__name {
-  font: 500 15px/15px var(--mono); color: var(--fg);
+  font: 500 15px/15px var(--font); color: var(--fg);
   letter-spacing: 0; margin: 0; flex: none;
 }
-.site-bar__name::before { content: "~/"; color: var(--fg-3); }
+/* The mark is markup rather than ::before so its tilde can be lifted: Paper
+   Mono sets the tilde under the slash's middle (see .tilde in /css/site.css). */
+.site-bar__mark { color: var(--fg-3); }
+.site-bar__tilde { position: relative; top: -0.09375em; }
 /* Truncates rather than wraps, so the bar keeps its height on a narrow window. */
 .site-bar__repo {
-  font: 400 12px/15px var(--mono); color: var(--fg-3);
+  font: 400 12px/15px var(--font); color: var(--fg-3);
   text-decoration: none; transition: color .15s;
   min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
@@ -123,7 +127,7 @@ COSMOS_BAR_CSS = """<style>
 
 COSMOS_BAR = """<header class="site-bar">
   <a class="site-bar__back" href="/" aria-label="Back to msaunders.dev"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M13 8H3M7 4L3 8l4 4"/></svg></a>
-  <h1 class="site-bar__name">cosmos.js</h1>
+  <h1 class="site-bar__name"><span class="site-bar__mark"><span class="site-bar__tilde">~</span>/</span>cosmos.js</h1>
   <a class="site-bar__repo" href="https://github.com/mattsaund/cosmos.js"
      target="_blank" rel="noopener">github.com/mattsaund/cosmos.js</a>
 </header>
@@ -169,6 +173,38 @@ def cosmos_bar():
         "replaced upstream's" if had_upstream else "written"))
 
 
+# The tool links its CSS and JS by relative paths that stay the same from one
+# sync to the next, so a browser that cached them without being told to check
+# again (the local preview never told it, until serve.py sent Cache-Control)
+# runs the new page on the old scripts. Stamped with their content hashes, like
+# every other page's assets, a re-sync changes the URLs. The font is left
+# alone: app.css asks for it by its plain URL, and the preload has to match that
+# exactly or the font downloads twice.
+COSMOS_ASSET = re.compile(r'(?P<attr>href|src)="(?P<path>(?:css|js)/[^"?]+)(?:\?v=[0-9a-f]+)?"')
+
+
+def stamp_cosmos():
+    """Stamp the cosmos.js tool's CSS and JS URLs with their content hashes."""
+    base = os.path.join(ROOT, "pages", "projects", "cosmos")
+    path = os.path.join(base, "index.html")
+    if not os.path.exists(path):
+        return
+    with open(path, encoding="utf-8") as fh:
+        before = fh.read()
+
+    def sub(m):
+        with open(os.path.join(base, m.group("path")), "rb") as fh:
+            v = hashlib.md5(fh.read()).hexdigest()[:8]
+        return '{}="{}?v={}"'.format(m.group("attr"), m.group("path"), v)
+
+    after = COSMOS_ASSET.sub(sub, before)
+    if after != before:
+        with open(path, "w", encoding="utf-8") as fh:
+            fh.write(after)
+    print("  pages/projects/cosmos/index.html       css and js {}".format(
+        "stamped" if after != before else "stamps already current"))
+
+
 # ---------------------------------------------------------------------------
 def stamp_assets():
     """Append a content hash to every asset URL in every page.
@@ -182,12 +218,22 @@ def stamp_assets():
         with open(os.path.join(ROOT, a), "rb") as fh:
             vers[a] = hashlib.md5(fh.read()).hexdigest()[:8]
 
+    # A project page links its own files by the short URL it is served at
+    # (/tiny/css/tiny.css), which _redirects rewrites to the file under
+    # pages/projects/. Matching only the repo path left those links on
+    # whatever hash they were first given, so both spellings are stamped.
+    names = {a: a for a in ASSETS}
+    for a in ASSETS:
+        short = re.match(r"pages/projects/(.+)$", a)
+        if short:
+            names[short.group(1)] = a
+
     pat = re.compile(
-        r'(?P<attr>href|src)="/(?P<path>' + "|".join(a.replace(".", r"\.") for a in ASSETS)
+        r'(?P<attr>href|src)="/(?P<path>' + "|".join(re.escape(n) for n in names)
         + r')(?:\?v=[0-9a-f]+)?"')
 
     def sub(m):
-        return '{}="/{}?v={}"'.format(m.group("attr"), m.group("path"), vers[m.group("path")])
+        return '{}="/{}?v={}"'.format(m.group("attr"), m.group("path"), vers[names[m.group("path")]])
 
     touched = 0
     clone = os.path.join(ROOT, "pages", "projects", "tiny", "web")
@@ -238,7 +284,7 @@ def page(path, *, title, desc, body, canonical, trail=(), noindex=False):
 <!-- The stylesheet only asks for the font once it has parsed, and the
      planetarium sizes itself against the font it finds, so start the
      fetch alongside the CSS rather than after it. -->
-<link rel="preload" href="/fonts/jetbrains-mono-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/fonts/paper-mono.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="/css/site.css">
 </head>
 <body>
@@ -264,14 +310,8 @@ def page(path, *, title, desc, body, canonical, trail=(), noindex=False):
 
 
 # ==================================================================
-#  PROJECTS / index
-# ==================================================================
-#  PROJECTS / GoDash
-# ==================================================================
-#  PROJECTS / Observatory (slot 02)
-# ==================================================================
 #  MISC  (hobbies + gallery, one page)
-# ==============================================================
+# ==================================================================
 MISC = """
   <section class="hero">
     <div class="wrap">
@@ -330,8 +370,6 @@ MISC = """
 """
 
 
-
-
 # ==================================================================
 #  MISC holding screen  (served while MISC_LIVE is False)
 # ==================================================================
@@ -380,5 +418,6 @@ if __name__ == "__main__":
          desc="Page not found.", body=NOTFOUND,
          canonical="https://msaunders.dev/404.html", noindex=True, trail=[("404", None)])
     cosmos_bar()
+    stamp_cosmos()
     stamp_assets()
     print("done.")

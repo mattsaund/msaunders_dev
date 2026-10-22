@@ -7,11 +7,12 @@
 /* The same font file /css/site.css serves, by the same URL, so the two pages
    share one cache entry. */
 @font-face {
-  font-family: "JetBrains Mono";
-  src: url("/fonts/jetbrains-mono-latin.woff2") format("woff2");
-  font-weight: 400 800;
+  font-family: "Paper Mono";
+  src: url("/fonts/paper-mono.woff2") format("woff2");
+  font-weight: 100 800;
   font-style: normal;
   font-display: swap;
+  size-adjust: 103.1353%;   /* 0.606 em advance up to 0.625: see /css/site.css */
 }
 
 /* --- tokens ------------------------------------------------ */
@@ -29,7 +30,7 @@
      button stays a flat fill in both states. */
   --flame-hi: #ff8a33;
 
-  --mono: "JetBrains Mono", ui-monospace, "SF Mono", SFMono-Regular,
+  --mono: "Paper Mono", ui-monospace, "SF Mono", SFMono-Regular,
           "Cascadia Mono", Menlo, Consolas, "Liberation Mono", monospace;
 }
 
@@ -85,7 +86,13 @@ body {
   text-decoration: none;
   letter-spacing: 0; flex: none;
 }
-.bar__name::before { content: "~/"; color: var(--flame); }
+/* The mark is markup rather than ::before so its tilde can be lifted. */
+.bar__mark { color: var(--flame); }
+/* Paper Mono sets its tilde at hyphen height, under the middle of the slash
+   beside it, so "~/" reads as a tilde that has slipped. Lifted 0.09375 em,
+   1.5px at the 16px of a section label, picked by eye against lifts from 0
+   to 2px. The icons get the same lift (make_icons.py). */
+.tilde { position: relative; top: -0.09375em; }
 .bar__name:hover { color: var(--flame); }
 .bar__repo {
   font: 400 12px/15px var(--mono);
@@ -115,17 +122,23 @@ body {
 
    The margin is the leading below the title's baseline less the same fraction
    of a cell that the bottom glyph sits above its own cell edge. Rounded up, so
-   the foot lands just above the letters rather than just below. */
+   the foot lands just above the letters rather than just below.
+
+   5.76px rather than 6: the face advances 0.625 em, and 5.76 of it is the
+   3.6px column the flame was resampled for (at the 0.6 em the site used
+   before), so the cells and the glyphs in them are what they were. The steps
+   below do the same: 4.8 for 5, 3.84 for 4. */
 .flame {
-  margin: 0 0 11px;
-  font: 400 6px/6px var(--mono);
+  margin: 0 0 10px;
+  font: 400 5.76px/6px var(--mono);
   color: var(--flame);
   white-space: pre;
   user-select: none; -webkit-user-select: none;
 }
 
-/* 80px is divisible by 5 for the same reason. Whole letter-spacing keeps the
-   advance whole too, since tracking adds to it. */
+/* 80px, and 64 and 48 at the steps below, are multiples of 8, so at the
+   face's 0.625 em every column is a whole pixel (50px here). Whole
+   letter-spacing keeps the advance whole too, since tracking adds to it. */
 .hero__title {
   margin: 0;
   font: 500 80px/80px var(--mono);
@@ -158,8 +171,8 @@ body {
    against its own command, which is wider than a phone. */
 .get { display: flex; flex-direction: column; align-items: center; gap: 20px; width: 100%; }
 
-/* Wide enough that the whole command shows at 13px: the longer of the two
-   is 86 characters of a 0.6 em advance, plus the padding and the button.
+/* Wide enough that the whole command shows: the longer of the two is 86
+   characters at 8px (see .cmd__text), 688px, plus the padding and the button.
    Narrower than that it scrolls rather than wraps, since a wrapped shell
    command reads as two commands. */
 .cmd { width: 100%; max-width: 900px; }
@@ -196,7 +209,9 @@ body {
   overflow-x: auto;
   white-space: pre;
   padding: 14px 16px;
-  font: 400 13px/20px var(--mono);
+  /* 12.8, not 13: at the face's 0.625 em that is 8px a character, every
+     column on a whole pixel. */
+  font: 400 12.8px/20px var(--mono);
   color: var(--fg);
   /* Only ever seen on a narrow window, where the command runs past the box.
      Thin, because the box is one line tall and a full-width bar would take a
@@ -240,7 +255,7 @@ body {
 @media (max-width: 860px) {
   .hero__unit { gap: 20px; }
   .hero__title { font-size: 64px; line-height: 64px; }
-  .flame { font-size: 5px; line-height: 5px; margin-bottom: 9px; }
+  .flame { font-size: 4.8px; line-height: 5px; margin-bottom: 8px; }
 }
 
 @media (max-width: 560px) {
@@ -258,7 +273,7 @@ body {
   /* 4px, which at 20 rows is 80px, the height the 16-row flame had here at
      5px. That is about the smallest cell whose glyphs still render: they read
      as texture rather than characters, but the shape holds. */
-  .flame { font-size: 4px; line-height: 4px; margin-bottom: 7px; }
+  .flame { font-size: 3.84px; line-height: 4px; margin-bottom: 6px; }
 }
 
 @media (prefers-reduced-motion: reduce) {

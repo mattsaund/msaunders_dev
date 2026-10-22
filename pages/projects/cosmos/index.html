@@ -3,12 +3,18 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>cosmos.js - ASCII planet generator</title>
+<title>cosmos.js: ASCII planet generator</title>
 <meta name="description" content="Design an ASCII planet with live preview, then copy it out as standalone Python or JavaScript.">
 <!-- Relative on purpose: the same tag works when this is served from the
      repo root by cosmos.py and when the folder is dropped into a site. -->
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
-<link rel="stylesheet" href="css/app.css">
+<!-- Fetched ahead of the stylesheet that asks for it. Without this the font
+     is not discovered until the CSS has parsed, which is a visible swap on a
+     page whose whole subject is the shape of a glyph. crossorigin is not
+     optional even same origin: fonts are always fetched in CORS mode, and a
+     preload without it is simply downloaded twice. -->
+<link rel="preload" href="fonts/paper-mono.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="css/app.css?v=a8c2cf52">
 <style>
 /* The site's bar over the tool. Added by tools/build_pages.py; not part of
    upstream cosmos.js, which as of its bar removal knows nothing about one.
@@ -21,14 +27,15 @@
   padding: 0 20px;
   border-bottom: 1px solid var(--line);
 }
-/* The tool sizes its first row against the window so the preview fills the
-   screen. With its own bar gone it no longer discounts one, but this page has
-   a bar, so the row has to give the height back or the preview overshoots the
-   fold and pushes the code panel down. Same rule and breakpoint as app.css,
-   restated with the bar in it. */
-@media (min-width: 901px) {
-  .app { grid-template-rows: calc(100vh - var(--site-bar-h) - 2 * var(--app-pad) - var(--code-peek)) auto; }
-  .app { grid-template-rows: calc(100dvh - var(--site-bar-h) - 2 * var(--app-pad) - var(--code-peek)) auto; }
+/* The tool is exactly one window tall (.app is 100dvh) and turns the page's
+   scroll off, so under this bar its bottom 40px would sit past the window's
+   edge with no way to reach them. The app gives the bar's height back. Only
+   where app.css lays the tool out across one screen: this query is the exact
+   complement of its (max-width: 900px), so a fractional width from zoom or
+   display scaling cannot fall between the two. At 900 and under the panels
+   stack, the page scrolls again, and the bar just sits on top. */
+@media (width > 900px) {
+  .app { height: calc(100dvh - var(--site-bar-h)); }
 }
 .site-bar__back {
   display: inline-flex; align-items: center;
@@ -36,9 +43,9 @@
   padding: 5px 2px; flex: none;
   transition: color .15s;
 }
-/* Drawn, not typed. This page loads no webfont, so a "<-" ligated nowhere and
-   an arrow character would have come from whatever mono the system happens to
-   supply. A path is the same on every one of them. */
+/* Drawn, not typed, like the arrow in the Crucible and tiny bars: a "<-" is
+   whatever the font makes of it, and Paper Mono makes ligatures of arrows. A
+   path is the same in every face. */
 .site-bar__back svg {
   width: 14px; height: 14px; display: block;
   fill: none; stroke: currentColor; stroke-width: 1.5;
@@ -46,13 +53,16 @@
 }
 .site-bar__back:hover { color: var(--fg); }
 .site-bar__name {
-  font: 500 15px/15px var(--mono); color: var(--fg);
+  font: 500 15px/15px var(--font); color: var(--fg);
   letter-spacing: 0; margin: 0; flex: none;
 }
-.site-bar__name::before { content: "~/"; color: var(--fg-3); }
+/* The mark is markup rather than ::before so its tilde can be lifted: Paper
+   Mono sets the tilde under the slash's middle (see .tilde in /css/site.css). */
+.site-bar__mark { color: var(--fg-3); }
+.site-bar__tilde { position: relative; top: -0.09375em; }
 /* Truncates rather than wraps, so the bar keeps its height on a narrow window. */
 .site-bar__repo {
-  font: 400 12px/15px var(--mono); color: var(--fg-3);
+  font: 400 12px/15px var(--font); color: var(--fg-3);
   text-decoration: none; transition: color .15s;
   min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
@@ -63,13 +73,15 @@
 
 <header class="site-bar">
   <a class="site-bar__back" href="/" aria-label="Back to msaunders.dev"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M13 8H3M7 4L3 8l4 4"/></svg></a>
-  <h1 class="site-bar__name">cosmos.js</h1>
+  <h1 class="site-bar__name"><span class="site-bar__mark"><span class="site-bar__tilde">~</span>/</span>cosmos.js</h1>
   <a class="site-bar__repo" href="https://github.com/mattsaund/cosmos.js"
      target="_blank" rel="noopener">github.com/mattsaund/cosmos.js</a>
 </header>
 
-<!-- Three panels: controls on the left, preview beside them, generated code
-     across the bottom. The grid that arranges them is in css/app.css. -->
+<!-- Three panels side by side on one screen: controls on the left, the square
+     preview in the middle, generated code on the right. The grid that
+     arranges them, and folds them into one column on a phone, is in
+     css/app.css. -->
 <main class="app">
 
   <!-- Controls are built by js/app.js from a single spec, so the sliders and
@@ -85,6 +97,12 @@
          the code panel is for. -->
     <div class="row row--center">
       <button type="button" id="copy-art">Copy planet to clipboard</button>
+    </div>
+    <!-- The same frame again, drawn into a canvas at 3840x2160 on black and
+         handed over as a PNG. Nothing is re-rendered: it is the glyphs that
+         were on screen, trimmed to the art and set large. -->
+    <div class="row row--center">
+      <button type="button" id="screenshot">Save screenshot</button>
     </div>
   </section>
 
@@ -118,8 +136,8 @@
 <!-- Plain scripts, no module system, so the order is the dependency graph:
      planet.js defines Cosmos, emit.js defines Emit and reads Cosmos when it
      runs, and app.js uses both the moment it loads. app.js goes last. -->
-<script src="js/planet.js"></script>
-<script src="js/emit.js"></script>
-<script src="js/app.js"></script>
+<script src="js/planet.js?v=5a6af0ef"></script>
+<script src="js/emit.js?v=f95c9571"></script>
+<script src="js/app.js?v=9a765807"></script>
 </body>
 </html>

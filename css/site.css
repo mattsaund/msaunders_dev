@@ -5,16 +5,29 @@
    colors are tokens up here and the spacing comes from --panel-pad and
    --panel-gap. */
 
-/* JetBrains Mono, self hosted so everyone gets it. Latin subset: no page here
-   has a non-ASCII character. One variable file covers 400-800, so the 500 the
-   headings use needs no second face. The advance is 0.6 em, and cosmos.js
-   measures it to size the planets, so changing the face changes the art. */
+/* Paper Mono (paper.design, OFL, license in /fonts), self hosted so everyone
+   gets it. It is the upstream web font, unmodified. One variable file covers
+   100-800, so the 500 the headings use needs no second face.
+
+   Its own advance is 0.606 em, which is a whole number of pixels at no size
+   anyone sets. size-adjust scales the face by 0.625 / 0.606 so it advances
+   exactly 0.625 em: every size that is a multiple of 8 then lands each column
+   on a whole pixel, which puts the 16px titles and labels on 10px columns and
+   the 48px name on 30px ones. The letters come out 3% bigger than the font's
+   own. A browser without size-adjust (Safari before 17) gets the plain 0.606.
+   cosmos.js measures the advance to size the planets, so changing the face
+   changes the art.
+
+   Crucible and tiny declare this same face, size-adjust included; keep the
+   three in step. Their flame and mark were drawn on 0.6 em cells, so those
+   two are set 4% smaller to keep their cells (see their stylesheets). */
 @font-face {
-  font-family: "JetBrains Mono";
-  src: url("/fonts/jetbrains-mono-latin.woff2") format("woff2");
-  font-weight: 400 800;
+  font-family: "Paper Mono";
+  src: url("/fonts/paper-mono.woff2") format("woff2");
+  font-weight: 100 800;
   font-style: normal;
   font-display: swap;
+  size-adjust: 103.1353%;   /* 0.606 em advance up to 0.625: see above */
 }
 
 /* --- tokens ------------------------------------------------ */
@@ -44,7 +57,7 @@
   --accent-bg:   #0d1a29;
 
   /* The only face on the site. Nothing here asks for a second family. */
-  --mono: "JetBrains Mono", ui-monospace, "SF Mono", SFMono-Regular,
+  --mono: "Paper Mono", ui-monospace, "SF Mono", SFMono-Regular,
           "Cascadia Mono", Menlo, Consolas, "Liberation Mono", monospace;
 
   --wrap: 1204px;
@@ -56,15 +69,16 @@
   /* Two sizes on the whole page: --tl-fs for anything that titles or labels,
      --body-fs for everything it says. Nothing is smaller than the body size.
 
-     16 is a compromise. The font advances 0.6 em, so only a multiple of 5 sets
-     a whole number of pixels wide; 20 does, but it reads too big beside 14px
-     copy, and 15 is smaller than the copy it titles. The cost is the left tip
-     of a section's connector, which starts where the label's text ends and so
-     lands inside a pixel. Nothing else is measured off type. */
+     The font advances 0.625 em (see the @font-face above), so 16 sets every
+     title and label on 10px columns, and a section's connector, which starts
+     where the label's text ends, starts on a whole pixel. Body copy at 14 sits
+     on 8.75px columns; nothing is measured off it. Nothing else is measured
+     off type. */
   --tl-fs: 16px;
-  /* 23, not 24. The '>' centers its ink 0.53 em down the em box, so 16px in a
-     23px line puts that center on 11.98px, which is where --tl-mid meets it.
-     Even leading would put it half a pixel out. */
+  /* 23, not 24. Paper Mono centers the '>' 0.304 em above its baseline, so
+     16px in a 23px line puts that center 12.34px down, a third of a pixel
+     under --tl-mid; 24 would put it 0.84px out. (22 would be 0.16px out, at
+     the cost of every title's spacing.) */
   --tl-line: 23px;
   --body-fs: 14px;
   --body-line: 23px;
@@ -78,8 +92,8 @@
   --rule-gap: 8px;           /* clearance between an arm and the text it meets */
   --tl-indent: calc(var(--tl-arm) + var(--rule-gap) + 1px);
   /* The label column, and so where the rail falls. Sized off the longest
-     label: "~/Certifications" sets 154px at 16px, plus a gap and an arm. */
-  --split-label: 178px;
+     label: "~/Certifications" sets 160px at 16px, plus a gap and an arm. */
+  --split-label: 184px;
 
   /* Panels over the art: dark enough to carry copy, open enough to see
      through. */
@@ -93,7 +107,7 @@
 /* --- reset ------------------------------------------------- */
 *, *::before, *::after { box-sizing: border-box; }
 html { -webkit-text-size-adjust: 100%; scroll-behavior: smooth; scroll-padding-top: 24px; }
-@media (prefers-reduced-motion: reduce) { html { scroll-behavior: smooth; } }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
 
 body {
   margin: 0;
@@ -172,7 +186,6 @@ hr { border: 0; border-top: 1px solid var(--line); margin: 0; }
 }
 main { min-height: 400px; }
 
-.section { padding: 0; }
 /* --- section panels ---------------------------------------- */
 /* Every section carries its own panel rather than the page sitting on one flat
    sheet, so the art shows between the panels as well as through them. Spacing
@@ -202,11 +215,17 @@ main { min-height: 400px; }
   white-space: nowrap;
 }
 .eyebrow b { color: var(--accent); font-weight: 400; }
+/* Paper Mono sets its tilde at hyphen height, under the middle of the slash
+   beside it, so "~/" reads as a tilde that has slipped. Lifted 0.09375 em,
+   1.5px at the 16px of a section label, picked by eye against lifts from 0
+   to 2px. The icons get the same lift (make_icons.py). */
+.tilde { position: relative; top: -0.09375em; }
 .eyebrow::after { content: ""; flex: 1; height: 1px; background: var(--line); }
 
-/* 50, not 52: a multiple of 5 puts every glyph of the headline on a whole
-   pixel, and whole tracking keeps it there. */
-.h-xl { font-family: var(--mono); font-size: 50px; line-height: 60px; letter-spacing: -2px; font-weight: 500; }
+/* 48, a multiple of 8, so at the face's 0.625 em every glyph of the headline
+   sits on a whole pixel, and whole tracking keeps it there. Its 30px columns
+   are the width the name had at 50 in the old 0.6 em scale. */
+.h-xl { font-family: var(--mono); font-size: 48px; line-height: 60px; letter-spacing: -2px; font-weight: 500; }
 .h-md { font-family: var(--mono); font-size: var(--tl-fs); line-height: var(--tl-line); letter-spacing: 0; }
 
 /* No measure cap: the panel is the measure. */
@@ -308,8 +327,6 @@ main { min-height: 400px; }
 .status--soon { color: var(--fg-3); }
 
 /* --- grid helpers ------------------------------------------ */
-.grid { display: grid; gap: 1px; background: var(--line); border: 1px solid var(--line); }
-.grid > * { background: var(--bg); }
 .cols-3 { display: grid; gap: 24px; grid-template-columns: repeat(3, 1fr); }
 @media (max-width: 860px) { .cols-3 { grid-template-columns: 1fr; } }
 
@@ -344,7 +361,6 @@ main { min-height: 400px; }
   margin-left: var(--rule-gap);
   align-self: flex-start; margin-top: var(--tl-mid);
 }
-
 
 /* --- cards ------------------------------------------------- */
 .card {
@@ -459,15 +475,6 @@ main { min-height: 400px; }
 }
 .lb__x:hover { color: var(--fg); border-color: var(--line-3); }
 
-/* --- callout / note ---------------------------------------- */
-.note {
-  border: 1px solid var(--line);
-  border-left: 2px solid var(--accent);
-  background: var(--bg-2);
-  padding: 16px;
-  font-size: var(--body-fs); line-height: var(--body-line); color: var(--fg-2);
-}
-
 /* --- empty state ------------------------------------------- */
 .empty {
   border: 1px dashed var(--line-2);
@@ -540,7 +547,7 @@ main { min-height: 400px; }
 /* --- ASCII planetarium ------------------------------------- */
 /* Sits in document space, not the viewport, so the bodies scroll up and
    off the page with everything else. js/cosmos.js fills each <pre> with a
-   shaded ASCII body and spins it from scroll position. */
+   shaded ASCII body and turns it on wall-clock time. */
 .cosmos {
   position: absolute; top: 0; left: 0;
   width: 100%; height: 100%;
@@ -606,8 +613,6 @@ body { position: relative; }
 main, .foot, .skip { position: relative; z-index: 1; }
 main { flex: 1 0 auto; }
 .foot { flex: 0 0 auto; }
-
-
 
 /* --- responsive steps ---
    Whole pixels instead of clamp() and vw, for the reason at the top of the

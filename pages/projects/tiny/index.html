@@ -5,12 +5,12 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>tiny</title>
 <meta name="description" content="An extremely lightweight terminal-based IDE, text editor, and file browser with a project map and plugin support.">
-<link rel="icon" href="/files/images/favicon.svg?v=44bd860a" type="image/svg+xml">
-<link rel="icon" href="/files/images/favicon.png?v=44fa8bc1" sizes="any">
+<link rel="icon" href="/files/images/favicon.svg?v=fabe8c0c" type="image/svg+xml">
+<link rel="icon" href="/files/images/favicon.png?v=878b73ba" sizes="any">
 <!-- Same self-hosted face as the rest of the site, so a visitor arriving from
      msaunders.dev already has it cached. -->
-<link rel="preload" href="/fonts/jetbrains-mono-latin.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="/tiny/css/tiny.css?v=1e778f0b">
+<link rel="preload" href="/fonts/paper-mono.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="/tiny/css/tiny.css?v=184da1b3">
 </head>
 <body>
 
@@ -18,7 +18,7 @@
      as the bars over Crucible and the cosmos.js tool. -->
 <header class="bar">
   <a class="bar__back" href="/" aria-label="Back to msaunders.dev"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M13 8H3M7 4L3 8l4 4"/></svg></a>
-  <a class="bar__name" href="/">tiny</a>
+  <a class="bar__name" href="/"><span class="bar__mark"><span class="tilde">~</span>/</span>tiny</a>
   <a class="bar__repo" href="https://github.com/mattsaund/tiny"
      target="_blank" rel="noopener">github.com/mattsaund/tiny</a>
 </header>
@@ -120,6 +120,9 @@
       </div>
 
       <p class="cmd__note" id="cmd-note" role="status" aria-live="polite"></p>
+      <!-- Laid over the status line's row rather than given one, so nothing
+           moves for it; see .cmd__sizes. From tiny's README, for 0.5.1. -->
+      <p class="cmd__sizes">Installed size: macOS 7.15 to 7.54 MB, Linux 7.78 to 8.32 MB, Windows 7.78 MB</p>
     </div>
   </div>
 </main>
@@ -148,7 +151,7 @@
   </div>
 </section>
 
-<script type="module" src="/tiny/app/term.js?v=d2dceb9e"></script>
+<script type="module" src="/tiny/app/term.js?v=b8f8f66c"></script>
 <script src="/js/install.js?v=ef0dca7b" defer></script>
 </body>
 </html>

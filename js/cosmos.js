@@ -5,13 +5,14 @@
    runtime from a lighting model, and the rings are intersected against the ring
    plane and depth sorted against the globe. Bodies are pinned to document
    coordinates so they scroll off with everything else, and they turn on
-   wall-clock time rather than on scroll, one turn every 45 to 85 seconds. A
+   wall-clock time rather than on scroll, one turn every 45 to 100 seconds. A
    seeded ASCII starfield covers the whole page; no star is ever placed on a
-   body. The loop stops on a hidden tab and freezes for prefers-reduced-motion.
+   body. The loop sleeps between steps, stops on a hidden tab and freezes for
+   prefers-reduced-motion.
 
-   BODIES at the top holds every knob: frame extents, grid rows, tilt, rotation
-   rate, ambient light, ring radii and which edge to hug. EARTH holds the
-   horizon's own: span, reveal, tilt, gain and rate. window.__cosmos exposes
+   BODIES holds every knob: frame extents, grid rows, tilt, rotation rate,
+   ambient light, ring radii and which edge to hug. EARTH holds the horizon's
+   own: span, reveal, tilt, gain and rate. window.__cosmos exposes
    { render, bodies, live, horizon, measure, draw } for tuning in the console. */
 (function () {
   'use strict';
@@ -21,7 +22,7 @@
      obvious ".,:;=+ic*ox%#@" does not: 'i' and 'c' read lighter than '=' and
      '+', and gradients came out mottled. Index 0 is a space. */
   var RAMP = " .:-=+*#%@";
-  var CHAR_ASPECT = 0.6;           // glyph advance / line height (measured at init)
+  var CHAR_ASPECT = 0.625;         // glyph advance / line height (measured at init)
   var SCALE = 1.15;                // global size trim for every body
   /* Floor for a body's glyph, in device pixels, because that is what a glyph
      is rasterised at: a 1px cell at dpr 3 is the same ink as a 3px cell at
@@ -103,16 +104,17 @@
      latitude/longitude already derived from it, and returns an
      albedo around 1.0.                                        */
 
-  /* Feature radii are in radians of arc. Anything under ~0.14 rad lands
-     inside a single glyph at these grid sizes and just reads as noise. */
+  /* Feature radii are in radians of arc. On the 100-row grids below, a glyph
+     at the middle of a disk covers about 0.014 rad across and 0.023 down, and
+     a feature not much bigger than that lands in one glyph and reads as
+     noise. */
 
   /* An ice crust: bright, and cut by fractures that run pole to pole and cross
      each other. Bands and blobs both read as "somewhere on the surface"; a line
      that wraps the whole body is what makes the rotation legible. */
-  /* Widths are in radians of arc, and the body spans ~2 rad across ~43 columns,
-     so a column is ~0.047 rad. Anything thinner than that falls between glyphs
-     and reads as noise instead of a line, which is what a first pass at 0.017
-     did. These run one to two columns wide. */
+  /* Widths are in radians of arc, and the disk spans 2 rad across about 140
+     columns, so a column is about 0.014 rad. A line thinner than a column
+     falls between glyphs and reads as noise. These run three to six wide. */
   var ICE_CRACKS = greatCircles(20260823, 8, 0.046, 0.042);
   var ICE_CHAOS  = features(51509, 8, 0.19, 0.24);
   var ICE_SPOTS  = features(99013, 12, 0.05, 0.07);
@@ -745,7 +747,7 @@
 
   /* Which monospace font actually resolved decides the glyph advance, and
      both disk roundness and the on-screen fit depend on it. Measure once
-     instead of trusting the 0.6 guess. */
+     instead of trusting the 0.625 guess. */
   function measureAspect() {
     var probe = document.createElement('pre');
     probe.className = 'cosmos__body';
@@ -754,7 +756,7 @@
     host.appendChild(probe);
     var w = probe.getBoundingClientRect().width;
     host.removeChild(probe);
-    return (w > 0) ? (w / 50) / 100 : 0.6;
+    return (w > 0) ? (w / 50) / 100 : 0.625;
   }
 
   function sizeBodies() {
@@ -845,8 +847,8 @@
       if (w > vw) { fs *= vw / w; w = vw; }
       /* Whole pixels. Line-height is 1, so the cell height is the font size,
          and a fraction puts every row after the first on a fractional offset
-         inside the <pre>. Column width stays fractional at 0.6 * fs; forcing
-         that whole too would quantise the bodies far too coarsely.
+         inside the <pre>. Column width stays fractional at CHAR_ASPECT * fs;
+         forcing that whole too would quantise the bodies far too coarsely.
 
          Never below EASY_CELL. Under it the ink per cell holds but the peak
          does not, the ramp's steps stop reading apart, and the body dims into
@@ -934,14 +936,16 @@
   }
 
   /* --- animation ------------------------------------------ */
-  /* Rotation runs on wall-clock time now, not scroll position, so the bodies
-     keep turning while the page sits still. Only bodies near the viewport are
+  /* Rotation runs on wall-clock time, not scroll position, so the bodies keep
+     turning while the page sits still. Only bodies near the viewport are
      drawn, and the angle is quantised so a redraw only happens when a glyph
-     could actually change. */
+     could actually change. Returns the seconds until the next of those
+     redraws, or Infinity when nothing in range turns. */
   function draw(spun) {
     var y = window.scrollY || window.pageYOffset || 0;
     var vh = window.innerHeight;
     var near = y - vh * 0.5, far = y + vh * 1.5;
+    var wait = Infinity;
 
     for (var i = 0; i < count; i++) {
       var s = live[i];
@@ -951,6 +955,7 @@
         s.el.textContent = render(s.p, q);
         s.drawn = q;
       }
+      wait = Math.min(wait, untilStep(s.p, spun, 120));
     }
 
     if (horizon.top + horizon.h >= near && horizon.top <= far) {
@@ -959,25 +964,62 @@
         horizon.el.textContent = punch(render(horizon.p, qe), horizon.p.cols);
         horizon.drawn = qe;
       }
+      wait = Math.min(wait, untilStep(horizon.p, spun, 240));
     }
+    return wait;
   }
 
-  var spun = 0, last = 0, raf = 0;
+  /* Seconds until a body's quantised angle next changes. Counted in quanta,
+     the angle rounds to a new value where it crosses a half: the next half up
+     for a body turning one way, the next half down for the other. */
+  function untilStep(p, spun, perRad) {
+    var a = (p.phase + spun * p.rate) * perRad;
+    var n = Math.floor(a + 0.5);
+    return ((p.rate > 0 ? n + 0.5 : n - 0.5) - a) / perRad / p.rate;
+  }
 
-  function tick(now) {
-    raf = requestAnimationFrame(tick);
+  /* The loop sleeps from one step to the next instead of asking for every
+     frame. A frame is not free even when nothing in it changes: the browser
+     restyles every twinkling star for it, and at 60 a second that cost more
+     than drawing the bodies did. */
+  var spun = 0, last = 0, timer = 0;
+
+  function wake() {
+    clearTimeout(timer);
+    timer = 0;
+    var now = performance.now();
     if (last) spun += (now - last) / 1000;
     last = now;
-    draw(spun);
+    var wait = draw(spun);
+    /* A few ms past the step, so a timer that fires a hair early still finds
+       it taken. With nothing in range there is nothing to wait for, and the
+       next scroll wakes it. */
+    if (wait < Infinity) timer = setTimeout(wake, wait * 1000 + 4);
   }
 
-  function start() { if (!raf) { last = 0; raf = requestAnimationFrame(tick); } }
-  function stop() { if (raf) { cancelAnimationFrame(raf); raf = 0; last = 0; } }
+  function stop() { clearTimeout(timer); timer = 0; last = 0; }
 
-  /* A background tab should not be burning frames. */
+  /* Draw now, at the current angle: after anything that moves or resizes the
+     bodies or brings new ones into range. With reduced motion, or on a hidden
+     tab, the angle holds and nothing is scheduled. */
+  function redraw() {
+    if (reduced || document.hidden) draw(spun);
+    else wake();
+  }
+
+  /* A background tab should not be burning frames. Time spent hidden does not
+     count toward the spin, so the bodies pick up where they stopped. */
   document.addEventListener('visibilitychange', function () {
-    if (document.hidden) stop(); else if (!reduced) start();
+    if (document.hidden) stop(); else redraw();
   });
+
+  /* Scrolling brings bodies into range, so it draws, once a frame at most. */
+  var queued = false;
+  addEventListener('scroll', function () {
+    if (queued) return;
+    queued = true;
+    requestAnimationFrame(function () { queued = false; redraw(); });
+  }, { passive: true });
 
   /* Exposed so the bodies can be inspected and tuned outside the page. */
   window.__cosmos = { render: render, bodies: BODIES, live: live,
@@ -985,21 +1027,7 @@
 
   sizeBodies();
   measure();
-
-  draw(0);            /* first paint must not wait on a frame callback */
-
-  if (reduced) {
-    /* No self-rotation, and no animation loop to burn power. Bodies are still
-       drawn as scrolling brings them into range. */
-    var queued = false;
-    addEventListener('scroll', function () {
-      if (queued) return;
-      queued = true;
-      requestAnimationFrame(function () { queued = false; draw(0); });
-    }, { passive: true });
-  } else {
-    start();
-  }
+  redraw();           /* first paint must not wait on a timer or a frame */
 
   /* Star placement depends on the document height, so rebuild it after a
      resize settles rather than on every intermediate event. */
@@ -1011,11 +1039,12 @@
   var pending = 0;
   addEventListener('resize', function () {
     measure();                                  /* cheap: six elements */
+    redraw();
     clearTimeout(pending);
-    pending = setTimeout(function () { restar(); draw(0); }, 140);
+    pending = setTimeout(restar, 140);
   });
   /* Images and fonts settling changes the document height. */
-  addEventListener('load', function () { measure(); restar(); draw(0); });
+  addEventListener('load', function () { measure(); restar(); redraw(); });
 
   /* The webfont lands after the first paint and its advance is not the
      fallback's. Column counts come from that advance, so a body measured
@@ -1024,7 +1053,7 @@
      the font. measure() clears the drawn caches so draw() repaints. */
   if (document.fonts && document.fonts.ready) {
     document.fonts.ready.then(function () {
-      sizeBodies(); measure(); restar(); draw(0);
+      sizeBodies(); measure(); restar(); redraw();
     });
   }
 })();

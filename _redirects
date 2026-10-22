@@ -1,9 +1,9 @@
 # Cloudflare Pages reads this file. The project is set up there with no
 # framework preset, no build command, and / as the output directory, so a push
 # to main deploys the repo as it stands.
-# Three kinds of rule live here: rewrites that
-# keep a published URL working after the file behind it moved, and 301s for
-# pages and files that were retired or renamed.
+# Two kinds of rule live here: 200 rewrites that keep a published URL working
+# after the file behind it moved, and 301s for pages and files that were
+# retired or renamed.
 
 # ---- moved in the repo, not on the web ----------------------------------
 # The pages live under pages/ now, and the icons and documents under files/.
@@ -53,8 +53,8 @@
 /hobbies/*  /misc/  301
 /gallery/*  /misc/  301
 
-# The projects are portfolio entries on the About page now, linking to their own
-# pages; nothing lives under /projects/ any more. The index and all three
-# writeups were live and indexed, so the whole tree redirects home.
+# The projects are entries on the home page now, linking to their own pages;
+# nothing lives under /projects/ any more. The index and all three writeups
+# were live and indexed, so the whole tree redirects home.
 /projects/*  /  301
 /projects  /  301

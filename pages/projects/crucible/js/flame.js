@@ -25,19 +25,20 @@
      This one is crucible/flame.md resampled. That file draws the flame in
      braille, which packs 2x4 dots into a cell and decodes to a 28 by 45 dot
      grid. The hollow core is kept: it is the drawing, and filling it in
-     turned the flame into a lopsided blob. It is not rendered as
-     braille here: the webfont is a latin subset, so braille falls through
-     to whatever the system offers, which advances 0.73 em rather than 0.60
-     and by a different amount on every platform. The flame would be
-     stretched, and stretched differently for each visitor. Resampling onto
-     glyphs the font actually carries keeps the metrics ours.
+     turned the flame into a lopsided blob. It is not rendered as braille
+     here: Paper Mono has no braille, so it would fall through to whatever
+     the system offers, at that font's advance rather than this one's and by
+     a different amount on every platform. The flame would be stretched, and
+     stretched differently for each visitor. Resampling onto glyphs the font
+     actually carries keeps the metrics ours.
 
-     Draw it wide. A glyph is 0.6 as wide as the line is tall, so a shape
-     that looks right as a block of text renders about 40% narrower than it
-     reads here. The resample already accounts for that: 26 columns by 25
-     rows comes out 234 by 375 px, which is the 28:45 the flame was drawn
-     at. Regenerating from a new flame.md means decoding the braille, then
-     resampling to whatever column count holds that ratio at 0.6 em.
+     Draw it wide. A glyph is 0.6 as wide as the line is tall (see .flame in
+     the stylesheet), so a shape that looks right as a block of text renders
+     about 40% narrower than it reads here. The resample already accounts
+     for that: 21 columns by 20 rows comes out 75.6 by 120 px, about the
+     28:45 the flame was drawn at. Regenerating from a new flame.md means
+     decoding the braille, then resampling to whatever column count holds
+     that ratio in cells 0.6 as wide as they are tall.
 
      Resample by tracking each wing's edges, not by thresholding how much of a
      cell the art covers. Coverage was what put a flat wall down the left side:
@@ -48,11 +49,12 @@
      along the run, keeps the taper that those marks were burying.
 
      The grid is sized to the title rather than the other way round: the two
-     stand as a lockup, so the flame is as tall as the heading's line box.
-     That caps how many rows there is room for, and 16 is what a 5px cell
-     buys. It is a coarse grid for a fire, which is why the resample keeps
-     the hollow core rather than the fine edge detail: the shape has to
-     survive at this size, and the silhouette is what carries it.
+     stand as a lockup, so the flame's height is set off the heading's, half
+     again its 80px line box. That caps how many rows there is room for, and
+     20 is what a 6px cell buys. It is a coarse grid for a fire, which is why
+     the resample keeps the hollow core rather than the fine edge detail: the
+     shape has to survive at this size, and the silhouette is what carries
+     it.
      ============================================================ */
   var MASK = [
     '         ###',
@@ -82,7 +84,7 @@
      the way out simply disappears. */
   var RAMP = ' .:-=+*#%@';
 
-  /* What a row keeps climbing to the next one. Over the 23 rows above the
+  /* What a row keeps climbing to the next one. Over the 19 rows above the
      base that leaves about a third of the heat at the tip, which is what
      puts the sparse end of the ramp up there and the dense end at the
      bottom. Raise it and the flame fills the silhouette flat; drop it and
@@ -100,8 +102,9 @@
      visible edge sits inside the mask and moves as the flame leans. */
   var FLOOR = 0.08;
 
-  /* ~18fps. Fire that redraws every frame blurs into a texture; slowing it
-     down is what makes the eye read separate flickers. */
+  /* At least 55 ms between steps, which a 60 Hz screen rounds up to every
+     fourth frame: 15 a second. Fire that redraws every frame blurs into a
+     texture; slowing it down is what makes the eye read separate flickers. */
   var FRAME = 55;
 
   var H = MASK.length, W = 0, i;

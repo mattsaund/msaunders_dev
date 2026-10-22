@@ -3,25 +3,51 @@
 
    Dark, monospace-forward, deliberately plain. The planet is the
    only thing here meant to draw the eye, so everything around it
-   stays flat and quiet.
+   stays flat and quiet. The one exception is the syntax coloring
+   in the source panes, kept muted for the same reason.
 
    IN THIS FILE
-     tokens ..... colors, fonts and the few measurements that more
-                  than one rule depends on
-     layout ..... the three-panel grid, and how it folds up narrow
+     font ....... the one typeface, loaded from the repo
+     tokens ..... colors and the few measurements that more than
+                  one rule depends on
+     layout ..... the three-panel grid
      controls ... one row per setting, plus the inputs they use
-     preview .... the stage the planet sits in
+     preview .... the black square the planet is drawn in
      code ....... the tabbed source panes
+     narrow ..... how it all folds into one column on a phone
 
    No preprocessor and no build step: this file is served exactly as
    it is written.
    ============================================================ */
 
+/* --- font ---------------------------------------------------
+   Paper Mono, served out of the repo rather than from a font CDN.
+   This tool is meant to work opened straight off the disk over
+   file://, where a request to a CDN simply fails, and a planet
+   drawn in a fallback font is not the planet that was designed.
+
+   One variable file carries every weight, so there is nothing to
+   choose between and only one request to make.
+
+   font-display: swap paints the page immediately in whatever
+   monospace the system has and swaps Paper Mono in when it lands.
+   That means the first frame can be measured against the wrong
+   glyph, which is why app.js measures again once
+   document.fonts.ready settles. */
+@font-face {
+  font-family: "Paper Mono";
+  src: url("../fonts/paper-mono.woff2") format("woff2");
+  font-weight: 100 800;
+  font-style: normal;
+  font-display: swap;
+}
+
 /* --- tokens ------------------------------------------------- */
 
 :root {
-  /* Black and white, no hue anywhere. The planet is the only thing on the page
-     allowed a color, and it gets that from the picker. */
+  /* Black and white: no hue in the chrome anywhere. The planet gets its color
+     from the picker, and the source panes get the muted syntax inks at the
+     bottom of this file. Nothing else on the page is allowed one. */
   --bg:      #000000;
   --panel:   #0a0a0a;
   --panel-2: #131313;
@@ -35,68 +61,87 @@
   --accent:  #ffffff;   /* the "selected" ink, not a hue */
   --on-bg:   #1c1c1c;   /* fill behind a selected tab or toggle */
 
-  --mono: ui-monospace, "SF Mono", SFMono-Regular, "JetBrains Mono",
-          Menlo, Consolas, "Liberation Mono", monospace;
-  --sans: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  /* One typeface for the whole page, the planet included. The generic
+     monospace behind it is only what shows for the moment before the file
+     lands, never a second choice worth designing against. */
+  --font: "Paper Mono", monospace;
   --r: 4px;
 
-  /* The app's own padding. The first row is sized against the window, so this
-     has to be discounted from it: see grid-template-rows below. */
+  /* The gap around and between the three panels. The grid is exactly the
+     window's height, with border-box sizing, so this comes out of that height
+     rather than adding to it and pushing the page into a scroll. */
   --app-pad: clamp(12px, 1.6vw, 18px);
-  /* How much of the code panel sits above the fold. Enough for its tab row and
-     a line or two of source, so it is obvious there is more to scroll to. */
-  --code-peek: 112px;
+  /* The narrowest either side column may go. The two are always the same
+     width, so this is one number for both: wide enough for the controls to
+     stay usable, and for the source pane's type, which shrinks with its
+     column, to still fit the longest line at a size that can be read. */
+  --side-min: 380px;
 }
 
 *, *::before, *::after { box-sizing: border-box; }
 
+/* On the root, not just on body: html sits outside body's reach, and the one
+   typeface rule should hold for the whole document rather than for most of
+   it. Everything below inherits from here. */
+html { font-family: var(--font); }
+
 body {
+  /* The app is sized to the viewport, so anything that would scroll the page
+     is a layout bug rather than content. The narrow breakpoint turns this
+     back on, where stacking really does need the scroll. */
+  overflow: hidden;
   margin: 0;
   background: var(--bg);
   color: var(--fg);
-  font: 14px/1.5 var(--sans);
+  font: 14px/1.5 var(--font);
   -webkit-font-smoothing: antialiased;
 }
 
+/* Form controls do not inherit type from the page, so without this the
+   browser draws them in its own UI font and the one typeface rule springs a
+   leak at every slider readout and dropdown. */
+button, input, select, textarea, option { font-family: inherit; }
+
 /* --- layout -------------------------------------------------
-   Controls hold a fixed column; the preview takes the rest and the
-   code panes run the full width underneath, where long lines have
-   room to breathe. */
+   One screen, three columns, no page scroll: controls on the
+   left, the preview in the middle, the generated source down the
+   right where it can scroll on its own.
+
+   The preview is a perfect square as tall as the window, and it
+   takes its width from that height, so it is the column the other
+   two are fitted around. They split whatever width is left, each
+   kept above its own minimum, which is what lets the app reach
+   both edges of any window instead of leaving bars down the sides.
+
+   The page itself never scrolls. Anything that can outgrow its
+   box scrolls inside that box instead, which is why both the
+   controls column and the source panes carry their own
+   overflow. */
 .app {
   display: grid;
-  grid-template-columns: 290px minmax(0, 1fr);
-  grid-template-areas: "controls preview" "code code";
+  /* The two side columns are the same track, so they always come out the
+     same width as each other. The source pane does not need a wider minimum
+     to avoid scrolling sideways, because its type is sized to its column
+     instead (see .src). minmax(0, auto) on the preview means that on a window
+     too narrow for a full height square, it is the preview that gives up
+     width rather than either side. */
+  grid-template-columns: minmax(var(--side-min), 1fr) minmax(0, auto) minmax(var(--side-min), 1fr);
+  grid-template-areas: "controls preview code";
+  grid-template-rows: minmax(0, 1fr);
   gap: var(--app-pad);
   padding: var(--app-pad);
-  /* Stretch, not start: the preview panel matches the height of the controls
-     column beside it instead of stopping at its own content. */
-  align-items: stretch;
+  /* dvh, so a mobile browser's collapsing toolbar does not leave the bottom
+     of the page permanently out of reach. The vh line before it is the
+     fallback for anything that does not know dvh. */
+  height: 100vh;
+  height: 100dvh;
 }
-.controls { grid-area: controls; }
-/* A column, so the stage can take every pixel the panel head does not. */
-.preview  { grid-area: preview; display: flex; flex-direction: column; }
-.code     { grid-area: code; }
-
-@media (max-width: 900px) {
-  .app {
-    grid-template-columns: minmax(0, 1fr);
-    grid-template-areas: "preview" "controls" "code";
-  }
-}
-
-/* The first screen is the tool: the preview fills the window top to bottom, so
-   a wide ring system has the whole viewport to sit in. Without this the row is
-   as tall as the controls column, which is taller than most windows, and the
-   preview's middle ends up below the fold. The controls scroll inside their own
-   column instead of stretching the row; the code panes are a scroll away. */
-@media (min-width: 901px) {
-  .app { grid-template-rows: calc(100vh - 2 * var(--app-pad) - var(--code-peek)) auto; }
-  .app { grid-template-rows: calc(100dvh - 2 * var(--app-pad) - var(--code-peek)) auto; }
-  .controls { overflow-y: auto; }
-  /* Both need to be allowed to shrink below their content, or the grid row
-     cannot cap them. */
-  .preview, .stage { min-height: 0; }
-}
+.controls { grid-area: controls; overflow-y: auto; }
+.preview  { grid-area: preview; }
+.code     { grid-area: code; display: flex; flex-direction: column; min-height: 0;
+            /* A size container, so the source pane can size its type off the
+               column's width with cqi units. */
+            container-type: inline-size; }
 
 .panel {
   background: var(--panel);
@@ -107,7 +152,7 @@ body {
   display: flex; align-items: center; justify-content: space-between; gap: 12px;
   padding: 8px 12px;
   border-bottom: 1px solid var(--line);
-  font: 400 12px/1 var(--mono); color: var(--fg-3);
+  font: 400 12px/1 var(--font); color: var(--fg-3);
 }
 
 /* --- controls ----------------------------------------------- */
@@ -119,8 +164,8 @@ body {
   display: flex; align-items: baseline; justify-content: space-between; gap: 10px;
   margin-bottom: 7px;
 }
-.ctl__name { font: 400 12px/1 var(--mono); letter-spacing: .02em; color: var(--fg-2); }
-.ctl__val  { font: 400 12px/1 var(--mono); color: var(--accent); }
+.ctl__name { font: 400 12px/1 var(--font); letter-spacing: .02em; color: var(--fg-2); }
+.ctl__val  { font: 400 12px/1 var(--font); color: var(--accent); }
 
 /* A flat track with a square thumb, to match the terminal feel. */
 input[type="range"] {
@@ -141,7 +186,7 @@ input[type="range"]:focus-visible { outline: 2px solid var(--accent); outline-of
 
 select, input[type="number"] {
   width: 100%; padding: 7px 9px;
-  font: 400 12.5px/1 var(--mono);
+  font: 400 12.5px/1 var(--font);
   color: var(--fg); background: var(--panel-2);
   border: 1px solid var(--line-2); border-radius: var(--r);
 }
@@ -164,7 +209,7 @@ input[type="color"]::-moz-color-swatch    { border: 0; border-radius: 2px; }
    matches .ctl__name so it reads like every other caption in the column. */
 .ctl__inline {
   display: inline-flex; align-items: center; gap: 7px;
-  font: 400 12px/1 var(--mono); letter-spacing: .02em;
+  font: 400 12px/1 var(--font); letter-spacing: .02em;
   color: var(--fg-2); cursor: pointer;
 }
 input[type="checkbox"] { accent-color: var(--accent); width: 14px; height: 14px; }
@@ -174,7 +219,7 @@ input[type="checkbox"] { accent-color: var(--accent); width: 14px; height: 14px;
 .seg { display: flex; gap: 0; }
 .seg button {
   flex: 1; padding: 7px 0;
-  font: 400 12px/1 var(--mono);
+  font: 400 12px/1 var(--font);
   color: var(--fg-2); background: var(--panel-2);
   border: 1px solid var(--line-2); cursor: pointer;
 }
@@ -191,7 +236,7 @@ input[type="checkbox"] { accent-color: var(--accent); width: 14px; height: 14px;
 }
 
 button {
-  font: 400 12px/1 var(--mono);
+  font: 400 12px/1 var(--font);
   color: var(--fg); background: var(--panel-2);
   border: 1px solid var(--line-2); border-radius: var(--r);
   padding: 8px 12px; cursor: pointer;
@@ -208,27 +253,66 @@ button:hover { color: var(--accent); border-color: var(--accent); }
 .dim { color: var(--fg-3); }
 
 /* --- preview -------------------------------------------------
-   Grows to fill the panel, with the planet centered in whatever height that
-   turns out to be. The min-height only matters if the controls column is ever
-   the shorter of the two.
+   A black square with the planet drawn edge to edge inside it.
 
-   Flat black on purpose. This carried a faint radial wash behind the planet,
-   which is invisible on some monitors and reads as a halo around the art on
-   others. The planet is meant to be ASCII and nothing else. */
-.stage {
-  flex: 1 1 auto;
-  /* safe: if the art is ever larger than the box anyway, centering would put
-     its top-left corner outside the scrollable area, where it cannot be
-     reached. safe centering falls back to start alignment in that case. */
-  display: grid; place-items: safe center;
-  min-height: 420px; padding: 16px;
+   The panel itself is the square: as tall as its row, and as wide as
+   that height by aspect-ratio. On a window too narrow to give it
+   that width, max-width lets it give way and come out taller than it
+   is wide. The frame in planet.js fits whichever side is shorter, so
+   the planet stays whole either way.
+
+   The stage fills the panel exactly. A square stage once sat centered
+   inside a wider panel, and the panel's gray showed down both sides of
+   the planet as two bars.
+
+   Flat black on purpose. This carried a faint radial wash behind the
+   planet, which is invisible on some monitors and reads as a halo
+   around the art on others. The planet is meant to be ASCII and
+   nothing else. */
+.preview {
+  position: relative;
+  height: 100%;
+  aspect-ratio: 1 / 1;
+  max-width: 100%;
+  overflow: hidden;
+  /* Black, not the panel gray, so nothing but the planet and its sky ever
+     shows inside the border, not even in the stage's rounded corners. */
   background: var(--bg);
-  border-radius: 0 0 var(--r) var(--r);
-  overflow: auto;
+}
+/* The head sits over the top of the stage rather than above it, because a
+   bar with a height of its own would eat into the square. */
+.preview .panel__head {
+  position: absolute; top: 0; left: 0; right: 0; z-index: 1;
+  border-bottom: 0;
+  background: transparent;
+  pointer-events: none;
+}
+.stage {
+  position: absolute; inset: 0;
+  /* The art is fitted to this box, so centering it is exact rather than a
+     guess. `safe` is kept as the floor: if a frame ever did come out larger
+     than the box, centering would push its top-left corner out of reach, and
+     safe centering falls back to start alignment instead.
+
+     No padding, because the art is cut to this box and drawn at the size that
+     fills it: any padding would read as a border around the planet. The frame
+     already carries a hair of room of its own, see ROOM in planet.js. */
+  display: grid; place-items: safe center;
+  /* The stage's size never depends on the art, and nothing outside it depends
+     on what is inside. Saying so lets the browser keep the relayout of a new
+     frame inside this box instead of checking the rest of the page too. */
+  contain: strict;
+  background: var(--bg);
+  border-radius: var(--r);
+  /* hidden, not auto. The art is fitted to this box every paint, so it can
+     only ever overrun it by a sub-pixel rounding error, and `auto` turned
+     that fraction of a pixel into a pair of real scrollbars across a picture
+     with nothing to scroll to. */
+  overflow: hidden;
 }
 #out {
   margin: 0;
-  font-family: var(--mono);
+  font-family: var(--font);
   line-height: 1;
   white-space: pre;
   color: var(--accent);
@@ -251,8 +335,23 @@ button:hover { color: var(--accent); border-color: var(--accent); }
 .src {
   display: none;
   margin: 0; padding: 14px;
-  max-height: 460px; overflow: auto;
-  font: 400 12px/1.55 var(--mono);
+  /* The pane is the scrolling box now, not the page. flex:1 inside the code
+     panel gives it every pixel the tab row does not want. */
+  flex: 1 1 auto; min-height: 0; overflow: auto;
+  /* Type sized to the column, so the longest line emit.js can write always
+     fits without scrolling sideways, however wide the column comes out.
+
+     That line is 77 characters, and a Paper Mono character is 0.606em wide,
+     so the line is 46.7em. The 48px taken off the column first covers the
+     pane's padding (28), the panel's border (2) and a scrollbar (up to 15),
+     and dividing by 48 rather than 46.7 leaves a little slack on top.
+     Clamped so it never gets smaller than legible on a narrow window, or
+     larger than the rest of the chrome on a very wide one. If an emitted
+     line ever grows past 77, the 48s here have to grow with it. */
+  font-family: var(--font);
+  font-weight: 400;
+  font-size: clamp(7px, calc((100cqi - 48px) / 48), 12px);
+  line-height: 1.6;
   color: var(--fg-2);
   white-space: pre;
   tab-size: 4;
@@ -260,4 +359,38 @@ button:hover { color: var(--accent); border-color: var(--accent); }
 .src.is-on { display: block; }
 .src code { color: inherit; font: inherit; }
 
+/* Syntax colors, and the one place the no-hue rule above is relaxed. A wall
+   of single-color source is exactly what highlighting was asked to fix, so
+   the panes get five muted inks: enough to tell a string from a keyword,
+   dull enough that the planet is still the brightest thing on the page. */
+.t-com { color: #5c5c5c; }   /* comments, quietest of the five */
+.t-str { color: #9fb288; }
+.t-kw  { color: #8ba6c4; }
+.t-fn  { color: #c2ae7c; }
+.t-num { color: #bb9095; }
+
 ::selection { background: var(--accent); color: #000; }
+
+/* --- narrow -------------------------------------------------
+   Below 900px the three columns become three rows and the page
+   is allowed to scroll again, because a square preview beside two
+   columns of controls and source does not fit a phone screen at
+   any useful size. Last in the file, so these win over the rules
+   above without needing heavier selectors. */
+@media (max-width: 900px) {
+  .app {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas: "preview" "controls" "code";
+    grid-template-rows: auto auto auto;
+    height: auto;
+  }
+  /* Square from the width now, since there is no fixed height to take it
+     from. The stage and the head are absolutely positioned and give the
+     panel no height of their own, so without this it collapses to nothing. */
+  .preview { width: 100%; height: auto; max-width: none; }
+  .controls { overflow-y: visible; }
+  /* A fixed share of the screen, so the source scrolls inside its pane
+     rather than stretching the page by the length of the program. */
+  .code { height: 80vh; }
+  body { overflow: auto; }
+}

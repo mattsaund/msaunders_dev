@@ -3,8 +3,8 @@
 
 The mark is the two characters the top bars print in front of every page name,
 so the tab icon, the link preview and the bars are all one shape in one
-typeface. Both glyphs come from fonts/jetbrains-mono-latin.woff2 at weight 800,
-the heaviest the file carries: at 16 pixels a regular stroke disappears. The
+typeface. Both glyphs come from fonts/paper-mono.woff2 at weight 800, the
+heaviest the file carries: at 16 pixels a regular stroke disappears. The
 SVG gets the outlines; the PNGs are the same outlines rendered large and
 resampled down, framed the same way, so all three agree.
 
@@ -27,9 +27,12 @@ from fontTools.varLib.instancer import instantiateVariableFont
 from PIL import Image, ImageDraw, ImageFont
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-FONT = os.path.join(ROOT, "fonts", "jetbrains-mono-latin.woff2")
+FONT = os.path.join(ROOT, "fonts", "paper-mono.woff2")
 IMAGES = os.path.join("files", "images")   # where the three marks are written
 MARK = "~/"
+# Paper Mono sets its tilde at hyphen height, under the middle of the slash; the
+# pages lift it 0.09375 em (.tilde in css/site.css), and so does the mark here.
+LIFT = {"~": 0.09375}
 WEIGHT = 800
 INK = (0x4c, 0x9e, 0xff)      # --accent, the blue the site's '~', '>' and '/' use
 PAPER = (0x00, 0x00, 0x00)    # --bg
@@ -58,9 +61,10 @@ def outlines(font):
     names = [cmap[ord(c)] for c in MARK]
 
     path, bounds = SVGPathPen(glyphs), BoundsPen(glyphs)
+    upm = font["head"].unitsPerEm
     x = 0
-    for name in names:
-        shift = (1, 0, 0, 1, x, 0)
+    for ch, name in zip(MARK, names):
+        shift = (1, 0, 0, 1, x, LIFT.get(ch, 0) * upm)
         glyphs[name].draw(TransformPen(path, shift))
         glyphs[name].draw(TransformPen(bounds, shift))
         x += font["hmtx"][name][0]
@@ -101,7 +105,12 @@ def write_png(name, size, span, ttf):
     big = 2048
     face = ImageFont.truetype(ttf, big // 2)
     mask = Image.new("L", (big * 2, big), 0)
-    ImageDraw.Draw(mask).text((big // 4, big // 2), MARK, font=face, fill=255)
+    # A glyph at a time, so one can be lifted; each advances by its own width,
+    # the way the string would have set.
+    draw, x = ImageDraw.Draw(mask), big // 4
+    for ch in MARK:
+        draw.text((x, big // 2 - LIFT.get(ch, 0) * (big // 2)), ch, font=face, fill=255)
+        x += face.getlength(ch)
     mask = mask.crop(mask.getbbox())
 
     width = int(round(size * span))
