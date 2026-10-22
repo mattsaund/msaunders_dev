@@ -32,6 +32,13 @@
 
 /* --- tokens ------------------------------------------------ */
 :root {
+  /* The page is dark already, and saying so keeps a phone browser's automatic
+     dark mode from recoloring it. That pass lightens dark borders, so every
+     panel outline and the corner at the head of each rail came out white
+     while the rail itself, a background, stayed dark. It also gives the
+     scrollbar its dark style. */
+  color-scheme: dark;
+
   --bg:        #000000;
   --bg-2:      #060709;
 

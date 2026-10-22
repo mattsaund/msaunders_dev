@@ -19,8 +19,10 @@
 /* The site's bar over the tool. Added by tools/build_pages.py; not part of
    upstream cosmos.js, which as of its bar removal knows nothing about one.
    Hence --site-bar-h rather than the old --bar-h: that token went with the
-   markup, and the height is the site's own business now. */
-:root { --site-bar-h: 40px; }
+   markup, and the height is the site's own business now. color-scheme says
+   the page is dark already, as every page of the site does, so a phone
+   browser's automatic dark mode leaves its borders alone (see /css/site.css). */
+:root { --site-bar-h: 40px; color-scheme: dark; }
 .site-bar {
   display: flex; align-items: center; flex-wrap: nowrap;
   gap: 12px; height: var(--site-bar-h);

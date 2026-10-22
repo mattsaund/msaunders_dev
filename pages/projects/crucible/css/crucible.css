@@ -17,6 +17,10 @@
 
 /* --- tokens ------------------------------------------------ */
 :root {
+  /* Dark already: keeps a phone browser's automatic dark mode from recoloring
+     the page (see /css/site.css). */
+  color-scheme: dark;
+
   --bg:     #000000;
   --fg:     #ffffff;
   /* The one step off white, for the repo link. It has to sit under the
