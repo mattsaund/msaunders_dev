@@ -5,22 +5,24 @@
    this file stands in for what a terminal would have given it: a filesystem
    with a project in it, a keyboard, and a screen to paint frames on.
 
-   Nothing downloads until someone presses start. The program is a few
-   megabytes and most people who open this page only read it. */
+   The program itself downloads only when someone presses its button: it is a
+   few megabytes, and most people who open this page only read it. What comes
+   sooner is small: the manifest with the page, and tiny's opening frame at
+   this window's size once the terminal is near the screen. */
 
 import { WASI, File, Directory, OpenFile, PreopenDirectory, ConsoleStdout } from "./wasi/index.js";
 
 const APP = new URL(".", import.meta.url);
 
 /* The frame's separators, the ASCII unit, record, group and file separators,
-   and the two line-ending characters. By code rather than written as escapes.
-   The format is documented at the top of src/web.rs in that clone, which builds it. */
+   and the line feed that ends its first line. By code rather than written as
+   escapes. The format is documented at the top of src/web.rs in that clone,
+   which builds it. */
 const US = String.fromCharCode(0x1f);
 const RS = String.fromCharCode(0x1e);
 const GS = String.fromCharCode(0x1d);
 const FS = String.fromCharCode(0x1c);
 const LF = String.fromCharCode(0x0a);
-const CR = String.fromCharCode(0x0d);
 
 /* ratatui's modifier bits. */
 const BOLD = 1, DIM = 2, ITALIC = 4, UNDERLINED = 8, REVERSED = 64, HIDDEN = 128, CROSSED_OUT = 256;
@@ -28,7 +30,21 @@ const BOLD = 1, DIM = 2, ITALIC = 4, UNDERLINED = 8, REVERSED = 64, HIDDEN = 128
 const BG = "#000000";
 const FG = "#e6e6e6";
 const CURSOR = "#3f8352"; /* the page's green */
-const FAMILY = '"tiny term", "JetBrains Mono", ui-monospace, monospace';
+/* The site's own face. tiny draws its structure in whatever characters suit
+   the terminal it is in, and box lines and the three marks Paper Mono lacks
+   are drawn here rather than taken from a font (see BOX and SHAPES), so the
+   face only has to carry text. */
+const FAMILY = '"Paper Mono", ui-monospace, monospace';
+
+/* The sizes the screen can take, as [least, most, step]. tools/build_tiny.py
+   draws tiny's opening frame at each of them (START_SIZES there), so keep the
+   two in step. Steps of four columns and two rows keep that set to a few
+   hundred frames. */
+const COLS = [40, 160, 4];
+const ROWS = [24, 48, 2];
+/* A phone keeps one height: its page scrolls anyway, and a phone browser's
+   window grows and shrinks as its toolbar slides away. */
+const PHONE_ROWS = 30;
 
 /* The sixteen colors tiny's themes are written in, tuned to read on black. */
 const ANSI = [
@@ -76,6 +92,7 @@ function mount(box) {
   const section = box.closest(".try");
   const inner = box.closest(".try__inner");
   const buttons = [...document.querySelectorAll(".term__win")];
+  const keys = [...document.querySelectorAll(".term__key")];
 
   let m = metrics();
   let want = { cols: 0, rows: 0 };
@@ -84,17 +101,38 @@ function mount(box) {
   let focused = false;
   let wheel = 0;
   let resizing = 0;
-  let startFrames = null; // the opening frame at every size, once asked for
+  let ticking = 0;
+  let escaped = false; // the last key was a lone Escape: see the keydown below
+  let pasteKey = false; // the paste on its way is Ctrl+V's: see the paste listener
+  let previewing = false; // the opening frame is wanted, once the section is near
+  const startFiles = new Map(); // the opening frames for each height, once asked for
 
   const manifest = fetch(new URL("manifest.json", APP), { cache: "no-cache" })
     .then((r) => (r.ok ? r.json() : null))
     .catch(() => null);
 
-  fit();
-  new ResizeObserver(() => {
+  const refit = () => {
     clearTimeout(resizing);
     resizing = setTimeout(fit, 80);
-  }).observe(section);
+  };
+  fit();
+  new ResizeObserver(refit).observe(section);
+  // The section's width is not all that matters: the window's height decides
+  // the rows, and the webfont landing moves the screen's top.
+  addEventListener("resize", refit);
+  document.fonts.ready.then(fit);
+  // A window moved to a screen with another scale keeps its size in the
+  // page's pixels but not in the screen's, so the canvas is redrawn for it.
+  const watchScale = () =>
+    matchMedia("(resolution: " + (window.devicePixelRatio || 1) + "dppx)").addEventListener(
+      "change",
+      () => {
+        refit();
+        watchScale();
+      },
+      { once: true },
+    );
+  watchScale();
 
   // The dimmed opening frame behind the start button. Fetched when the section
   // comes near the screen rather than with the page: most visits never scroll
@@ -103,34 +141,38 @@ function mount(box) {
     (entries, seen) => {
       if (!entries.some((e) => e.isIntersecting)) return;
       seen.disconnect();
+      previewing = true;
       preview();
     },
     { rootMargin: "600px 0px" },
   ).observe(section);
 
   start.addEventListener("click", () => boot().catch(() => {}));
-  buttons.forEach((b) =>
+  // The buttons under the screen: tiny's windows, and the keys of its that a
+  // browser keeps for its own tabs. Either starts tiny first if need be.
+  const press = (b, f) =>
     b.addEventListener("click", async () => {
       try {
         await boot();
       } catch (_) {
         return;
       }
-      ex.tiny_window(Number(b.dataset.window));
+      call(f);
       paint();
-      box.focus();
-    }),
-  );
+      box.focus({ preventScroll: true });
+    });
+  buttons.forEach((b) => press(b, (t) => t.tiny_window(Number(b.dataset.window))));
+  keys.forEach((b) => press(b, (t) => t.tiny_key(0, b.dataset.key.codePointAt(0), 2)));
 
   box.addEventListener("focus", () => {
     focused = true;
     box.classList.add("is-focused");
-    if (ex) paint();
+    paint();
   });
   box.addEventListener("blur", () => {
     focused = false;
     box.classList.remove("is-focused");
-    if (ex) paint();
+    paint();
   });
   box.addEventListener("mousedown", (e) => {
     if (!start.contains(e.target)) box.focus();
@@ -144,6 +186,26 @@ function mount(box) {
       }
       return;
     }
+    // Tab is tiny's while it runs, so a lone Escape and then Tab is the way out
+    // of the terminal for a keyboard, which the hint #term points to says.
+    // A modifier pressed on its own leaves that alone.
+    if (!["Shift", "Control", "Alt", "Meta"].includes(e.key)) {
+      const was = escaped;
+      escaped = e.key === "Escape" && !e.shiftKey && !e.ctrlKey && !e.altKey && !e.metaKey;
+      if (e.key === "Tab" && was) return;
+    }
+    // Pastes are the browser's to start, since only its paste event carries
+    // what the clipboard holds: the chords a terminal on Linux or Windows
+    // pastes with, and Ctrl+V, which is tiny's own paste key too. The paste
+    // listener below hands each on. Should the browser not paste at all, as
+    // with nothing on the clipboard it will give a page, Ctrl+V still reaches
+    // tiny, which pastes its own last copy.
+    if (e.ctrlKey && !e.altKey && e.key.toLowerCase() === "v") {
+      pasteKey = !e.shiftKey;
+      if (pasteKey) setTimeout(() => pasteKey && pasteInto("tiny_paste_key", ""), 100);
+      return;
+    }
+    if (e.shiftKey && e.key === "Insert") return;
     if (e.isComposing || reserved(e)) return;
     const altGraph = e.getModifierState && e.getModifierState("AltGraph");
     const mods = (e.shiftKey ? 1 : 0) | (e.ctrlKey && !altGraph ? 2 : 0) | (e.altKey && !altGraph ? 4 : 0);
@@ -166,20 +228,21 @@ function mount(box) {
       return; // Shift, Control, Dead, Unidentified: nothing a terminal would send
     }
     e.preventDefault();
-    ex.tiny_key(key, ch, mods);
+    call((t) => t.tiny_key(key, ch, mods));
     paint();
+    handOver();
   });
 
+  // Ctrl+V goes on as tiny's key, with the clipboard's text, so tiny pastes
+  // it the way it pastes its own copies: whole lines above the line, copied
+  // files into a folder. Any other paste is a terminal's own, all of the text
+  // at once and exactly as it was copied.
   box.addEventListener("paste", (e) => {
     if (!ex) return;
-    const text = e.clipboardData && e.clipboardData.getData("text");
-    if (!text) return;
     e.preventDefault();
-    for (const c of text.split(CR + LF).join(LF).split(CR).join(LF)) {
-      if (c === LF) ex.tiny_key(1, 0, 0);
-      else ex.tiny_key(0, c.codePointAt(0), 0);
-    }
-    paint();
+    const text = (e.clipboardData && e.clipboardData.getData("text")) || "";
+    if (pasteKey) pasteInto("tiny_paste_key", text);
+    else if (text) pasteInto("tiny_paste", text);
   });
 
   screen.addEventListener(
@@ -188,10 +251,13 @@ function mount(box) {
       if (!ex) return;
       e.preventDefault();
       wheel += e.deltaMode === 1 ? e.deltaY * 16 : e.deltaY;
-      const col = Math.max(0, Math.floor((e.clientX - screen.getBoundingClientRect().left) / m.cw));
+      const at = screen.getBoundingClientRect();
+      const col = Math.max(0, Math.floor((e.clientX - at.left) / m.cw));
+      const row = Math.max(0, Math.floor((e.clientY - at.top) / m.ch));
       let moved = false;
       while (Math.abs(wheel) >= 40) {
-        ex.tiny_scroll(wheel > 0 ? 1 : 0, col);
+        const down = wheel > 0 ? 1 : 0;
+        call((t) => t.tiny_scroll(down, col, row));
         wheel -= Math.sign(wheel) * 40;
         moved = true;
       }
@@ -204,8 +270,60 @@ function mount(box) {
     status.textContent = text;
   }
 
+  /* A paste into tiny: the text into its memory, then `fn`, tiny_paste or
+     tiny_paste_key, to use it (see src/web.rs in the clone). */
+  function pasteInto(fn, text) {
+    pasteKey = false;
+    call((t) => {
+      const bytes = encoder.encode(text);
+      const at = t.tiny_text(bytes.length);
+      // Read only now: making room may have grown the memory, which replaces
+      // its buffer.
+      new Uint8Array(t.memory.buffer, at, bytes.length).set(bytes);
+      t[fn]();
+    });
+    paint();
+  }
+
+  /* What tiny just copied, onto the browser's clipboard. A page may only
+     write there while it handles something the person did, so this runs
+     after each key. */
+  function handOver() {
+    const text = call((t) => {
+      const n = t.tiny_copied_len();
+      return n ? read(t, t.tiny_copied_ptr(), n) : "";
+    });
+    if (text && navigator.clipboard) navigator.clipboard.writeText(text).catch(() => {});
+  }
+
+  /* Every call into tiny once it runs. A panic in tiny aborts the program and
+     every call after it fails too, so the first failure stops it, says so,
+     and leaves the button to load a fresh copy. */
+  function call(f) {
+    if (!ex) return undefined;
+    try {
+      return f(ex);
+    } catch (err) {
+      stopped(err);
+      return undefined;
+    }
+  }
+
+  function stopped(err) {
+    clearInterval(ticking);
+    ex = null;
+    booting = null;
+    box.classList.remove("is-running");
+    start.disabled = false;
+    say("tiny stopped: " + ((err && err.message) || err) + ". Press the button to start it again.");
+    console.error(err);
+  }
+
   function boot() {
     if (booting) return booting;
+    // Into the terminal before the button goes, so a keyboard is not dropped
+    // back to the top of the page while it loads.
+    box.focus({ preventScroll: true });
     start.disabled = true;
     say("Loading tiny...");
     booting = load().catch((err) => {
@@ -265,11 +383,11 @@ function mount(box) {
     paint();
     box.classList.add("is-running");
     say("");
-    box.focus();
+    box.focus({ preventScroll: true });
     // What tiny's terminal loop does while it waits for a key: collect a git
     // job and look at the disk, twice a second.
-    setInterval(() => {
-      if (ex && !document.hidden && ex.tiny_tick()) paint();
+    ticking = setInterval(() => {
+      if (!document.hidden && call((t) => t.tiny_tick())) paint();
     }, 500);
   }
 
@@ -277,19 +395,30 @@ function mount(box) {
     m = metrics();
     const style = getComputedStyle(section);
     const room = section.clientWidth - parseFloat(style.paddingLeft) - parseFloat(style.paddingRight);
-    const cols = Math.max(40, Math.min(160, Math.floor((room - 2 * m.pad - 2) / m.cw)));
-    const rows = m.rows;
+    const cols = snap(Math.floor((room - 2 * m.pad - 2) / m.cw), COLS);
+    const rows = m.small ? PHONE_ROWS : snap(Math.floor(heightLeft() / m.ch), ROWS);
+    const dpr = window.devicePixelRatio || 1;
     inner.style.width = cols * m.cw + 2 * m.pad + 2 + "px";
     box.style.padding = m.pad + "px";
-    if (cols === want.cols && rows === want.rows) return;
-    want = { cols, rows };
+    if (cols === want.cols && rows === want.rows && dpr === want.dpr) return;
+    const resized = cols !== want.cols || rows !== want.rows;
+    want = { cols, rows, dpr };
     if (ex) {
-      ex.tiny_resize(cols, rows);
+      if (resized) call((t) => t.tiny_resize(cols, rows));
       paint();
     } else {
       sizeScreen(cols, rows);
-      if (startFrames) preview();
+      if (previewing) preview();
     }
+  }
+
+  /* The most height the screen can have with the whole page in the window: the
+     window's, less what is above the screen and what is below it. Neither of
+     those depends on the screen, so fitting to this does not chase itself. */
+  function heightLeft() {
+    const s = screen.getBoundingClientRect();
+    const below = section.getBoundingClientRect().bottom - s.bottom;
+    return window.innerHeight - (s.top + window.scrollY) - below;
   }
 
   function sizeScreen(cols, rows) {
@@ -308,32 +437,37 @@ function mount(box) {
   }
 
   function paint() {
-    draw(read(ex, ex.tiny_frame_ptr(), ex.tiny_frame_len()));
+    call((t) => draw(read(t, t.tiny_frame_ptr(), t.tiny_frame_len())));
   }
 
   /* tiny's opening frame at the current size, dimmed by the stylesheet until
      the program runs. tools/build_tiny.py makes these by starting the same
-     tiny.wasm at every size this page can use and keeping what it drew first. */
+     tiny.wasm at every size this page can use and keeping what it drew first,
+     in one file for each height, so a page fetches only the height it is. */
   function preview() {
     if (ex) return;
-    if (!startFrames) {
-      startFrames = manifest
-        .then((man) =>
-          man && man.start
-            ? fetch(new URL(man.start.file + "?v=" + man.start.hash, APP)).then((r) => (r.ok ? r.json() : null))
-            : null,
-        )
+    const { cols, rows } = want;
+    let frames = startFiles.get(rows);
+    if (!frames) {
+      frames = manifest
+        .then((man) => {
+          const f = man && man.start && man.start[rows];
+          return f ? fetch(new URL(f.file + "?v=" + f.hash, APP)).then((r) => (r.ok ? r.json() : null)) : null;
+        })
         .then((data) => (data && data.frames) || null)
         .catch(() => null);
+      startFiles.set(rows, frames);
     }
     Promise.all([
-      startFrames,
+      frames,
       document.fonts.load("400 " + m.fs + "px " + FAMILY),
       document.fonts.load("700 " + m.fs + "px " + FAMILY),
     ])
-      .then(([frames]) => {
-        const raw = frames && frames[want.cols + "x" + want.rows];
-        if (raw && !ex) draw(raw);
+      .then(([found]) => {
+        const raw = found && found[cols + "x" + rows];
+        // Only while the screen is still this size: the window may have
+        // changed while the file was on its way.
+        if (raw && !ex && want.cols === cols && want.rows === rows) draw(raw);
       })
       .catch(() => {});
   }
@@ -349,8 +483,13 @@ function mount(box) {
     ctx.fillStyle = BG;
     ctx.fillRect(0, 0, cols * m.cw, rows * m.ch);
     ctx.textBaseline = "alphabetic";
+    // The font's ascent and descent centered in the cell.
     const baseline = Math.round(m.ch / 2 + m.fs * 0.36);
+    // Paper Mono's math axis, where a ">" centers, 0.3135 em up with its
+    // size-adjust: the drawn marks center on it, as the characters would.
+    const axis = baseline - m.fs * 0.3135;
     let font = "";
+    let adv = m.cw;
     let under = "";
 
     for (let y = 0; y < rows; y++) {
@@ -377,10 +516,13 @@ function mount(box) {
         }
         if (!(mods & HIDDEN)) {
           const f = (mods & ITALIC ? "italic " : "") + (mods & BOLD ? 700 : 400) + " " + m.fs + "px " + FAMILY;
-          if (f !== font) ctx.font = font = f;
+          if (f !== font) {
+            ctx.font = font = f;
+            adv = advance(ctx, f);
+          }
           ctx.globalAlpha = mods & DIM ? 0.55 : 1;
           ctx.fillStyle = fg;
-          drawCells(ctx, cells, x, py + baseline, py, fg);
+          drawCells(ctx, cells, x, py, py + baseline, py + axis, fg, adv);
           ctx.globalAlpha = 1;
         }
         if (mods & UNDERLINED) {
@@ -404,7 +546,9 @@ function mount(box) {
         if (under && under !== " ") {
           ctx.font = "400 " + m.fs + "px " + FAMILY;
           ctx.fillStyle = "#ffffff";
-          ctx.fillText(under, px, py + baseline);
+          const shape = SHAPES[under.codePointAt(0)];
+          if (shape) drawShape(ctx, shape, px, py + axis, m.cw);
+          else ctx.fillText(under, px, py + baseline);
         }
       } else {
         ctx.strokeStyle = CURSOR;
@@ -417,14 +561,25 @@ function mount(box) {
   }
 
   /* One run's cells. ASCII is batched into single fillText calls, which is
-     most of the screen and most of the speed: at this grid the font's advance
-     is exactly one cell, so a string lands on the columns it should. Anything
-     else is drawn a cell at a time and fitted to the columns it occupies. */
-  function drawCells(ctx, cells, x0, base, py, fg) {
+     most of the screen and most of the speed. A string lands on the columns
+     it should as long as the font advances exactly one cell, and stretching
+     the run by the little it does not (see advance()) makes sure of that.
+     Anything else is drawn a cell at a time and fitted to its columns. */
+  function drawCells(ctx, cells, x0, py, base, axis, fg, adv) {
+    const stretch = m.cw / adv;
     let from = -1;
     let text = "";
     const flush = () => {
-      if (text) ctx.fillText(text, from * m.cw, base);
+      if (!text) return;
+      if (Math.abs(stretch - 1) < 1e-4) {
+        ctx.fillText(text, from * m.cw, base);
+      } else {
+        ctx.save();
+        ctx.translate(from * m.cw, base);
+        ctx.scale(stretch, 1);
+        ctx.fillText(text, 0, 0);
+        ctx.restore();
+      }
       text = "";
       from = -1;
     };
@@ -442,6 +597,10 @@ function mount(box) {
       flush();
       if (!s) continue; // under the wide glyph to its left
       const cp = s.codePointAt(0);
+      if (SHAPES[cp]) {
+        drawShape(ctx, SHAPES[cp], col * m.cw, axis, m.cw);
+        continue;
+      }
       if (BOX[cp] || ARC[cp]) {
         drawBox(ctx, cp, col * m.cw, py, m.cw, m.ch, fg);
         continue;
@@ -463,21 +622,74 @@ function mount(box) {
   }
 }
 
+/* The grid. Paper Mono at 14.4px and at 9.6px is 9px and 6px a column, at the
+   0.625 em tiny.css gives it, so every column starts on a whole pixel. */
 function metrics() {
   const small = window.matchMedia("(max-width: 560px)").matches;
-  const fs = small ? 10 : 15;
-  return { fs, cw: fs * 0.6, ch: small ? 14 : 20, rows: small ? 30 : 32, pad: small ? 6 : 12 };
+  return small ? { small, fs: 9.6, cw: 6, ch: 14, pad: 6 } : { small, fs: 14.4, cw: 9, ch: 20, pad: 12 };
+}
+
+/* n brought onto [min, max], down to a whole number of steps from min. */
+function snap(n, [min, max, step]) {
+  return Math.max(min, Math.min(max, min + Math.floor((n - min) / step) * step));
+}
+
+/* What a font really advances at a size, measured over a long run. Paper
+   Mono's 0.625 em is 9px at 14.4px on paper, but a canvas sets text at a size
+   rounded to 1/64 of a pixel and comes out at 8.995, most of a pixel off the
+   grid by the end of a row. Runs are stretched by the difference. Asked once
+   a font, after the font has loaded. */
+const advances = new Map();
+function advance(ctx, font) {
+  let a = advances.get(font);
+  if (a === undefined) {
+    a = ctx.measureText("M".repeat(64)).width / 64;
+    advances.set(font, a);
+  }
+  return a;
+}
+
+/* The three marks tiny draws that Paper Mono lacks: the browser's open and
+   closed folder markers and the third bullet. Drawn like the box lines rather
+   than left to whatever font the system has for them, sized off the cell and
+   centered on the axis a ">" sits on, in the current fill. */
+const SHAPES = { 0x25b8: "right", 0x25be: "down", 0x25aa: "square" };
+
+function drawShape(ctx, kind, x, axis, w) {
+  const cx = x + w / 2;
+  if (kind === "square") {
+    const s = Math.max(2, Math.round(w * 0.44));
+    ctx.fillRect(Math.round(cx - s / 2), Math.round(axis - s / 2), s, s);
+    return;
+  }
+  // A triangle s across its base and h from base to point.
+  const s = w * 0.62;
+  const h = s * 0.85;
+  ctx.beginPath();
+  if (kind === "right") {
+    ctx.moveTo(cx - h / 2, axis - s / 2);
+    ctx.lineTo(cx + h / 2, axis);
+    ctx.lineTo(cx - h / 2, axis + s / 2);
+  } else {
+    ctx.moveTo(cx - s / 2, axis - h / 2);
+    ctx.lineTo(cx + s / 2, axis - h / 2);
+    ctx.lineTo(cx, axis + h / 2);
+  }
+  ctx.closePath();
+  ctx.fill();
 }
 
 /* Chords the browser keeps, or should: tab and window keys, reload, the
    address bar, developer tools, and anything with the Command key. Some a
-   page cannot intercept at all and the rest it should not. Ctrl+Q is here
-   because quit means nothing in a page. */
+   page cannot intercept at all and the rest it should not. Reload is F5 and
+   Ctrl+Shift+R only: Ctrl+R is tiny's, and records a macro. Ctrl+Q is here
+   because quit means nothing in a page. tiny's own Ctrl+L, Ctrl+T and Ctrl+W
+   have buttons under the screen instead. */
 function reserved(e) {
   if (e.metaKey) return true;
   if (/^F(5|11|12)$/.test(e.key)) return true;
   if (!e.ctrlKey) return false;
-  return /^(Tab|[1-9]|[lnqrtw])$/i.test(e.key) || (e.shiftKey && /^[cijr]$/i.test(e.key));
+  return /^(Tab|[1-9]|[lnqtw])$/i.test(e.key) || (e.shiftKey && /^[cijr]$/i.test(e.key));
 }
 
 function drawBox(ctx, cp, x, y, w, h, fg) {

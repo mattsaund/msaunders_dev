@@ -33,8 +33,8 @@
   Cache-Control: public, max-age=0, must-revalidate
 
 # tiny running in the page: the script, the vendored WASI shim, the wasm, the
-# project it opens and its font. The script's URL is stamped; the wasm and the
-# project are fetched under the hashes in manifest.json. All of it revalidates.
+# project it opens and its opening frames. The script's URL is stamped; the rest
+# are fetched under the hashes in manifest.json. All of it revalidates.
 /tiny/app/*
   Cache-Control: public, max-age=0, must-revalidate
 

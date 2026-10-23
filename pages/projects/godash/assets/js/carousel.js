@@ -51,7 +51,11 @@
       track.style.transition = '';
     }
     var real = (pos - 1 + count) % count;
-    dots.forEach(function (d, i) { d.classList.toggle('active', i === real); });
+    dots.forEach(function (d, i) {
+      d.classList.toggle('active', i === real);
+      if (i === real) d.setAttribute('aria-current', 'true');
+      else d.removeAttribute('aria-current');
+    });
   }
 
   // From a copy, the real slide it shows.
@@ -100,13 +104,20 @@
     startX = null;
   });
 
-  // Gentle autoplay, paused on hover and disabled for reduced motion.
+  // Gentle autoplay, paused on hover, focus and touch, and off for reduced motion.
   var timer = null;
   function start() { if (reduceMotion) return; stop(); timer = setInterval(nextSlide, 9000); }
   function stop() { if (timer) { clearInterval(timer); timer = null; } }
   function restart() { if (timer) { stop(); start(); } }
   root.addEventListener('mouseenter', stop);
   root.addEventListener('mouseleave', start);
+  // Keyboard focus and a touch hold it still too: a slide should not move out
+  // from under someone reading it or about to tap it.
+  root.addEventListener('focusin', stop);
+  root.addEventListener('focusout', function (e) {
+    if (!root.contains(e.relatedTarget)) start();
+  });
+  root.addEventListener('touchstart', stop, { passive: true });
 
   render(false);
   start();

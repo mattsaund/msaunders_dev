@@ -192,7 +192,9 @@ hr { border: 0; border-top: 1px solid var(--line); margin: 0; }
   margin-inline-start: round(down, max(0px, (100% - var(--wrap)) / 2), 1px);
   margin-inline-end: auto;
 }
-main { min-height: 400px; }
+/* The first panel sits as far from the top of the window as the panels sit
+   from each other. */
+main { min-height: 400px; padding-top: var(--panel-gap); }
 
 /* --- section panels ---------------------------------------- */
 /* Every section carries its own panel rather than the page sitting on one flat
@@ -277,7 +279,7 @@ main { min-height: 400px; }
 .btn--primary { border-color: var(--accent-line); background: var(--accent-bg); color: var(--accent); }
 .btn--primary:hover { border-color: var(--accent); background: #112538; color: var(--accent-hi); }
 .btn-row { display: flex; flex-wrap: wrap; gap: 8px; }
-/* The hero's one row of everything: resume, contact, profiles, misc. */
+/* The hero's one row of everything: resume, email, profiles, blog. */
 .links { display: flex; flex-wrap: wrap; gap: 8px 24px; margin-bottom: 0; }
 /* In the hero these drop the box and read as a line of text: no border, no
    fill, no caps, color is the only hover cue. */
@@ -291,11 +293,16 @@ main { min-height: 400px; }
 }
 .links .btn:hover,
 .links .social:hover { color: var(--accent); background: none; border-color: transparent; }
-/* Brackets set their own color, so they stay blue when the label does. */
+/* Brackets set their own color, so they stay blue when the label does.
+
+   Every bracket and mark on the site is set twice: the second content gives it
+   an empty alternative text (the part after the slash), so a screen reader
+   says "Resume" rather than "less than, Resume, greater than", and the first is
+   for a browser that does not know that syntax. */
 .links .btn::before,
-.links .social::before { content: "<"; color: var(--accent); }
+.links .social::before { content: "<"; content: "<" / ""; color: var(--accent); }
 .links .btn::after,
-.links .social::after { content: ">"; color: var(--accent); }
+.links .social::after { content: ">"; content: ">" / ""; color: var(--accent); }
 
 /* --- tags / chips ------------------------------------------ */
 .tags { display: flex; flex-wrap: wrap; gap: 8px 16px; list-style: none; margin: 0; padding: 0; }
@@ -307,8 +314,8 @@ main { min-height: 400px; }
   color: var(--fg-2);            /* same gray as .lede, .tl__where and .tl__desc */
   white-space: nowrap;
 }
-.tag::before { content: "<"; }
-.tag::after { content: ">"; }
+.tag::before { content: "<"; content: "<" / ""; }
+.tag::after { content: ">"; content: ">" / ""; }
 
 /* --- collapsible detail ------------------------------------ */
 /* A tag list wrapped so a phone can fold it away. On a desktop the summary is
@@ -358,6 +365,8 @@ main { min-height: 400px; }
   text-transform: none;
   /* No gap, so "~/" reads as one string with the label. */
   gap: 0;
+  /* The only thing in its column, so nothing below it to space from. */
+  margin-bottom: 0;
 }
 /* The label's connector. It starts --rule-gap after the label and runs to the
    rail, so every label is joined to its list. The column is sized so the
@@ -423,18 +432,16 @@ main { min-height: 400px; }
 .tl__item:last-child { padding-bottom: 0; }
 .tl > .tl__item:last-child > :last-child { margin-bottom: 0; }
 /* Angle brackets stop above the baseline, so a tag row leaves more air under
-   it than prose does. Take the difference back where one closes a section. */
-.tl > .tl__item:last-child > .tl__tags:last-child { margin-bottom: -3px; }
+   it than prose does. Take the difference back where one closes a section,
+   inside the fold that holds it. */
+.tl > .tl__item:last-child > .drop:last-child > .tl__tags:last-child { margin-bottom: -3px; }
 /* On the title itself, and outside the <a>, so it never picks up an
    underline. */
-.tl__what::before { content: "/"; color: var(--accent); }
-.tl__what::after { content: ">"; color: var(--accent); }
+.tl__what::before { content: "/"; content: "/" / ""; color: var(--accent); }
+.tl__what::after { content: ">"; content: ">" / ""; color: var(--accent); }
 .tl__what { font-family: var(--mono); font-size: var(--tl-fs); line-height: var(--tl-line); margin-bottom: 4px; }
 .tl__where { font-size: var(--body-fs); line-height: var(--body-line); color: var(--fg-2); margin-bottom: 8px; }
 .tl__desc { font-size: var(--body-fs); line-height: var(--body-line); color: var(--fg-2); }
-/* The indent is for prose lists. Tag rows are flush, so exclude them:
-   .tl__desc ul out-specifies .tags. */
-.tl__desc ul:not(.tags) { margin: 0; padding-left: 16px; }
 
 /* Project entries: the title links out to the project's own site. */
 .tl__what a {
@@ -505,12 +512,17 @@ main { min-height: 400px; }
    window's width because the globe's glyphs do. No panel here, or the box
    would sit over the globe and cut the copyright out of its row. */
 .foot { padding: 360px 0 0; }
-/* The copyright sits in the globe's last glyph row. cosmos.js sizes this line
-   to that grid and blanks the glyphs under it, so tracking has to stay 0 or the
-   character count stops mapping to columns. */
+/* The copyright sits in the foot of the globe. cosmos.js sizes this line to the
+   globe's grid, three glyph rows to a line, and blanks the glyphs behind the
+   box the line measures out to.
+
+   Clipped, because the mark below hangs a couple of pixels under the line,
+   past the end of the page, and on a page shorter than the window that was a
+   scrollbar with nothing to scroll. The clip cuts nothing that is drawn. */
 .foot__note {
   font: 400 var(--body-fs)/var(--body-fs) var(--mono); color: #4b545e; letter-spacing: 0;
   text-align: center; margin: 0;
+  overflow: clip;
 }
 /* Half again the size of the line it sits in, because at the copyright's size
    the ring closes into a dot, and mirrored to read as copyleft. The line-height
@@ -522,16 +534,19 @@ main { min-height: 400px; }
   transform: scaleX(-1);
 }
 
-/* The source, zipped by GitHub from the current main. Brackets like every
-   other link on the site, and inside .foot__note so cosmos.js punches the
-   globe out from behind the whole line rather than half of it. */
+/* The site's source on GitHub. Brackets like every other link on the site, and
+   inside .foot__note so cosmos.js punches the globe out from behind the whole
+   line rather than half of it. */
 .foot__code {
   color: var(--accent); text-decoration: none; margin-left: 10px;
   transition: color .15s;
 }
-.foot__code::before { content: "<"; }
-.foot__code::after  { content: ">"; }
+.foot__code::before { content: "<"; content: "<" / ""; }
+.foot__code::after  { content: ">"; content: ">" / ""; }
 .foot__code:hover { color: var(--accent-hi); text-decoration: underline; }
+/* Filled rather than ringed, like the skip link: a ring would stand outside the
+   line, where its clip cuts it off. */
+.foot__code:focus-visible { outline: none; background: var(--accent); color: #04070c; }
 
 .social {
   display: inline-flex; align-items: center; gap: 8px;
@@ -618,7 +633,7 @@ main { min-height: 400px; }
    block for it, and the rest need a position for their z-index to apply. The
    flex lines are the sticky footer: main takes the slack on a short page. */
 body { position: relative; }
-main, .foot, .skip { position: relative; z-index: 1; }
+main, .foot { position: relative; z-index: 1; }
 main { flex: 1 0 auto; }
 .foot { flex: 0 0 auto; }
 
@@ -652,7 +667,8 @@ main { flex: 1 0 auto; }
 
    By width and by pointer, so a phone held sideways and a tablet get it too: a
    coarse pointer under 900px is a hand, not a mouse. js/site.js repeats this
-   query to fold the lists, so change the two together. */
+   query to fold the lists and js/cosmos.js to size the art, so change all
+   three together. */
 @media (max-width: 860px), (pointer: coarse) and (max-width: 900px) {
   /* ---- the label stacks above its list ---- */
   /* One step, the same one that separates two entries. Rail sections need
@@ -710,8 +726,8 @@ main { flex: 1 0 auto; }
     font-feature-settings: "liga" 0, "calt" 0;
   }
   .drop > summary::-webkit-details-marker { display: none; }
-  .drop > summary::after { content: "<+>"; }
-  .drop[open] > summary::after { content: "<->"; }
+  .drop > summary::after { content: "<+>"; content: "<+>" / ""; }
+  .drop[open] > summary::after { content: "<->"; content: "<->" / ""; }
   .drop > summary:hover { color: var(--accent-hi); }
   .drop > summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
   /* A marker straight under a title gets a body line's clearance, not the
@@ -726,10 +742,10 @@ main { flex: 1 0 auto; }
   .drop[open] > .tags { margin-top: 0; }
 
   /* ---- the art ---- */
-  /* The horizon is four viewport widths across, so on a phone it is a wall of
-     ink under the last panel rather than a limb rising into the page. It goes,
-     and the footer padding that reserved room for it goes with it. The
-     drifting bodies stay. */
+  /* The horizon is over two viewport widths across, so on a phone it is a
+     wall of ink under the last panel rather than a limb rising into the page.
+     It goes, and the footer padding that reserved room for it goes with it.
+     The drifting bodies stay. */
   .cosmos__horizon { display: none; }
   .foot { padding: 72px 0 0; }
 

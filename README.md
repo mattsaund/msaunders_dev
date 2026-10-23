@@ -5,7 +5,7 @@
 ## Files
 
 ```
-index.html                     the whole site
+index.html                     the home page
 404.html                       generated
 
 pages/misc/                    /misc/      
@@ -23,7 +23,7 @@ fonts/                         Paper Mono, self hosted
 files/images/                  favicon.svg, favicon.png, og.png
 files/docs/                    resume and certificates
 
-_headers                       cache and security headers, by request path
+_headers                       cache and security headers, by request pat
 _redirects                     rewrites for the pages under pages/, and 301s
 robots.txt, sitemap.xml
 
@@ -44,9 +44,7 @@ fonts/                         Paper Mono (paper.design), SIL Open Font
 pages/projects/godash/         the GoDash site, all rights reserved, in its LICENSE
 pages/projects/tiny/app/       tiny.wasm: tiny itself, MIT, in LICENSE; every
                                crate built into it, in THIRD-PARTY-NOTICES.txt;
-                               its syntax definitions, in SYNTAX-ACKNOWLEDGMENTS.md;
-                               the terminal's JetBrains Mono subset, SIL Open
-                               Font License 1.1, in OFL.txt
+                               its syntax definitions, in SYNTAX-ACKNOWLEDGMENTS.md
 pages/projects/tiny/app/wasi/  browser_wasi_shim, MIT or Apache 2.0
 pages/projects/cosmos/         a copy of cosmos.js, MIT, same author; its own
                                copy of Paper Mono, SIL Open Font License 1.1,

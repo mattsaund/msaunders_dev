@@ -26,6 +26,11 @@
     });
   }
 
+  /* The status line is one line under both commands, so whichever button
+     spoke last owns it: an earlier button's timer must not clear what a later
+     one said. */
+  var speaker = null;
+
   document.querySelectorAll(".cmd__copy").forEach(function (btn) {
     var text = document.getElementById(btn.dataset.copy);
     var label = btn.querySelector(".cmd__copy-label");
@@ -46,12 +51,18 @@
     function say(short, full) {
       label.textContent = short;
       btn.classList.add("is-said");
-      if (note) note.textContent = full;
+      if (note) {
+        note.textContent = full;
+        speaker = btn;
+      }
       clearTimeout(timer);
       timer = setTimeout(function () {
         label.textContent = "Copy";
         btn.classList.remove("is-said");
-        if (note) note.textContent = "";
+        if (note && speaker === btn) {
+          note.textContent = "";
+          speaker = null;
+        }
       }, 2000);
     }
   });

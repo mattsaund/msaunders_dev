@@ -1,8 +1,10 @@
 /* The Crucible page : black, orange, white.
 
-   Flat color only, no translucency, and every length here a whole number of
-   pixels, the same rule the main stylesheet follows. That is a rule about the
-   source: centering in a container of odd width still lands on a half pixel. */
+   Flat color only, no translucency, and every box, gap and line a whole number
+   of pixels, the same rule the main stylesheet follows. Font sizes are the
+   exception where a fraction is what lands a column on a whole pixel (5.76,
+   12.8). That is a rule about the source: centering in a container of odd
+   width still lands on a half pixel. */
 
 /* The same font file /css/site.css serves, by the same URL, so the two pages
    share one cache entry. */
@@ -33,6 +35,10 @@
   /* Hover only. A lighter orange rather than a translucent one, so the
      button stays a flat fill in both states. */
   --flame-hi: #ff8a33;
+  /* The flame's core (js/flame.js), yellow, as the heart of a fire burns
+     hotter than its edges. Fully saturated: a lighter color with any blue in
+     it reads as tan in glyphs this small. */
+  --flame-core: #ffa000;
 
   --mono: "Paper Mono", ui-monospace, "SF Mono", SFMono-Regular,
           "Cascadia Mono", Menlo, Consolas, "Liberation Mono", monospace;
@@ -139,6 +145,7 @@ body {
   white-space: pre;
   user-select: none; -webkit-user-select: none;
 }
+.flame__core { color: var(--flame-core); }
 
 /* 80px, and 64 and 48 at the steps below, are multiples of 8, so at the
    face's 0.625 em every column is a whole pixel (50px here). Whole
@@ -152,7 +159,7 @@ body {
 
 /* --- button ------------------------------------------------ */
 /* A solid orange block with black on it. Black, not white: white on this
-   orange is 2.6:1 and fails at any size, while black is 7.6:1. Flat fill,
+   orange is 2.9:1 and fails at any size, while black is 7.3:1. Flat fill,
    square corners, no border. */
 .btn {
   display: inline-block;
@@ -223,9 +230,8 @@ body {
   scrollbar-width: thin;
   scrollbar-color: var(--line-2) transparent;
 }
-/* White until it is used, then the accent fill. The accent as text would be
-   under 4.5:1 at this size on either page; as a fill behind black it is
-   the same pairing the download button already uses. */
+/* White until it is used, then the accent fill behind black: the same pairing
+   the download button already uses. */
 .cmd__copy {
   flex: none;
   border: 0; border-left: 1px solid var(--line-2);
@@ -238,8 +244,9 @@ body {
   cursor: pointer;
   transition: background-color .15s, color .15s;
   /* "Copy" and what replaces it are different lengths; a fixed width keeps
-     the box from twitching when the label swaps. */
-  min-width: 112px;
+     the box from twitching when the label swaps. 116 holds the longest, "SELECT
+     IT", at 113.5. */
+  min-width: 116px;
 }
 .cmd__copy:hover,
 .cmd__copy.is-said { background: var(--flame); color: #000000; }
@@ -268,8 +275,9 @@ body {
   .cmd__row { gap: 10px; }
   .cmd__os { width: 40px; gap: 8px; }
   .cmd__os svg { width: 16px; height: 16px; }
-  .cmd__text { font-size: 12px; padding: 12px 12px; }
-  .cmd__copy { font-size: 11px; padding: 12px 12px; min-width: 92px; }
+  /* 11.2 for 7px columns, the phone's step down from 12.8's 8. */
+  .cmd__text { font-size: 11.2px; padding: 12px 12px; }
+  .cmd__copy { font-size: 11px; padding: 12px 12px; min-width: 96px; }   /* "SELECT IT" is 95.9 */
   .bar { padding: 0 14px; }
   .hero { gap: 32px; padding: 32px 20px 48px; }
   .hero__unit { gap: 14px; }

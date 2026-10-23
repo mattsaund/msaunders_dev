@@ -1,7 +1,7 @@
 /* The tiny page : black, white, forest green.
 
-   Built like the Crucible page: flat fills, nothing translucent, whole pixels.
-   What differs is the accent and the mark. */
+   Built like the Crucible page: flat fills and whole pixels. What differs is
+   the accent, the mark, and the terminal under them. */
 
 /* --- webfont ----------------------------------------------- *
    The file /css/site.css serves, by the same URL, so every page on
@@ -45,10 +45,6 @@
 
 body {
   margin: 0;
-  /* A column, so .hero takes every pixel the bar leaves. */
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
   background: var(--bg);
   color: var(--fg);
   font: 400 15px/25px var(--mono);
@@ -104,12 +100,13 @@ body {
 .bar__repo:hover { color: var(--fg); text-decoration: underline; }
 
 /* --- hero -------------------------------------------------- */
+/* As tall as what is in it, not the window as Crucible's is: the terminal is
+   the rest of this page, and height spare up here only opened a gap between
+   the install line and the terminal, wider the taller the window. */
 .hero {
-  flex: 1;
-  display: flex; flex-direction: column;
-  align-items: center; justify-content: center;
+  display: flex; flex-direction: column; align-items: center;
   gap: 36px;
-  padding: 40px 28px 32px;
+  padding: 40px 28px 16px;
 }
 /* Centered, unlike Crucible's flame, which stands on its title's baseline. A
    flame has a foot to stand on and a circle does not: set on the baseline it
@@ -154,8 +151,8 @@ body {
    4.07:1. Flat fill, square corners, no border. */
 .btn {
   display: inline-block;
-  /* Crucible's button is a link; here Start tiny is a real <button>, and
-     browsers give those a border of their own. */
+  /* Crucible's button is a link; here the one that starts tiny is a real
+     <button>, and browsers give those a border of their own. */
   border: 0;
   background: var(--forest);
   color: #ffffff;
@@ -176,11 +173,11 @@ body {
    against its own command, which is wider than a phone. */
 .get { display: flex; flex-direction: column; align-items: center; gap: 20px; width: 100%; }
 
-/* Wide enough that the whole command shows: the longer of the two is 86
-   characters at 8px (see .cmd__text), 688px, plus the padding and the button.
+/* Wide enough that the whole command shows: the longer of the two is 80
+   characters at 8px (see .cmd__text), 640px, plus the padding and the button.
    Narrower than that it scrolls rather than wraps, since a wrapped shell
    command reads as two commands. */
-.cmd { position: relative; width: 100%; max-width: 900px; }
+.cmd { width: 100%; max-width: 900px; }
 
 /* The marks stand outside the box, in a column of their own, so the two boxes
    keep one left edge whether that column holds one mark or two. */
@@ -225,8 +222,8 @@ body {
   scrollbar-color: var(--line-2) transparent;
 }
 /* White until it is used, then the accent fill. The accent as text would be
-   under 4.5:1 at this size on either page; as a fill behind white it is
-   the same pairing the download button already uses. */
+   under 4.5:1 at this size; as a fill behind white it is the same pairing the
+   download button already uses. */
 .cmd__copy {
   flex: none;
   border: 0; border-left: 1px solid var(--line-2);
@@ -239,8 +236,9 @@ body {
   cursor: pointer;
   transition: background-color .15s, color .15s;
   /* "Copy" and what replaces it are different lengths; a fixed width keeps
-     the box from twitching when the label swaps. */
-  min-width: 112px;
+     the box from twitching when the label swaps. 116 holds the longest, "SELECT
+     IT", at 113.5. */
+  min-width: 116px;
 }
 .cmd__copy:hover,
 .cmd__copy.is-said { background: var(--forest); color: #ffffff; }
@@ -254,14 +252,12 @@ body {
   text-align: center;
 }
 
-/* The installed sizes, in the row the status line keeps empty, laid over it
-   rather than given a row of their own, so nothing above or below moves. They
-   step aside while the status line is saying "copied". On a narrow phone they
-   take a second line, which hangs into the space under the hero: there is
-   room for exactly one, so keep the text short enough to stay at two. */
+/* The installed sizes, in the row the status line keeps empty: pulled up over
+   it rather than given a row of their own, so nothing moves for them. They
+   step aside while the status line is saying "copied". Where they wrap, as on
+   a phone, the lines after the first push the page down like any text. */
 .cmd__sizes {
-  position: absolute; left: 0; right: 0; top: calc(100% - 16px);
-  margin: 0;
+  margin: -16px 0 0;
   font: 400 12px/16px var(--mono);
   color: var(--fg-2);
   text-align: center;
@@ -285,14 +281,15 @@ body {
   .cmd__row { gap: 10px; }
   .cmd__os { width: 40px; gap: 8px; }
   .cmd__os svg { width: 16px; height: 16px; }
-  .cmd__text { font-size: 12px; padding: 12px 12px; }
-  .cmd__copy { font-size: 11px; padding: 12px 12px; min-width: 92px; }
-  /* 7.2px columns, so the sizes still break into the two lines the space
-     under the hero has room for, down to a 320px phone. At 12px they take
-     three there and the third runs into "Try it out here". */
+  /* 11.2 for 7px columns, the phone's step down from 12.8's 8. */
+  .cmd__text { font-size: 11.2px; padding: 12px 12px; }
+  .cmd__copy { font-size: 11px; padding: 12px 12px; min-width: 96px; }   /* "SELECT IT" is 95.9 */
+  /* 7.2px columns, which keep the sizes to two lines down to a 360px phone.
+     Narrower, a third line pushes the page down rather than overlapping. */
   .cmd__sizes { font-size: 11.52px; }
   .bar { padding: 0 14px; }
-  .hero { gap: 24px; padding: 28px 20px 24px; }
+  /* 16px between the sizes' last line and the terminal, as on a desktop. */
+  .hero { gap: 24px; padding: 28px 20px 16px; }
   .hero__unit { gap: 14px; }
   .hero__title { font-size: 48px; line-height: 48px; letter-spacing: -1px; }
   /* 4px: 80px tall, the same ratio to the title as Crucible's flame here. The
@@ -302,29 +299,14 @@ body {
 }
 
 /* --- try it ------------------------------------------------ */
-/* The terminal's own face: a subset of JetBrains Mono carrying the arrows,
-   shapes and symbols tiny draws. The site's Paper Mono lacks hundreds of them,
-   the triangles on the file tree's folders among them, so the terminal keeps
-   this face. Blocking rather than swapping: the program is only drawn once
-   this has loaded, and a fallback face would put glyphs in the wrong
-   columns. */
-@font-face {
-  font-family: "tiny term";
-  src: url("/tiny/app/term.woff2") format("woff2");
-  font-weight: 400 800;
-  font-style: normal;
-  font-display: block;
-}
+/* The terminal draws in the page's Paper Mono, declared at the top of this
+   file: app/term.js waits for it before drawing, and draws the box lines and
+   the few marks tiny uses that the face lacks itself. */
 
 .try { padding: 0 28px 48px; }
 /* app/term.js sets its width to exactly the grid plus the box around it, so
-   the label, the screen and the buttons share one left edge. */
+   the screen and the buttons under it share one left edge. */
 .try__inner { max-width: 100%; margin: 0 auto; }
-.try__label {
-  margin: 0 0 16px;
-  font: 500 20px/24px var(--mono);
-  color: var(--fg);
-}
 
 .term {
   position: relative;
@@ -334,6 +316,11 @@ body {
   outline: none;
 }
 .term.is-focused { border-color: var(--forest); }
+/* Read out with the terminal (its aria-describedby), shown to nobody. */
+.term__hint {
+  position: absolute; width: 1px; height: 1px;
+  overflow: hidden; clip-path: inset(50%); white-space: nowrap;
+}
 
 /* Until it runs, the screen holds tiny's opening frame, dimmed. It is the same
    frame the program draws first, so starting it only has to lift the dimming. */
@@ -362,8 +349,14 @@ body {
 }
 .term__start:disabled { background: var(--line); color: var(--fg-2); cursor: default; }
 
-.term__windows { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
-.term__win {
+/* The buttons under the screen: tiny's windows at the left edge, and at the
+   right its keys that the browser keeps, until a line cannot hold both. */
+.term__buttons {
+  display: flex; flex-wrap: wrap; justify-content: space-between;
+  gap: 8px; margin-top: 12px;
+}
+.term__windows, .term__keys { display: flex; flex-wrap: wrap; gap: 8px; }
+.term__win, .term__key {
   font: 500 13px/13px var(--mono);
   padding: 11px 16px;
   color: var(--fg-2);
@@ -372,13 +365,17 @@ body {
   cursor: pointer;
   transition: color .15s, background-color .15s, border-color .15s;
 }
-.term__win:hover { color: var(--fg); }
+.term__win:hover, .term__key:hover { color: var(--fg); }
 .term__win[aria-pressed="true"] {
   color: #ffffff;
   background: var(--forest);
   border-color: var(--forest);
 }
-.term__win:focus-visible { outline: 2px solid var(--fg); outline-offset: 2px; }
+.term__win:focus-visible, .term__key:focus-visible { outline: 2px solid var(--fg); outline-offset: 2px; }
+/* The key the button stands in for, in white ahead of what it does. Not the
+   logo's green: on the button that is 4.2:1, short of what text this size
+   needs. */
+.term__key kbd { font: inherit; color: var(--fg); margin-right: 4px; }
 
 @media (max-width: 560px) {
   .try { padding: 0 14px 64px; }
@@ -386,6 +383,6 @@ body {
 
 @media (prefers-reduced-motion: reduce) {
   .btn { transition: none; }
-  .term__win { transition: none; }
+  .term__win, .term__key { transition: none; }
   .term__screen, .term__cover { transition: none; }
 }

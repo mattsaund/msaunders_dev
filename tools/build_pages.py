@@ -89,10 +89,15 @@ COSMOS_BAR_CSS = """<style>
    edge with no way to reach them. The app gives the bar's height back. Only
    where app.css lays the tool out across one screen: this query is the exact
    complement of its (max-width: 900px), so a fractional width from zoom or
-   display scaling cannot fall between the two. At 900 and under the panels
-   stack, the page scrolls again, and the bar just sits on top. */
-@media (width > 900px) {
-  .app { height: calc(100dvh - var(--site-bar-h)); }
+   display scaling cannot fall between the two, and written the long way so
+   Safari before 16.4 reads it too. At 900 and under the panels stack, the page
+   scrolls again, and the bar just sits on top.
+
+   40px is --site-bar-h, written out: a var() would make the dvh line valid to
+   a browser without dvh, which would then drop it at use rather than parse and
+   keep the vh line before it. */
+@media not all and (max-width: 900px) {
+  .app { height: calc(100vh - 40px); height: calc(100dvh - 40px); }
 }
 .site-bar__back {
   display: inline-flex; align-items: center;
@@ -167,7 +172,7 @@ def cosmos_bar():
     html = OWN_CSS.sub("", html, count=1)
     html = OWN_LOCK.sub("", html, count=1)
 
-    if "<body>" not in html or "</head>" not in html or "<head>\n" not in html:
+    if "<body>\n" not in html or "</head>" not in html or "<head>\n" not in html:
         print("  pages/projects/cosmos/index.html       SHAPE CHANGED, bar NOT added")
         return
     # Early in the head, behind the charset where upstream has one first, so the
@@ -256,10 +261,10 @@ def stamp_assets():
     for root, dirs, files in os.walk(ROOT):
         # The tiny clone is a Rust checkout: a build directory of tens of
         # thousands of files and not a page among them. Pruned here so the walk
-        # never goes into it, rather than skipped once it is already inside.
-        dirs[:] = [d for d in dirs if os.path.join(root, d) != clone]
-        if os.sep + ".git" in root or os.sep + "assets" in root:
-            continue
+        # never goes into it, rather than skipped once it is already inside,
+        # and .git and the asset folders with it, which hold no pages either.
+        dirs[:] = [d for d in dirs
+                   if d not in (".git", "assets") and os.path.join(root, d) != clone]
         for f in files:
             if not f.endswith(".html"):
                 continue
@@ -395,7 +400,7 @@ MISC = """
 MISC_SOON = """
   <section class="hero">
     <div class="wrap">
-      <h1 class="h-xl">Under construction<span class="caret">_</span></h1>
+      <h1 class="h-xl">Under construction<span class="caret" aria-hidden="true">_</span></h1>
       <div class="btn-row" style="margin-top:30px">
         <a class="btn" href="/">Home</a>
       </div>
@@ -411,7 +416,7 @@ NOTFOUND = """
   <section class="hero">
     <div class="wrap">
       <p class="eyebrow"><b>404</b> Not found</p>
-      <h1 class="h-xl">Signal lost<span class="caret">_</span></h1>
+      <h1 class="h-xl">Signal lost<span class="caret" aria-hidden="true">_</span></h1>
       <p class="lede">That page does not exist, or it moved.</p>
       <div class="btn-row" style="margin-top:30px">
         <a class="btn btn--primary" href="/">Back to start</a>

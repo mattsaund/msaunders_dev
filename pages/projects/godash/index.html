@@ -50,7 +50,7 @@
       </div>
 
       <div class="hero__visual">
-        <div class="carousel" id="heroCarousel" tabindex="0" aria-roledescription="carousel" aria-label="GoDash screenshots">
+        <div class="carousel" id="heroCarousel" tabindex="0" role="region" aria-roledescription="carousel" aria-label="GoDash screenshots">
           <div class="carousel__viewport">
             <div class="carousel__track">
               <figure class="carousel__slide"><img src="/godash/assets/img/nav-now-playing.jpg" width="720" height="1557" alt="GoDash in a car mount showing turn-by-turn navigation above the Now Playing music player"></figure>
@@ -70,13 +70,14 @@
           <button class="carousel__arrow next" type="button" aria-label="Next screenshot">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>
           </button>
-          <div class="carousel__dots" aria-label="Choose screenshot"></div>
+          <div class="carousel__dots" role="group" aria-label="Choose screenshot"></div>
         </div>
       </div>
     </div>
   </section>
 
-  <section class="features" id="features" aria-label="Features">
+  <section class="features" id="features" aria-labelledby="features-title">
+    <h2 class="visually-hidden" id="features-title">Features</h2>
     <div class="wrap features__grid">
       <div class="feature">
         <div class="feature__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="6" width="14" height="12" rx="2"/><path d="m22 8-6 4 6 4V8z"/></svg></div>
@@ -137,7 +138,7 @@
         </div>
         <div class="spot__visual">
           <figure class="shot">
-            <div class="shot__empty"><div class="feature__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>Photo coming soon</div>
+            <div class="shot__empty" aria-hidden="true"><div class="feature__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>Photo coming soon</div>
             <img src="/godash/assets/img/new-groups.jpg" width="720" height="1557" alt="A GoDash group with shared dashcam clips" loading="lazy">
           </figure>
         </div>
@@ -155,7 +156,7 @@
         </div>
         <div class="spot__visual">
           <figure class="shot">
-            <div class="shot__empty"><div class="feature__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg></div>Photo coming soon</div>
+            <div class="shot__empty" aria-hidden="true"><div class="feature__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg></div>Photo coming soon</div>
             <img src="/godash/assets/img/new-group-trip.jpg" width="720" height="1557" alt="A GoDash group trip with friends' cars on the map" loading="lazy">
           </figure>
         </div>
@@ -173,7 +174,7 @@
         </div>
         <div class="spot__visual">
           <figure class="shot">
-            <div class="shot__empty"><div class="feature__icon"><svg viewBox="1.5 -1.5 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg></div>Photo coming soon</div>
+            <div class="shot__empty" aria-hidden="true"><div class="feature__icon"><svg viewBox="1.5 -1.5 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg></div>Photo coming soon</div>
             <img src="/godash/assets/img/new-maps.jpg" width="720" height="1557" alt="GoDash navigation with route choices and stops" loading="lazy">
           </figure>
         </div>
@@ -191,7 +192,7 @@
         </div>
         <div class="spot__visual">
           <figure class="shot">
-            <div class="shot__empty"><div class="feature__icon"><svg viewBox="0.5 0.25 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg></div>Photo coming soon</div>
+            <div class="shot__empty" aria-hidden="true"><div class="feature__icon"><svg viewBox="0.5 0.25 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg></div>Photo coming soon</div>
             <img src="/godash/assets/img/new-music-podcasts.jpg" width="720" height="1557" alt="GoDash playing music and podcasts on the dashboard" loading="lazy">
           </figure>
         </div>
@@ -209,7 +210,7 @@
         </div>
         <div class="spot__visual">
           <figure class="shot">
-            <div class="shot__empty"><div class="feature__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="2" width="14" height="20" rx="3"/><path d="M10 5h4"/><path d="M9 18h6"/></svg></div>Photo coming soon</div>
+            <div class="shot__empty" aria-hidden="true"><div class="feature__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="2" width="14" height="20" rx="3"/><path d="M10 5h4"/><path d="M9 18h6"/></svg></div>Photo coming soon</div>
             <img src="/godash/assets/img/new-dashboard.jpg" width="720" height="1557" alt="The GoDash dashboard with the recording status around the Dynamic Island" loading="lazy">
           </figure>
         </div>

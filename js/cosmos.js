@@ -25,7 +25,7 @@
   var CHAR_ASPECT = 0.625;         // glyph advance / line height (measured at init)
   var SCALE = 1.15;                // global size trim for every body
   /* Floor for a body's glyph, in device pixels, because that is what a glyph
-     is rasterised at: a 1px cell at dpr 3 is the same ink as a 3px cell at
+     is rasterized at: a 1px cell at dpr 3 is the same ink as a 3px cell at
      dpr 1. Measured against this ink color, a '@' peaks around 70 of 255 at 5
      device pixels, 56 at 3, 40 at 2, and by 1 the ramp is a flat haze. */
   var MIN_DEVICE_CELL = 3;
@@ -114,7 +114,8 @@
      that wraps the whole body is what makes the rotation legible. */
   /* Widths are in radians of arc, and the disk spans 2 rad across about 140
      columns, so a column is about 0.014 rad. A line thinner than a column
-     falls between glyphs and reads as noise. These run three to six wide. */
+     falls between glyphs and reads as noise. Each crack is w either side of
+     its line, so these cut bands six to twelve columns across. */
   var ICE_CRACKS = greatCircles(20260823, 8, 0.046, 0.042);
   var ICE_CHAOS  = features(51509, 8, 0.19, 0.24);
   var ICE_SPOTS  = features(99013, 12, 0.05, 0.07);
@@ -235,7 +236,7 @@
   /* --- irregular bodies ------------------------------------ *
      A potato instead of a ball: the radius varies with direction, so the
      silhouette itself changes as the body tumbles. The lobes live in BODY
-     space, which is the whole point -- rotating the body rotates the lumps,
+     space, which is the whole point: rotating the body rotates the lumps,
      and that is what makes an asteroid read as an asteroid rather than a
      sphere with a moving texture. */
   /* Three scales of deformation, all generated from a seed so no single lobe
@@ -612,7 +613,7 @@
 
   /* Blank the glyphs the copyright covers, rather than letting it sit on top of
      terrain whose brightness changes as the body turns. */
-  function punch(text, cols) {
+  function punch(text) {
     if (noteTo <= noteFrom || noteRow1 < noteRow0) return text;
     var lines = text.split('\n');
     var gap = new Array(noteTo - noteFrom + 1).join(' ');
@@ -728,7 +729,7 @@
               + 'font-size:' + fs + 'px';
       var peak = (0.38 + r() * 0.62).toFixed(2);
       if (twinkle) {
-        /* Period and phase both randomised; the negative delay drops each star
+        /* Period and phase both randomized; the negative delay drops each star
            somewhere mid-cycle at load so they never start in unison. */
         var dur = 3.4 + r() * 8.0;
         css += ';--tw:' + peak
@@ -744,6 +745,7 @@
 
   /* --- layout --------------------------------------------- */
   var count = 1;
+  var pageH = 0;              /* the body's height at the last measure() */
 
   /* Which monospace font actually resolved decides the glyph advance, and
      both disk roundness and the on-screen fit depend on it. Measure once
@@ -818,11 +820,13 @@
        the cell below divides out whole.
 
        Sized before the page is measured, because this line is the last thing in
-       the document and its height is part of what is being measured. */
+       the document and its height is part of what is being measured. Not on a
+       phone, where the horizon is not drawn (site.css) and the line keeps the
+       stylesheet's size. */
     var notePx = Math.max(Math.round(base * horizon.p.sz / HORIZON_DETAIL) * HORIZON_DETAIL, 9);
     if (note) {
-      note.style.fontSize = Math.round(notePx * NOTE_SCALE) + 'px';
-      note.style.lineHeight = notePx + 'px';
+      note.style.fontSize = phone ? '' : Math.round(notePx * NOTE_SCALE) + 'px';
+      note.style.lineHeight = phone ? '' : notePx + 'px';
     }
 
     /* The body's height, not scrollHeight. Two things inflate scrollHeight and
@@ -832,6 +836,7 @@
        mark) spills a few scrollable pixels under the copyright. */
     var docH = Math.round(document.body.getBoundingClientRect().height);
     host.style.height = docH + 'px';
+    pageH = docH;
 
     var spots = anchors();
     var rail = rails(vw);
@@ -848,7 +853,7 @@
       /* Whole pixels. Line-height is 1, so the cell height is the font size,
          and a fraction puts every row after the first on a fractional offset
          inside the <pre>. Column width stays fractional at CHAR_ASPECT * fs;
-         forcing that whole too would quantise the bodies far too coarsely.
+         forcing that whole too would quantize the bodies far too coarsely.
 
          Never below EASY_CELL. Under it the ink per cell holds but the peak
          does not, the ramp's steps stop reading apart, and the body dims into
@@ -902,9 +907,19 @@
     }
 
     /* ---- the horizon ----
-       Only the band that is on screen is rendered, not a globe four viewports
-       wide that then gets clipped. Extents come straight from pixels, so the
-       curve stays a true circular arc. */
+       Only the band that is on screen is rendered, not a globe over two
+       viewports wide that then gets clipped. Extents come straight from
+       pixels, so the curve stays a true circular arc.
+
+       None on a phone, where site.css hides it: nothing to fit, draw or keep
+       the stars off. */
+    horizon.drawn = null;
+    if (phone) {
+      horizon.h = 0;
+      noteFrom = noteTo = 0;
+      noteRow0 = 0; noteRow1 = -1;
+      return;
+    }
     var E = horizon.p;
     var R = (E.span * vw) / 2;                       // sphere radius in px
     /* The globe's cell, HORIZON_DETAIL of them to a line of copyright. The
@@ -919,26 +934,22 @@
     E.extY = (E.rows * efs) / 2 / R;
     E.yc = 1 - E.extY;                               // band's top edge at the apex
 
-    /* Read the line back after sizing it: this is what the gap is cut from.
-       punch() clears whatever block of cells it covers, so the line and the
-       terrain need not agree on a size. horizon.top is set below, so pass the
-       value rather than reading it. */
-    noteSpan(efs * CHAR_ASPECT, E.cols, efs, E.rows,
-             Math.round(docH - E.rows * efs));
-    horizon.drawn = null;
-
     horizon.h = E.rows * efs;
     horizon.top = Math.round(docH - horizon.h);
     horizonEl.style.fontSize = efs + 'px';
     horizonEl.style.left = '0px';
     horizonEl.style.top = horizon.top + 'px';
-    horizon.drawn = null;
+
+    /* Read the line back after sizing it: this is what the gap is cut from.
+       punch() clears whatever block of cells it covers, so the line and the
+       terrain need not agree on a size. */
+    noteSpan(efs * CHAR_ASPECT, E.cols, efs, E.rows, horizon.top);
   }
 
   /* --- animation ------------------------------------------ */
   /* Rotation runs on wall-clock time, not scroll position, so the bodies keep
      turning while the page sits still. Only bodies near the viewport are
-     drawn, and the angle is quantised so a redraw only happens when a glyph
+     drawn, and the angle is quantized so a redraw only happens when a glyph
      could actually change. Returns the seconds until the next of those
      redraws, or Infinity when nothing in range turns. */
   function draw(spun) {
@@ -958,10 +969,10 @@
       wait = Math.min(wait, untilStep(s.p, spun, 120));
     }
 
-    if (horizon.top + horizon.h >= near && horizon.top <= far) {
+    if (horizon.h && horizon.top + horizon.h >= near && horizon.top <= far) {
       var qe = Math.round((horizon.p.phase + spun * horizon.p.rate) * 240) / 240;
       if (qe !== horizon.drawn) {
-        horizon.el.textContent = punch(render(horizon.p, qe), horizon.p.cols);
+        horizon.el.textContent = punch(render(horizon.p, qe));
         horizon.drawn = qe;
       }
       wait = Math.min(wait, untilStep(horizon.p, spun, 240));
@@ -969,10 +980,11 @@
     return wait;
   }
 
-  /* Seconds until a body's quantised angle next changes. Counted in quanta,
+  /* Seconds until a body's quantized angle next changes. Counted in quanta,
      the angle rounds to a new value where it crosses a half: the next half up
      for a body turning one way, the next half down for the other. */
   function untilStep(p, spun, perRad) {
+    if (!p.rate) return Infinity;
     var a = (p.phase + spun * p.rate) * perRad;
     var n = Math.floor(a + 0.5);
     return ((p.rate > 0 ? n + 0.5 : n - 0.5) - a) / perRad / p.rate;
@@ -1030,19 +1042,27 @@
   redraw();           /* first paint must not wait on a timer or a frame */
 
   /* Star placement depends on the document height, so rebuild it after a
-     resize settles rather than on every intermediate event. */
+     resize settles rather than on every intermediate event. The height is the
+     one measure() found: scrollHeight would count this layer itself. */
   function restar() {
-    buildStars(document.documentElement.clientWidth, document.documentElement.scrollHeight);
+    buildStars(document.documentElement.clientWidth, pageH);
   }
   restar();
 
   var pending = 0;
-  addEventListener('resize', function () {
-    measure();                                  /* cheap: six elements */
+  function reflow() {
+    measure();                                  /* cheap: eight elements */
     redraw();
     clearTimeout(pending);
     pending = setTimeout(restar, 140);
-  });
+  }
+  addEventListener('resize', reflow);
+  /* The page also changes height with the window left alone: the lists fold on
+     a phone after this has measured, a reader opens one, the name wraps as it
+     types. Its foot carries the horizon and its height the stars, so a change
+     in the body's size is measured like a resize. measure() settles it in one
+     more pass: the copyright it sizes is in the body too. */
+  if (window.ResizeObserver) new ResizeObserver(reflow).observe(document.body);
   /* Images and fonts settling changes the document height. */
   addEventListener('load', function () { measure(); restar(); redraw(); });
 

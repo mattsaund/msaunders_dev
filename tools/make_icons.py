@@ -91,9 +91,8 @@ def write_svg(path, box, size=32):
         "</svg>\n"
     ).format(s=size, paper="%02x%02x%02x" % PAPER, ink="%02x%02x%02x" % INK,
              tx=tx, ty=ty, k=scale, d=path)
-    with io.open(os.path.join(ROOT, IMAGES, "favicon.svg"), "w", encoding="utf-8") as fh:
+    with open(os.path.join(ROOT, IMAGES, "favicon.svg"), "w", encoding="utf-8") as fh:
         fh.write(svg)
-    return svg
 
 
 def write_png(name, size, span, ttf):
@@ -103,13 +102,17 @@ def write_png(name, size, span, ttf):
     16-pixel grid. Drawing it ten times over and resampling keeps the curve.
     """
     big = 2048
-    face = ImageFont.truetype(ttf, big // 2)
+    em = big // 2
+    face = ImageFont.truetype(io.BytesIO(ttf), em)
     mask = Image.new("L", (big * 2, big), 0)
     # A glyph at a time, so one can be lifted; each advances by its own width,
-    # the way the string would have set.
+    # the way the string would have set. Set on a baseline three quarters of the
+    # way down, which leaves room for the ascent above it and for the slash's
+    # foot below: hung from the top of the ascent at half way, the slash went
+    # 35 pixels past the bottom of the canvas and lost its foot.
     draw, x = ImageDraw.Draw(mask), big // 4
     for ch in MARK:
-        draw.text((x, big // 2 - LIFT.get(ch, 0) * (big // 2)), ch, font=face, fill=255)
+        draw.text((x, big * 3 // 4 - LIFT.get(ch, 0) * em), ch, font=face, fill=255, anchor="ls")
         x += face.getlength(ch)
     mask = mask.crop(mask.getbbox())
 
@@ -121,7 +124,6 @@ def write_png(name, size, span, ttf):
     out.paste(Image.new("RGB", mask.size, INK),
               ((size - width) // 2, (size - height) // 2), mask)
     out.save(os.path.join(ROOT, IMAGES, name), optimize=True)
-    return out.size
 
 
 def main():
@@ -129,14 +131,13 @@ def main():
     path, box = outlines(font)
     write_svg(path, box)
 
-    ttf = os.path.join(os.path.dirname(os.path.abspath(__file__)), ".mark.ttf")
+    # The pinned font as a plain TrueType in memory, which is what Pillow
+    # draws from: no file is written anywhere that could end up deployed.
     font.flavor = None
-    font.save(ttf)
-    try:
-        write_png("favicon.png", 64, FAVICON_SPAN, ttf)
-        write_png("og.png", 512, OG_SPAN, ttf)
-    finally:
-        os.remove(ttf)
+    buf = io.BytesIO()
+    font.save(buf)
+    write_png("favicon.png", 64, FAVICON_SPAN, buf.getvalue())
+    write_png("og.png", 512, OG_SPAN, buf.getvalue())
 
     for f in ("favicon.svg", "favicon.png", "og.png"):
         print("  {:<12} {:>6,} bytes".format(

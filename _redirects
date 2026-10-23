@@ -11,19 +11,22 @@
 # Cloudflare serves the file from its new path.
 #
 # Every target here is a directory, never a path ending in index.html. Pages
-# canonicalises a URL that names index.html (and one that ends .html) by
+# canonicalizes a URL that names index.html (and one that ends .html) by
 # redirecting to the directory, and it does that to the target of a rewrite as
 # well, which turns the rewrite into a visible 307 and leaks the long path into
 # the address bar. A directory is already canonical, so it is served as-is.
-# The splat covers the bare form too: /tiny with an empty splat lands on the
-# same directory.
-/crucible        /pages/projects/crucible/        200
+# The splat covers the slashed form, /tiny/ with an empty splat.
+#
+# The bare form is sent on to the slashed one rather than served. Served at
+# /cosmos, the tool's relative links resolved against / and all 404ed, and
+# every page is better off with one address.
+/crucible        /crucible/                       301
 /crucible/*      /pages/projects/crucible/:splat  200
 
-/tiny            /pages/projects/tiny/            200
+/tiny            /tiny/                           301
 /tiny/*          /pages/projects/tiny/:splat      200
 
-/cosmos          /pages/projects/cosmos/          200
+/cosmos          /cosmos/                         301
 /cosmos/*        /pages/projects/cosmos/:splat    200
 
 # GoDash's subpages are published without a trailing slash (/godash/privacy),
@@ -31,10 +34,10 @@
 # serves a .html file at its bare name, which is what the splat hands it. As
 # directories they were the long-path 307 described above: the bare name of a
 # directory is not canonical, the slashed one is.
-/godash          /pages/projects/godash/          200
+/godash          /godash/                         301
 /godash/*        /pages/projects/godash/:splat    200
 
-/misc            /pages/misc/                     200
+/misc            /misc/                           301
 /misc/*          /pages/misc/:splat               200
 
 # The old file URLs. Every page here points at the new paths already; these are
@@ -50,7 +53,9 @@
 # ---- retired pages -------------------------------------------------------
 # The two pages folded into /misc/. Both were live and indexed, so they redirect
 # rather than 404.
+/hobbies    /misc/  301
 /hobbies/*  /misc/  301
+/gallery    /misc/  301
 /gallery/*  /misc/  301
 
 # The projects are entries on the home page now, linking to their own pages;

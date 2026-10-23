@@ -15,7 +15,7 @@
      optional even same origin: fonts are always fetched in CORS mode, and a
      preload without it is simply downloaded twice. -->
 <link rel="preload" href="fonts/paper-mono.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="css/app.css?v=a8c2cf52">
+<link rel="stylesheet" href="css/app.css?v=2bfc77b4">
 <style>
 /* The site's bar over the tool. Added by tools/build_pages.py; not part of
    upstream cosmos.js, which as of its bar removal knows nothing about one.
@@ -35,10 +35,15 @@
    edge with no way to reach them. The app gives the bar's height back. Only
    where app.css lays the tool out across one screen: this query is the exact
    complement of its (max-width: 900px), so a fractional width from zoom or
-   display scaling cannot fall between the two. At 900 and under the panels
-   stack, the page scrolls again, and the bar just sits on top. */
-@media (width > 900px) {
-  .app { height: calc(100dvh - var(--site-bar-h)); }
+   display scaling cannot fall between the two, and written the long way so
+   Safari before 16.4 reads it too. At 900 and under the panels stack, the page
+   scrolls again, and the bar just sits on top.
+
+   40px is --site-bar-h, written out: a var() would make the dvh line valid to
+   a browser without dvh, which would then drop it at use rather than parse and
+   keep the vh line before it. */
+@media not all and (max-width: 900px) {
+  .app { height: calc(100vh - 40px); height: calc(100dvh - 40px); }
 }
 .site-bar__back {
   display: inline-flex; align-items: center;
@@ -110,14 +115,14 @@
   </section>
 
   <!-- Preview. #dims reports the glyph grid. The planet itself is plain text
-       inside #out, which is the whole idea: no canvas, no images. Spin lives
-       over in the controls now, and only parks the angle: the loop in tick()
-       keeps running either way. -->
+       inside #out, which is the whole idea: no canvas, no images. To a screen
+       reader it is one picture with a name, rather than a few thousand
+       punctuation marks read out one by one. -->
   <section class="panel preview" aria-label="Preview">
     <div class="panel__head">
       <span id="dims" class="dim">-</span>
     </div>
-    <div class="stage"><pre id="out" aria-live="off"></pre></div>
+    <div class="stage"><pre id="out" role="img" aria-label="ASCII planet"></pre></div>
   </section>
 
   <!-- Generated code. Both panes are always filled by app.js; the tabs only
@@ -125,13 +130,16 @@
   <section class="panel code" aria-label="Generated code">
     <div class="panel__head">
       <div class="tabs" role="tablist">
-        <button type="button" role="tab" class="tab is-on" data-pane="py">planet.py</button>
-        <button type="button" role="tab" class="tab" data-pane="js">planet.js</button>
+        <button type="button" role="tab" class="tab is-on" data-pane="py"
+                aria-selected="true" aria-controls="pane-py">planet.py</button>
+        <button type="button" role="tab" class="tab" data-pane="js"
+                aria-selected="false" aria-controls="pane-js">planet.js</button>
       </div>
       <button type="button" id="copy">Copy</button>
     </div>
-    <pre class="src is-on" id="pane-py"><code></code></pre>
-    <pre class="src" id="pane-js"><code></code></pre>
+    <!-- tabindex so the panes can be scrolled from the keyboard as well. -->
+    <pre class="src is-on" id="pane-py" role="tabpanel" tabindex="0"><code></code></pre>
+    <pre class="src" id="pane-js" role="tabpanel" tabindex="0"><code></code></pre>
   </section>
 
 </main>
@@ -139,8 +147,8 @@
 <!-- Plain scripts, no module system, so the order is the dependency graph:
      planet.js defines Cosmos, emit.js defines Emit and reads Cosmos when it
      runs, and app.js uses both the moment it loads. app.js goes last. -->
-<script src="js/planet.js?v=5a6af0ef"></script>
-<script src="js/emit.js?v=f95c9571"></script>
-<script src="js/app.js?v=9a765807"></script>
+<script src="js/planet.js?v=58f2f528"></script>
+<script src="js/emit.js?v=f0f4b6e1"></script>
+<script src="js/app.js?v=0dd84f19"></script>
 </body>
 </html>
