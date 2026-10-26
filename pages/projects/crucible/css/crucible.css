@@ -28,8 +28,13 @@
   /* The one step off white, for the repo link. It has to sit under the
      wordmark rather than beside it, or the bar reads as two titles. */
   --fg-2:   #8c8c8c;
+  /* Two steps under that: the numbers of the parts not chosen in the tour,
+     present but not competing with the one that is. */
+  --fg-3:   #5c5c5c;
   --line:   #1c1c1c;   /* the bar's hairline, barely off black */
   --line-2: #2e2e2e;   /* the install box, which needs an edge that shows */
+  /* A shade off the page, so a box reads as a panel and not as a hole. */
+  --panel:  #0a0a0a;
 
   --flame:  #ff6a00;
   /* Hover only. A lighter orange rather than a translucent one, so the
@@ -113,13 +118,16 @@ body {
 .bar__repo:hover { color: var(--fg); text-decoration: underline; }
 
 /* --- hero -------------------------------------------------- */
+/* As tall as what it holds and no taller: the three lines and the tour come
+   straight after it, so on most screens the first picture starts above the
+   fold. */
 .hero {
-  flex: 1;
   display: flex; flex-direction: column;
   align-items: center; justify-content: center;
   gap: 48px;
-  padding: 48px 28px 72px;
+  padding: 72px 28px 40px;
 }
+.hero__head { display: flex; flex-direction: column; align-items: center; gap: 24px; }
 /* Bottom aligned, not centered: the flame stands on the title's baseline and
    grows up from there. The line box carries room for descenders that
    "Crucible" has none of, so the flame's bottom margin takes that back. */
@@ -156,24 +164,38 @@ body {
   letter-spacing: -2px;
   color: var(--fg);
 }
+/* 19.2px for 12px columns. A step off white: it is said under the title, not
+   beside it. */
+.hero__line {
+  margin: 0;
+  font: 400 19.2px/28px var(--mono);
+  color: var(--fg-2);
+  text-align: center;
+}
 
-/* --- button ------------------------------------------------ */
-/* A solid orange block with black on it. Black, not white: white on this
-   orange is 2.9:1 and fails at any size, while black is 7.3:1. Flat fill,
-   square corners, no border. */
-.btn {
-  display: inline-block;
-  background: var(--flame);
-  color: #000000;
-  font: 500 15px/15px var(--mono);
+/* --- downloads --------------------------------------------- */
+/* One per platform, the same width each so the row reads as one choice of
+   three. An orange outline and orange words until pointed at, then the solid
+   block with black on it. Black, not white: white on this orange is 2.9:1 and
+   fails at any size, while black is 7.3:1. Three solid blocks side by side
+   shouted; one outline each keeps the orange without the weight. */
+.dl { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; }
+.dl__btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 10px;
+  min-width: 176px;
+  border: 1px solid var(--flame);
+  background: var(--bg);
+  color: var(--flame);
+  font: 500 15px/18px var(--mono);
   letter-spacing: 1px;
   text-transform: uppercase;
   text-decoration: none;
-  padding: 17px 30px;
-  transition: background-color .15s;
+  padding: 15px 24px;
+  transition: background-color .15s, color .15s;
 }
-.btn:hover { background: var(--flame-hi); }
-.btn:focus-visible { outline: 2px solid var(--fg); outline-offset: 3px; }
+.dl__btn svg { width: 18px; height: 18px; display: block; fill: currentColor; flex: none; }
+.dl__btn:hover { background: var(--flame); color: #000000; }
+.dl__btn:focus-visible { outline: 2px solid var(--fg); outline-offset: 3px; }
 
 /* --- install line ------------------------------------------ */
 /* The button and the command are one offer, so they share a column of their
@@ -183,10 +205,12 @@ body {
 .get { display: flex; flex-direction: column; align-items: center; gap: 20px; width: 100%; }
 
 /* Wide enough that the whole command shows: the longer of the two is 86
-   characters at 8px (see .cmd__text), 688px, plus the padding and the button.
-   Narrower than that it scrolls rather than wraps, since a wrapped shell
-   command reads as two commands. */
-.cmd { width: 100%; max-width: 900px; }
+   characters at 8px (see .cmd__text), 688px, plus the padding, the button and
+   both borders, 838px, and the box is this less the marks' 66. At 900 it came
+   out 4px short and carried a scrollbar at every width. Narrower than that it
+   scrolls rather than wraps, since a wrapped shell command reads as two
+   commands. */
+.cmd { width: 100%; max-width: 920px; }
 
 /* The marks stand outside the box, in a column of their own, so the two boxes
    keep one left edge whether that column holds one mark or two. */
@@ -212,8 +236,7 @@ body {
   flex: 1; min-width: 0;
   display: flex; align-items: stretch;
   border: 1px solid var(--line-2);
-  /* A shade off the page, so the box reads as a panel and not as a hole. */
-  background: #0a0a0a;
+  background: var(--panel);
 }
 .cmd__text {
   flex: 1; min-width: 0;
@@ -260,6 +283,175 @@ body {
   text-align: center;
 }
 
+/* --- the sections under the hero --------------------------- */
+/* One column for both, left aligned: the hero is a poster and centered, what
+   follows is read, and a ragged left edge reads badly. 1440px so the pictures
+   are big enough to read the program in. */
+.creed, .tour {
+  width: 100%; max-width: 1440px;
+  margin: 0 auto;
+  padding-left: 28px; padding-right: 28px;
+}
+
+/* --- three lines ------------------------------------------- */
+/* 32px for 20px columns. The claim in white and its reach a step down, the
+   two text colors the page already has; nothing else is said, so it can be
+   large. */
+.creed { padding-top: 16px; padding-bottom: 56px; }
+.creed__line {
+  margin: 0;
+  font: 500 32px/44px var(--mono);
+  letter-spacing: -1px;
+  color: var(--fg-2);
+}
+.creed__lead { color: var(--fg); }
+
+/* --- the tour ---------------------------------------------- */
+/* Phones first: every part with its picture under it, one after another. The
+   radios sit in the markup before both lists, which is what lets the wide
+   layout below pick a picture from them, so here the two lists step aside
+   (display: contents) and their entries interleave by order: an entry, then
+   its picture. */
+.tour { padding-bottom: 112px; }
+.tour__frame { display: flex; flex-direction: column; }
+.tour__list, .tour__shots { display: contents; }
+
+/* Out of sight, not out of reach: a radio that is display:none cannot be
+   focused, and the arrow keys are half of why these are radios. */
+.tour__pick {
+  position: absolute;
+  width: 1px; height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.tour__item {
+  display: grid;
+  grid-template-columns: 40px 1fr;
+  column-gap: 8px;
+  padding: 0 0 12px;
+}
+.tour__n {
+  grid-row: span 2;
+  font: 500 12.8px/24px var(--mono);
+  color: var(--flame);
+}
+.tour__what { font: 500 16px/24px var(--mono); color: var(--fg); }
+.tour__line { font: 400 12.8px/20px var(--mono); color: var(--fg-2); }
+
+.tour__shot {
+  margin: 0 0 40px;
+  border: 1px solid var(--line-2);
+  background: var(--panel);
+}
+/* 1400 by 883, the pictures' own size, so the space they take is known
+   before they arrive and nothing under them jumps when they do. */
+.tour__shot img { display: block; width: 100%; height: auto; }
+/* What shows in the frame until the picture arrives: its description, which
+   is a browser's to draw in the image's own font, and at the body's size and
+   white it read as a caption shouting from an empty box. */
+.tour__shot img { font: 400 12px/16px var(--mono); color: var(--fg-3); }
+
+.tour__item--build   { order: 1; }  .tour__shot--build   { order: 2; }
+.tour__item--preview { order: 3; }  .tour__shot--preview { order: 4; }
+.tour__item--experts { order: 5; }  .tour__shot--experts { order: 6; }
+.tour__item--models  { order: 7; }  .tour__shot--models  { order: 8; }
+.tour__item--create  { order: 9; }  .tour__shot--create  { order: 10; }
+.tour__item--bench   { order: 11; } .tour__shot--bench   { order: 12; }
+
+/* Wide enough for a list beside a picture: the list on the left, one picture
+   at a time on the right, chosen by whichever radio is checked. Only the
+   chosen entry says its line; the rest are a number and a name, so the list
+   stays short enough to sit beside the picture. */
+@media (min-width: 900px) {
+  .tour__frame {
+    display: grid;
+    /* The list gives way first on a narrow window, so the picture keeps
+       its size longest. */
+    grid-template-columns: clamp(260px, 26%, 340px) 1fr;
+    column-gap: 48px;
+    align-items: start;
+  }
+  .tour__list {
+    display: flex; flex-direction: column;
+    border-left: 1px solid var(--line-2);
+  }
+  .tour__shots { display: block; }
+
+  .tour__item {
+    /* Over the list's rule, so the chosen entry's orange replaces the grey
+       rather than standing beside it. */
+    margin-left: -1px;
+    border-left: 2px solid transparent;
+    padding: 16px 0 16px 24px;
+    column-gap: 12px;
+    cursor: pointer;
+  }
+  /* A step up from the phone's sizes: 14.4 for 9px columns, 20 for 12. */
+  .tour__n { font-size: 14.4px; line-height: 28px; color: var(--fg-3); transition: color .15s; }
+  .tour__what { font-size: 20px; line-height: 28px; color: var(--fg-2); transition: color .15s; }
+  .tour__line { display: none; padding-top: 6px; font-size: 14.4px; line-height: 22px; }
+  .tour__item:hover .tour__what { color: var(--fg); }
+
+  .tour__shot { display: none; margin: 0; }
+
+  #tour-build:checked   ~ .tour__shots .tour__shot--build,
+  #tour-preview:checked ~ .tour__shots .tour__shot--preview,
+  #tour-experts:checked ~ .tour__shots .tour__shot--experts,
+  #tour-models:checked  ~ .tour__shots .tour__shot--models,
+  #tour-create:checked  ~ .tour__shots .tour__shot--create,
+  #tour-bench:checked   ~ .tour__shots .tour__shot--bench { display: block; }
+
+  #tour-build:checked   ~ .tour__list .tour__item--build,
+  #tour-preview:checked ~ .tour__list .tour__item--preview,
+  #tour-experts:checked ~ .tour__list .tour__item--experts,
+  #tour-models:checked  ~ .tour__list .tour__item--models,
+  #tour-create:checked  ~ .tour__list .tour__item--create,
+  #tour-bench:checked   ~ .tour__list .tour__item--bench { border-left-color: var(--flame); }
+
+  #tour-build:checked   ~ .tour__list .tour__item--build   .tour__n,
+  #tour-preview:checked ~ .tour__list .tour__item--preview .tour__n,
+  #tour-experts:checked ~ .tour__list .tour__item--experts .tour__n,
+  #tour-models:checked  ~ .tour__list .tour__item--models  .tour__n,
+  #tour-create:checked  ~ .tour__list .tour__item--create  .tour__n,
+  #tour-bench:checked   ~ .tour__list .tour__item--bench   .tour__n { color: var(--flame); }
+
+  #tour-build:checked   ~ .tour__list .tour__item--build   .tour__what,
+  #tour-preview:checked ~ .tour__list .tour__item--preview .tour__what,
+  #tour-experts:checked ~ .tour__list .tour__item--experts .tour__what,
+  #tour-models:checked  ~ .tour__list .tour__item--models  .tour__what,
+  #tour-create:checked  ~ .tour__list .tour__item--create  .tour__what,
+  #tour-bench:checked   ~ .tour__list .tour__item--bench   .tour__what { color: var(--fg); }
+
+  #tour-build:checked   ~ .tour__list .tour__item--build   .tour__line,
+  #tour-preview:checked ~ .tour__list .tour__item--preview .tour__line,
+  #tour-experts:checked ~ .tour__list .tour__item--experts .tour__line,
+  #tour-models:checked  ~ .tour__list .tour__item--models  .tour__line,
+  #tour-create:checked  ~ .tour__list .tour__item--create  .tour__line,
+  #tour-bench:checked   ~ .tour__list .tour__item--bench   .tour__line { display: block; }
+
+  /* The radio has the focus, its entry shows it. */
+  #tour-build:focus-visible   ~ .tour__list .tour__item--build,
+  #tour-preview:focus-visible ~ .tour__list .tour__item--preview,
+  #tour-experts:focus-visible ~ .tour__list .tour__item--experts,
+  #tour-models:focus-visible  ~ .tour__list .tour__item--models,
+  #tour-create:focus-visible  ~ .tour__list .tour__item--create,
+  #tour-bench:focus-visible   ~ .tour__list .tour__item--bench { outline: 2px solid var(--fg); outline-offset: -2px; }
+}
+
+/* --- foot -------------------------------------------------- */
+.foot {
+  display: flex; justify-content: space-between; align-items: center;
+  flex-wrap: wrap; gap: 8px 20px;
+  padding: 20px;
+  border-top: 1px solid var(--line);
+  font: 400 12px/16px var(--mono);
+  color: var(--fg-2);
+}
+.foot a { color: var(--fg-2); text-decoration: none; }
+.foot a:hover { color: var(--fg); text-decoration: underline; }
+
 /* --- responsive steps -------------------------------------- *
    Whole pixels per step, the same way the main site handles its scale.
    ============================================================ */
@@ -267,6 +459,8 @@ body {
   .hero__unit { gap: 20px; }
   .hero__title { font-size: 64px; line-height: 64px; }
   .flame { font-size: 4.8px; line-height: 5px; margin-bottom: 8px; }
+  /* 24 for 15px columns. */
+  .creed__line { font-size: 24px; line-height: 34px; }
 }
 
 @media (max-width: 560px) {
@@ -279,7 +473,19 @@ body {
   .cmd__text { font-size: 11.2px; padding: 12px 12px; }
   .cmd__copy { font-size: 11px; padding: 12px 12px; min-width: 96px; }   /* "SELECT IT" is 95.9 */
   .bar { padding: 0 14px; }
-  .hero { gap: 32px; padding: 32px 20px 48px; }
+  .hero { gap: 32px; padding: 48px 20px 40px; }
+  .hero__head { gap: 16px; }
+  .hero__line { font-size: 16px; line-height: 24px; }
+  /* Two to a row and then the third, rather than three squeezed past the
+     width of their labels. */
+  .dl { gap: 10px; }
+  .dl__btn { min-width: 0; flex: 1 1 140px; padding: 13px 14px; font-size: 13px; }
+  .creed, .tour { padding-left: 20px; padding-right: 20px; }
+  .creed { padding-bottom: 48px; }
+  /* 19.2 for 12px columns, which holds the longest line on two. */
+  .creed__line { font-size: 19.2px; line-height: 28px; letter-spacing: 0; }
+  .creed__line + .creed__line { margin-top: 8px; }
+  .tour { padding-bottom: 80px; }
   .hero__unit { gap: 14px; }
   .hero__title { font-size: 48px; line-height: 48px; letter-spacing: -1px; }
   /* 4px, which at 20 rows is 80px, the height the 16-row flame had here at
@@ -289,5 +495,5 @@ body {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .btn { transition: none; }
+  .dl__btn, .tour__n, .tour__what { transition: none; }
 }
