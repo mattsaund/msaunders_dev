@@ -15,7 +15,7 @@
      msaunders.dev already has it cached. The flame is measured in glyphs, so it
      wants the font in hand before first paint rather than after it. -->
 <link rel="preload" href="/fonts/paper-mono.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="/crucible/css/crucible.css?v=0529b340">
+<link rel="stylesheet" href="/crucible/css/crucible.css?v=bf13a2bb">
 </head>
 <body>
 
@@ -99,21 +99,11 @@
   </div>
 </section>
 
-<!-- What it is for, in three lines. The first half of each is the claim and
-     the second the reach of it, so the two take the two text colors. -->
-<section class="creed" aria-label="What Crucible is for">
-  <p class="creed__line"><span class="creed__lead">Local AI,</span> for everyone.</p>
-  <p class="creed__line"><span class="creed__lead">Enterprise tools,</span> on your own hardware.</p>
-  <p class="creed__line"><span class="creed__lead">Open source,</span> all of it.</p>
-</section>
-
-<!-- Six parts, one picture at a time. The choosing is radio buttons and the
+<!-- Six parts, one picture at a time: a row of names above the picture, and
+     what the chosen one does under it. The choosing is radio buttons and the
      stylesheet, not a script: it works with scripting off, the arrow keys move
      through it as through any radio group, and a picture not yet chosen is a
-     hidden lazy image, which the browser does not fetch until it is shown.
-     Under 900px there is no room for a list beside a picture, so the two lists
-     interleave and every picture shows under its own entry (see .tour in the
-     stylesheet). -->
+     hidden lazy image, which the browser does not fetch until it is shown. -->
 <section class="tour" aria-label="Inside Crucible">
   <div class="tour__frame">
     <input class="tour__pick" type="radio" name="tour" id="tour-build" checked>
@@ -122,62 +112,44 @@
     <input class="tour__pick" type="radio" name="tour" id="tour-models">
     <input class="tour__pick" type="radio" name="tour" id="tour-create">
     <input class="tour__pick" type="radio" name="tour" id="tour-bench">
-    <div class="tour__list">
-      <label class="tour__item tour__item--build" for="tour-build">
-        <span class="tour__n">01</span>
-        <span class="tour__what">Build</span>
-        <span class="tour__line">Give it a directive. Agents plan the work, then write, run and test it in your project.</span>
-      </label>
-      <label class="tour__item tour__item--preview" for="tour-preview">
-        <span class="tour__n">02</span>
-        <span class="tour__what">Preview</span>
-        <span class="tour__line">The page as it is built. Pick an element and tune it, then make it an app.</span>
-      </label>
-      <label class="tour__item tour__item--experts" for="tour-experts">
-        <span class="tour__n">03</span>
-        <span class="tour__what">Experts</span>
-        <span class="tour__line">A roster of local models, each seated for what it does best, with frontier ones beside them.</span>
-      </label>
-      <label class="tour__item tour__item--models" for="tour-models">
-        <span class="tour__n">04</span>
-        <span class="tour__what">Models</span>
-        <span class="tour__line">Search Hugging Face and see what fits your cards before you download it.</span>
-      </label>
-      <label class="tour__item tour__item--create" for="tour-create">
-        <span class="tour__n">05</span>
-        <span class="tour__what">Create</span>
-        <span class="tour__line">Fine-tune a model on your own card, or condense one until it fits.</span>
-      </label>
-      <label class="tour__item tour__item--bench" for="tour-bench">
-        <span class="tour__n">06</span>
-        <span class="tour__what">Bench</span>
-        <span class="tour__line">Nine benchmarks, spider charts, and a public board to measure against.</span>
-      </label>
+    <div class="tour__tabs">
+      <label class="tour__tab tour__tab--build" for="tour-build"><span class="tour__n">01</span>Build</label>
+      <label class="tour__tab tour__tab--preview" for="tour-preview"><span class="tour__n">02</span>Preview</label>
+      <label class="tour__tab tour__tab--experts" for="tour-experts"><span class="tour__n">03</span>Experts</label>
+      <label class="tour__tab tour__tab--models" for="tour-models"><span class="tour__n">04</span>Models</label>
+      <label class="tour__tab tour__tab--create" for="tour-create"><span class="tour__n">05</span>Create</label>
+      <label class="tour__tab tour__tab--bench" for="tour-bench"><span class="tour__n">06</span>Bench</label>
     </div>
     <div class="tour__shots">
       <figure class="tour__shot tour__shot--build">
         <img src="/crucible/img/build.webp" width="1400" height="883" decoding="async"
-             alt="Build: a directive split into tasks, each with the agent working on it">
+             alt="Build: an app asked for in the chat, split into tasks, each with the agent working on it">
+        <figcaption class="tour__line">Ask for an app in the chat. Agents plan the work, then write, run and test it in your project.</figcaption>
       </figure>
       <figure class="tour__shot tour__shot--preview">
         <img src="/crucible/img/preview.webp" width="1400" height="883" loading="lazy" decoding="async"
              alt="Preview: a page being built, with an element picked and its settings open">
+        <figcaption class="tour__line">The page as it is built. Pick an element and tune it, then make it an app.</figcaption>
       </figure>
       <figure class="tour__shot tour__shot--experts">
         <img src="/crucible/img/experts.webp" width="1400" height="883" loading="lazy" decoding="async"
              alt="Experts: each seat with a description and a model">
+        <figcaption class="tour__line">A roster of local models, each seated for what it does best, with frontier ones beside them.</figcaption>
       </figure>
       <figure class="tour__shot tour__shot--models">
         <img src="/crucible/img/models.webp" width="1400" height="883" loading="lazy" decoding="async"
              alt="Models: a repository's quantizations, each marked by how it fits">
+        <figcaption class="tour__line">Search Hugging Face and see what fits your cards before you download it.</figcaption>
       </figure>
       <figure class="tour__shot tour__shot--create">
         <img src="/crucible/img/create.webp" width="1400" height="883" loading="lazy" decoding="async"
-             alt="Create: condensing a model, every size measured and marked by how it fits">
+             alt="Create: the experts made here, from finished to drafts">
+        <figcaption class="tour__line">Fine-tune a model on your own card, or condense one until it fits.</figcaption>
       </figure>
       <figure class="tour__shot tour__shot--bench">
         <img src="/crucible/img/bench.webp" width="1400" height="883" loading="lazy" decoding="async"
-             alt="Bench: one model condensed to three sizes, on a spider chart with the numbers under it">
+             alt="Bench: the board's best models, a spider chart, and every result">
+        <figcaption class="tour__line">Nine benchmarks, spider charts, and a public board to measure against.</figcaption>
       </figure>
     </div>
   </div>

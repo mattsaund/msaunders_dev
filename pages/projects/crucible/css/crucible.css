@@ -118,14 +118,13 @@ body {
 .bar__repo:hover { color: var(--fg); text-decoration: underline; }
 
 /* --- hero -------------------------------------------------- */
-/* As tall as what it holds and no taller: the three lines and the tour come
-   straight after it, so on most screens the first picture starts above the
-   fold. */
+/* As tall as what it holds and no taller, so the tour under it fits on the
+   same screen. */
 .hero {
   display: flex; flex-direction: column;
   align-items: center; justify-content: center;
-  gap: 48px;
-  padding: 72px 28px 40px;
+  gap: 24px;
+  padding: 24px 28px 8px;
 }
 .hero__head { display: flex; flex-direction: column; align-items: center; gap: 24px; }
 /* Bottom aligned, not centered: the flame stands on the title's baseline and
@@ -283,38 +282,20 @@ body {
   text-align: center;
 }
 
-/* --- the sections under the hero --------------------------- */
-/* One column for both, left aligned: the hero is a poster and centered, what
-   follows is read, and a ragged left edge reads badly. 1440px so the pictures
-   are big enough to read the program in. */
-.creed, .tour {
+/* --- the section under the hero ---------------------------- */
+/* 1440px so the pictures are big enough to read the program in, straight
+   under the install lines. */
+.tour {
   width: 100%; max-width: 1440px;
   margin: 0 auto;
   padding-left: 28px; padding-right: 28px;
 }
 
-/* --- three lines ------------------------------------------- */
-/* 32px for 20px columns. The claim in white and its reach a step down, the
-   two text colors the page already has; nothing else is said, so it can be
-   large. */
-.creed { padding-top: 16px; padding-bottom: 56px; }
-.creed__line {
-  margin: 0;
-  font: 500 32px/44px var(--mono);
-  letter-spacing: -1px;
-  color: var(--fg-2);
-}
-.creed__lead { color: var(--fg); }
-
 /* --- the tour ---------------------------------------------- */
-/* Phones first: every part with its picture under it, one after another. The
-   radios sit in the markup before both lists, which is what lets the wide
-   layout below pick a picture from them, so here the two lists step aside
-   (display: contents) and their entries interleave by order: an entry, then
-   its picture. */
+/* A row of names, the chosen one's picture under them at the width of the
+   column, and what it does under that. The radios sit in the markup before
+   both, which is what lets the stylesheet pick a picture from them. */
 .tour { padding-bottom: 112px; }
-.tour__frame { display: flex; flex-direction: column; }
-.tour__list, .tour__shots { display: contents; }
 
 /* Out of sight, not out of reach: a radio that is display:none cannot be
    focused, and the arrow keys are half of why these are radios. */
@@ -326,119 +307,76 @@ body {
   white-space: nowrap;
 }
 
-.tour__item {
-  display: grid;
-  grid-template-columns: 40px 1fr;
-  column-gap: 8px;
-  padding: 0 0 12px;
+/* Over a hairline, as the bar's tabs sit over theirs: the chosen name's
+   orange replaces the grey under it rather than standing beside it. */
+.tour__tabs {
+  display: flex; flex-wrap: wrap; justify-content: center; gap: 0 36px;
+  border-bottom: 1px solid var(--line-2);
+  margin-bottom: 14px;
 }
-.tour__n {
-  grid-row: span 2;
-  font: 500 12.8px/24px var(--mono);
-  color: var(--flame);
+.tour__tab {
+  display: flex; align-items: baseline; gap: 10px;
+  margin-bottom: -1px;
+  padding: 10px 0 8px;
+  border-bottom: 2px solid transparent;
+  font: 500 18px/24px var(--mono);
+  color: var(--fg-2);
+  cursor: pointer;
+  transition: color .15s;
 }
-.tour__what { font: 500 16px/24px var(--mono); color: var(--fg); }
-.tour__line { font: 400 12.8px/20px var(--mono); color: var(--fg-2); }
+.tour__tab:hover { color: var(--fg); }
+.tour__n { font: 500 12.8px/24px var(--mono); color: var(--fg-3); transition: color .15s; }
 
-.tour__shot {
-  margin: 0 0 40px;
+.tour__shot { display: none; margin: 0; }
+/* 1400 by 883, the pictures' own size, so the space they take is known
+   before they arrive and nothing under them jumps when they do. What shows
+   until one arrives is its description, small and dim. */
+/* As wide as the column, unless that makes it taller than what the window
+   has left under the hero and the names: then as tall as that, so the whole
+   page is on one 16:9 screen, but never under 360px. */
+.tour__shot img {
+  display: block; width: auto; height: auto;
+  max-width: 100%; max-height: max(360px, calc(100svh - 600px));
+  margin: 0 auto;
   border: 1px solid var(--line-2);
   background: var(--panel);
+  font: 400 12px/16px var(--mono); color: var(--fg-3);
 }
-/* 1400 by 883, the pictures' own size, so the space they take is known
-   before they arrive and nothing under them jumps when they do. */
-.tour__shot img { display: block; width: 100%; height: auto; }
-/* What shows in the frame until the picture arrives: its description, which
-   is a browser's to draw in the image's own font, and at the body's size and
-   white it read as a caption shouting from an empty box. */
-.tour__shot img { font: 400 12px/16px var(--mono); color: var(--fg-3); }
-
-.tour__item--build   { order: 1; }  .tour__shot--build   { order: 2; }
-.tour__item--preview { order: 3; }  .tour__shot--preview { order: 4; }
-.tour__item--experts { order: 5; }  .tour__shot--experts { order: 6; }
-.tour__item--models  { order: 7; }  .tour__shot--models  { order: 8; }
-.tour__item--create  { order: 9; }  .tour__shot--create  { order: 10; }
-.tour__item--bench   { order: 11; } .tour__shot--bench   { order: 12; }
-
-/* Wide enough for a list beside a picture: the list on the left, one picture
-   at a time on the right, chosen by whichever radio is checked. Only the
-   chosen entry says its line; the rest are a number and a name, so the list
-   stays short enough to sit beside the picture. */
-@media (min-width: 900px) {
-  .tour__frame {
-    display: grid;
-    /* The list gives way first on a narrow window, so the picture keeps
-       its size longest. */
-    grid-template-columns: clamp(260px, 26%, 340px) 1fr;
-    column-gap: 48px;
-    align-items: start;
-  }
-  .tour__list {
-    display: flex; flex-direction: column;
-    border-left: 1px solid var(--line-2);
-  }
-  .tour__shots { display: block; }
-
-  .tour__item {
-    /* Over the list's rule, so the chosen entry's orange replaces the grey
-       rather than standing beside it. */
-    margin-left: -1px;
-    border-left: 2px solid transparent;
-    padding: 16px 0 16px 24px;
-    column-gap: 12px;
-    cursor: pointer;
-  }
-  /* A step up from the phone's sizes: 14.4 for 9px columns, 20 for 12. */
-  .tour__n { font-size: 14.4px; line-height: 28px; color: var(--fg-3); transition: color .15s; }
-  .tour__what { font-size: 20px; line-height: 28px; color: var(--fg-2); transition: color .15s; }
-  .tour__line { display: none; padding-top: 6px; font-size: 14.4px; line-height: 22px; }
-  .tour__item:hover .tour__what { color: var(--fg); }
-
-  .tour__shot { display: none; margin: 0; }
-
-  #tour-build:checked   ~ .tour__shots .tour__shot--build,
-  #tour-preview:checked ~ .tour__shots .tour__shot--preview,
-  #tour-experts:checked ~ .tour__shots .tour__shot--experts,
-  #tour-models:checked  ~ .tour__shots .tour__shot--models,
-  #tour-create:checked  ~ .tour__shots .tour__shot--create,
-  #tour-bench:checked   ~ .tour__shots .tour__shot--bench { display: block; }
-
-  #tour-build:checked   ~ .tour__list .tour__item--build,
-  #tour-preview:checked ~ .tour__list .tour__item--preview,
-  #tour-experts:checked ~ .tour__list .tour__item--experts,
-  #tour-models:checked  ~ .tour__list .tour__item--models,
-  #tour-create:checked  ~ .tour__list .tour__item--create,
-  #tour-bench:checked   ~ .tour__list .tour__item--bench { border-left-color: var(--flame); }
-
-  #tour-build:checked   ~ .tour__list .tour__item--build   .tour__n,
-  #tour-preview:checked ~ .tour__list .tour__item--preview .tour__n,
-  #tour-experts:checked ~ .tour__list .tour__item--experts .tour__n,
-  #tour-models:checked  ~ .tour__list .tour__item--models  .tour__n,
-  #tour-create:checked  ~ .tour__list .tour__item--create  .tour__n,
-  #tour-bench:checked   ~ .tour__list .tour__item--bench   .tour__n { color: var(--flame); }
-
-  #tour-build:checked   ~ .tour__list .tour__item--build   .tour__what,
-  #tour-preview:checked ~ .tour__list .tour__item--preview .tour__what,
-  #tour-experts:checked ~ .tour__list .tour__item--experts .tour__what,
-  #tour-models:checked  ~ .tour__list .tour__item--models  .tour__what,
-  #tour-create:checked  ~ .tour__list .tour__item--create  .tour__what,
-  #tour-bench:checked   ~ .tour__list .tour__item--bench   .tour__what { color: var(--fg); }
-
-  #tour-build:checked   ~ .tour__list .tour__item--build   .tour__line,
-  #tour-preview:checked ~ .tour__list .tour__item--preview .tour__line,
-  #tour-experts:checked ~ .tour__list .tour__item--experts .tour__line,
-  #tour-models:checked  ~ .tour__list .tour__item--models  .tour__line,
-  #tour-create:checked  ~ .tour__list .tour__item--create  .tour__line,
-  #tour-bench:checked   ~ .tour__list .tour__item--bench   .tour__line { display: block; }
-
-  /* The radio has the focus, its entry shows it. */
-  #tour-build:focus-visible   ~ .tour__list .tour__item--build,
-  #tour-preview:focus-visible ~ .tour__list .tour__item--preview,
-  #tour-experts:focus-visible ~ .tour__list .tour__item--experts,
-  #tour-models:focus-visible  ~ .tour__list .tour__item--models,
-  #tour-create:focus-visible  ~ .tour__list .tour__item--create,
-  #tour-bench:focus-visible   ~ .tour__list .tour__item--bench { outline: 2px solid var(--fg); outline-offset: -2px; }
+.tour__line {
+  margin-top: 10px;
+  font: 400 16px/24px var(--mono);
+  color: var(--fg-2);
+  text-align: center;
 }
+
+#tour-build:checked   ~ .tour__shots .tour__shot--build,
+#tour-preview:checked ~ .tour__shots .tour__shot--preview,
+#tour-experts:checked ~ .tour__shots .tour__shot--experts,
+#tour-models:checked  ~ .tour__shots .tour__shot--models,
+#tour-create:checked  ~ .tour__shots .tour__shot--create,
+#tour-bench:checked   ~ .tour__shots .tour__shot--bench { display: block; }
+
+#tour-build:checked   ~ .tour__tabs .tour__tab--build,
+#tour-preview:checked ~ .tour__tabs .tour__tab--preview,
+#tour-experts:checked ~ .tour__tabs .tour__tab--experts,
+#tour-models:checked  ~ .tour__tabs .tour__tab--models,
+#tour-create:checked  ~ .tour__tabs .tour__tab--create,
+#tour-bench:checked   ~ .tour__tabs .tour__tab--bench { color: var(--fg); border-bottom-color: var(--flame); }
+
+#tour-build:checked   ~ .tour__tabs .tour__tab--build   .tour__n,
+#tour-preview:checked ~ .tour__tabs .tour__tab--preview .tour__n,
+#tour-experts:checked ~ .tour__tabs .tour__tab--experts .tour__n,
+#tour-models:checked  ~ .tour__tabs .tour__tab--models  .tour__n,
+#tour-create:checked  ~ .tour__tabs .tour__tab--create  .tour__n,
+#tour-bench:checked   ~ .tour__tabs .tour__tab--bench   .tour__n { color: var(--flame); }
+
+/* The radio has the focus, its name shows it. */
+#tour-build:focus-visible   ~ .tour__tabs .tour__tab--build,
+#tour-preview:focus-visible ~ .tour__tabs .tour__tab--preview,
+#tour-experts:focus-visible ~ .tour__tabs .tour__tab--experts,
+#tour-models:focus-visible  ~ .tour__tabs .tour__tab--models,
+#tour-create:focus-visible  ~ .tour__tabs .tour__tab--create,
+#tour-bench:focus-visible   ~ .tour__tabs .tour__tab--bench { outline: 2px solid var(--fg); outline-offset: 2px; }
 
 /* --- foot -------------------------------------------------- */
 .foot {
@@ -459,8 +397,6 @@ body {
   .hero__unit { gap: 20px; }
   .hero__title { font-size: 64px; line-height: 64px; }
   .flame { font-size: 4.8px; line-height: 5px; margin-bottom: 8px; }
-  /* 24 for 15px columns. */
-  .creed__line { font-size: 24px; line-height: 34px; }
 }
 
 @media (max-width: 560px) {
@@ -480,12 +416,10 @@ body {
      width of their labels. */
   .dl { gap: 10px; }
   .dl__btn { min-width: 0; flex: 1 1 140px; padding: 13px 14px; font-size: 13px; }
-  .creed, .tour { padding-left: 20px; padding-right: 20px; }
-  .creed { padding-bottom: 48px; }
-  /* 19.2 for 12px columns, which holds the longest line on two. */
-  .creed__line { font-size: 19.2px; line-height: 28px; letter-spacing: 0; }
-  .creed__line + .creed__line { margin-top: 8px; }
-  .tour { padding-bottom: 80px; }
+  .tour { padding-left: 20px; padding-right: 20px; padding-bottom: 80px; }
+  .tour__tabs { gap: 0 20px; margin-bottom: 16px; }
+  .tour__tab { font-size: 15px; gap: 6px; padding: 10px 0 8px; }
+  .tour__line { font-size: 14px; line-height: 22px; }
   .hero__unit { gap: 14px; }
   .hero__title { font-size: 48px; line-height: 48px; letter-spacing: -1px; }
   /* 4px, which at 20 rows is 80px, the height the 16-row flame had here at
@@ -495,5 +429,5 @@ body {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .dl__btn, .tour__n, .tour__what { transition: none; }
+  .dl__btn, .tour__n, .tour__tab { transition: none; }
 }
