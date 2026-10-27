@@ -578,12 +578,17 @@ main { min-height: 400px; padding-top: var(--panel-gap); }
   overflow: hidden; pointer-events: none;
   user-select: none; -webkit-user-select: none;
 }
+/* Contained, because a body is tens of thousands of glyphs that change
+   several times a second: each new frame is laid out and painted inside its
+   own box, with nothing outside it to recheck. cosmos.js states each box's
+   size, as size containment needs. */
 .cosmos__body {
   position: absolute; margin: 0;
   font-family: var(--mono);
   line-height: 1;
   white-space: pre;
   color: var(--space);
+  contain: strict;
 }
 /* The horizon globe spans the full width at the foot of the page. */
 .cosmos__horizon { width: 100%; }

@@ -301,6 +301,56 @@
     return m * 1.05;
   })();
 
+  /* rockRadius() as a table, which is what the asteroid is drawn from. The
+     ray search asks for the radius ten times a glyph, every frame, and 43
+     lobes summed each time made an asteroid frame cost as much as Saturn's
+     and the ice moon's together. The shape never changes in body space, so it
+     is sampled once over a cube around the body, CUBE cells to an edge of
+     each face, and read back with bilinear interpolation: a few reads in
+     place of 43 lobes.
+
+     It is not the sum to the last digit. Measured over 200,000 directions it
+     is out by 7e-5 on average and 7e-4 at worst, where the ray search
+     resolves depth to 2e-3. Over a whole turn that moves about four of the
+     5,500 glyphs in a frame one step along the ramp (ten at most), against
+     hundreds that change from one frame to the next anyway.
+
+     Built the first time the asteroid is drawn (see see()), which on most
+     screens is not at load. */
+  var CUBE = 48;
+  var ROCK_TABLE = null;
+
+  function rockTable() {
+    var n = CUBE + 1, t = new Float64Array(6 * n * n);
+    for (var f = 0; f < 6; f++) {
+      var s = (f & 1) ? -1 : 1;
+      for (var j = 0; j < n; j++) {
+        for (var i = 0; i < n; i++) {
+          var u = 2 * i / CUBE - 1, v = 2 * j / CUBE - 1, x, y, z;
+          if (f < 2) { x = s; y = u; z = v; }
+          else if (f < 4) { x = u; y = s; z = v; }
+          else { x = u; y = v; z = s; }
+          var m = Math.sqrt(x * x + y * y + z * z);
+          t[(f * n + j) * n + i] = rockRadius(x / m, y / m, z / m);
+        }
+      }
+    }
+    return t;
+  }
+
+  function rockRadiusAt(bx, by, bz) {
+    var ax = Math.abs(bx), ay = Math.abs(by), az = Math.abs(bz), f, u, v, m;
+    if (ax >= ay && ax >= az) { m = ax; f = bx > 0 ? 0 : 1; u = by; v = bz; }
+    else if (ay >= az) { m = ay; f = by > 0 ? 2 : 3; u = bx; v = bz; }
+    else { m = az; f = bz > 0 ? 4 : 5; u = bx; v = by; }
+    var gu = (u / m + 1) * 0.5 * CUBE, gv = (v / m + 1) * 0.5 * CUBE;
+    var i0 = gu < CUBE ? gu | 0 : CUBE - 1, j0 = gv < CUBE ? gv | 0 : CUBE - 1;
+    var fu = gu - i0, fv = gv - j0, n = CUBE + 1, o = (f * n + j0) * n + i0;
+    var lo = ROCK_TABLE[o] + (ROCK_TABLE[o + 1] - ROCK_TABLE[o]) * fu;
+    var hi = ROCK_TABLE[o + n] + (ROCK_TABLE[o + n + 1] - ROCK_TABLE[o + n]) * fu;
+    return lo + (hi - lo) * fv;
+  }
+
   var ROCK_CRATERS = features(770231, 22, 0.11, 0.20);
 
   function texRock(bx, by, bz, la, lo) {
@@ -391,100 +441,105 @@
     tilt: 0.6, roll: 0, rate: 0.030, amb: 0.20, gain: 1.15, phase: 0.6
   };
 
-  /* --- renderer ------------------------------------------- */
-  function render(p, angle) {
-    var W = p.cols, H = p.rows, extX = p.extX, extY = p.extY, yc = p.yc || 0;
+  /* --- renderer ------------------------------------------- *
+     Most of what a glyph needs has nothing to do with the spin angle: whether
+     its ray meets the body, how much light reaches that point and where it
+     sits along the spin axis, where the ray crosses the ring plane and how
+     thick the rings are there. The grid, the tilt and the roll fix all of
+     it, so see() works it out once per body and keeps it, and a frame is
+     then only the turn and the texture at each glyph that shows the body or
+     its rings. Sky costs nothing.
 
-    /* Body axis in view space. */
+     This is the view cache from cosmos.js (web/js/planet.js there), under
+     the same rule: every value is computed with the same operations, in the
+     same order, as the arithmetic it replaces. The one exception is the
+     longitude, which comes by subtraction (see frame()), and the frames are
+     still the ones this drew before, glyph for glyph, checked over a whole
+     turn of every body and of the horizon.
+
+     The asteroid only gets the grid half. Its silhouette is lumps that turn
+     with it, so which glyphs it covers changes from one angle to the next,
+     and its ray search runs every frame, on the table above in place of the
+     summed lobes. */
+
+  /* The spin axis n in view space, and u and v across the equator, square
+     to it and to each other. */
+  function axesOf(p) {
     var ct = Math.cos(p.tilt), st = Math.sin(p.tilt);
     var nx = -Math.sin(p.roll) * ct, ny = Math.cos(p.roll) * ct, nz = st;
-
-    /* Orthonormal equatorial basis (u, v) perpendicular to the axis. */
     var hx = 0, hy = 0, hz = 1;
     if (Math.abs(nz) > 0.9) { hx = 1; hz = 0; }
     var ux = hy * nz - hz * ny, uy = hz * nx - hx * nz, uz = hx * ny - hy * nx;
     var um = Math.sqrt(ux * ux + uy * uy + uz * uz);
     ux /= um; uy /= um; uz /= um;
     var vx = ny * uz - nz * uy, vy = nz * ux - nx * uz, vz = nx * uy - ny * ux;
+    return { nx: nx, ny: ny, nz: nz, ux: ux, uy: uy, uz: uz, vx: vx, vy: vy, vz: vz };
+  }
 
-    var ca = Math.cos(angle), sa = Math.sin(angle);
-    var rock = !!p.rock;
+  var RAMP_CODES = RAMP.split('').map(function (ch) { return ch.charCodeAt(0); });
+  var TWO_PI = 2 * Math.PI;
+  var ascii = new TextDecoder();
 
-    /* Scratch, not a returned array: this runs once per bisection step per
-       cell, and allocating there would be all GC and no work. */
-    var _bx = 0, _by = 0, _bz = 0;
-    function toBody(px, py, pz) {
-      var L = Math.sqrt(px * px + py * py + pz * pz) || 1;
-      var ax = px / L, ay = py / L, az = pz / L;
-      _by = ax * nx + ay * ny + az * nz;
-      var b0 = ax * ux + ay * uy + az * uz;
-      var b1 = ax * vx + ay * vy + az * vz;
-      _bx = b0 * ca + b1 * sa;
-      _bz = b1 * ca - b0 * sa;
-      return L;
-    }
-    var rings = p.rings, gaps = rings ? rings.gaps : null;
+  /* Everything about body p that the angle does not change, for the grid it
+     is laid out on now. The surface and the rings each come as a list of the
+     glyphs they cover, with what each needs: a frame visits those and
+     nothing else. */
+  function see(p) {
+    if (p.rock && !ROCK_TABLE) ROCK_TABLE = rockTable();
+    var W = p.cols, H = p.rows, N = W * H, extX = p.extX, extY = p.extY, yc = p.yc || 0;
+    var a = axesOf(p), lx = L[0], ly = L[1], lz = L[2];
     var gain = p.gain || BODY_GAIN;
-    var lx = L[0], ly = L[1], lz = L[2];
-    var lastIdx = RAMP.length - 1;
+    var rings = p.rings, gaps = rings ? rings.gaps : null;
+    var ringsShown = !!rings && Math.abs(a.nz) > 0.05;
+    /* Surface glyphs. A smooth body keeps the point under each one before
+       the turn (b0, b1 across the equator, by along the axis, la its
+       latitude) and the light on it; the asteroid only its ray. */
+    var s = { at: [], b0: [], b1: [], by: [], la: [], lo: [], shade: [], limb: [], sx: [], sy: [], hi: [] };
+    /* Ring glyphs: thickness, azimuth at angle 0, the Keplerian factor, the
+       brightness with the planet's shadow in it, and whether the sheet is in
+       front of the surface on that ray. That last is fixed only for a smooth
+       body: rings around the asteroid would need the depth test per frame,
+       against lumps that turn, and none of these has them. */
+    var r = { at: [], cov: [], phi: [], pw: [], lum: [], front: [] };
 
-    var rows = new Array(H), i, j;
-
-    for (j = 0; j < H; j++) {
-      var line = new Array(W);
+    for (var j = 0; j < H; j++) {
       /* yc offsets the frame up the sphere, so a pinned body can render
          just the shallow band that is actually on screen. */
       var sy = (1 - 2 * (j + 0.5) / H) * extY + yc;
-
-      for (i = 0; i < W; i++) {
+      for (var i = 0; i < W; i++) {
         var sx = (2 * (i + 0.5) / W - 1) * extX;
-        var d2 = sx * sx + sy * sy;
+        var d2 = sx * sx + sy * sy, k = j * W + i, zs = -1e9;
 
-        /* ---- lit surface ---- */
-        var sphere = -1, zs = -1e9, hit = false;
-
-        if (rock) {
-          /* Bisect down the ray: hi starts outside the bounding sphere, lo at
-             the z=0 plane. Newton would be fewer steps but blows up near the
-             silhouette where the surface is edge-on; bisection just works. */
+        if (p.rock) {
           var hi = ROCK_MAX * ROCK_MAX - d2;
-          if (hi > 0) {
-            hi = Math.sqrt(hi);
-            var lo0 = 0;
-            if (toBody(sx, sy, 0) < rockRadius(_bx, _by, _bz)) {
-              for (var k = 0; k < 9; k++) {
-                var mid = (lo0 + hi) * 0.5;
-                if (toBody(sx, sy, mid) < rockRadius(_bx, _by, _bz)) lo0 = mid;
-                else hi = mid;
-              }
-              zs = lo0; hit = true;
-            }
-          }
+          if (hi > 0) { s.at.push(k); s.sx.push(sx); s.sy.push(sy); s.hi.push(Math.sqrt(hi)); }
         } else if (d2 <= 1) {
-          zs = Math.sqrt(1 - d2); hit = true;
-        }
-
-        if (hit) {
-          var Lp = toBody(sx, sy, zs);          // also fills _bx/_by/_bz
+          zs = Math.sqrt(1 - d2);
+          var Lp = Math.sqrt(sx * sx + sy * sy + zs * zs) || 1;
+          var ax = sx / Lp, ay = sy / Lp, az = zs / Lp;
           var nzv = zs / Lp;                    // cosine of the view angle
           var lum = (sx / Lp) * lx + (sy / Lp) * ly + nzv * lz;
           if (lum < 0) lum = 0;
-
-          var by = clamp(_by, -1, 1);
-          var la = Math.asin(by);
-          var lo = Math.atan2(_bz, _bx);
-
-          var alb = p.tex(_bx, by, _bz, la, lo);
-          sphere = alb * (p.amb + (1 - p.amb) * lum * (0.45 + 0.55 * lum));
-          sphere *= (0.58 + 0.42 * nzv) * gain;           // limb darkening
+          var by = clamp(ax * a.nx + ay * a.ny + az * a.nz, -1, 1);
+          var b0 = ax * a.ux + ay * a.uy + az * a.uz, b1 = ax * a.vx + ay * a.vy + az * a.vz;
+          s.at.push(k);
+          s.b0.push(b0);
+          s.b1.push(b1);
+          s.by.push(by);
+          s.la.push(Math.asin(by));
+          /* Its longitude before the turn. Turning by `angle` turns (b0, b1)
+             about the axis, which only takes `angle` off the longitude, so a
+             frame gets it by subtraction instead of an atan2 a glyph. */
+          s.lo.push(Math.atan2(b1, b0));
+          s.shade.push(p.amb + (1 - p.amb) * lum * (0.45 + 0.55 * lum));
+          s.limb.push((0.58 + 0.42 * nzv) * gain);         // limb darkening
         }
 
         /* ---- ring plane ----
            Rings are a translucent sheet, not a solid surface: a faint band
            in front of the planet has to composite over it, not replace it. */
-        var ringLum = 0, cov = 0, zr = -1e9;
-        if (rings && Math.abs(nz) > 0.05) {
-          zr = -(nx * sx + ny * sy) / nz;
+        if (ringsShown) {
+          var zr = -(a.nx * sx + a.ny * sy) / a.nz;
           var rr = Math.sqrt(d2 + zr * zr);
           if (rr >= rings.inner && rr <= rings.outer) {
             var open = true;
@@ -493,41 +548,141 @@
             }
             if (open) {
               var t = (rr - rings.inner) / (rings.outer - rings.inner);
-              cov = (0.55 + 0.45 * Math.sin(t * 8.2)) * (1 - 0.45 * t);
-
               /* Azimuth of this ring point, measured in the rotating frame.
-                 Inner material shears ahead of outer on a Keplerian profile,
-                 so the density clumps wind up as the body turns. */
-              var au = sx * ux + sy * uy + zr * uz;
-              var av = sx * vx + sy * vy + zr * vz;
-              var phi = Math.atan2(av, au) - angle * Math.pow(rr, -1.5) * 1.7;
-              cov *= 0.70 + 0.30 * (0.62 * Math.sin(phi * 2.0 + 0.4)
-                                  + 0.38 * Math.sin(phi * 5.0 - 1.1));
-
-              /* the flatter the system sits to us, the more material per glyph */
-              cov = clamp(cov, 0, 1) * (0.55 + 0.45 * (1 - Math.abs(nz)));
-              ringLum = 0.88;
+                 Inner material shears ahead of outer on a Keplerian profile
+                 (pw), so the density clumps wind up as the body turns. */
+              var au = sx * a.ux + sy * a.uy + zr * a.uz;
+              var av = sx * a.vx + sy * a.vy + zr * a.vz;
+              var ringLum = 0.88;
               /* the planet's own shadow falling across the rings */
               var qL = sx * lx + sy * ly + zr * lz;
               if (qL < 0) {
                 var px = sx - qL * lx, py = sy - qL * ly, pz = zr - qL * lz;
                 if (px * px + py * py + pz * pz < 1) ringLum *= 0.16;
               }
+              r.at.push(k);
+              r.cov.push((0.55 + 0.45 * Math.sin(t * 8.2)) * (1 - 0.45 * t));
+              r.phi.push(Math.atan2(av, au));
+              r.pw.push(Math.pow(rr, -1.5));
+              r.lum.push(ringLum);
+              r.front.push(d2 > 1 || zr > zs ? 1 : 0);
             }
           }
         }
-
-        /* ---- depth resolve ---- */
-        var back = sphere >= 0 ? sphere : 0;
-        var v;
-        if (cov > 0 && (d2 > 1 || zr > zs)) v = ringLum * cov + back * (1 - cov);
-        else v = back;
-
-        line[i] = RAMP[Math.round(clamp(v, 0, 1) * lastIdx)];
       }
-      rows[j] = line.join('');
     }
-    return rows.join('\n');
+
+    /* The frame's text, newlines in place: a frame only writes the glyphs. */
+    var text = new Uint8Array(H * (W + 1) - 1);
+    for (j = 1; j < H; j++) text[j * (W + 1) - 1] = 10;
+
+    var f64 = function (list) { return new Float64Array(list); };
+    return {
+      cols: W, rows: H, extX: extX, extY: extY, yc: yc, axes: a, gain: gain,
+      tilt: p.tilt, roll: p.roll, amb: p.amb, rings: p.rings,
+      surf: { n: s.at.length, at: new Int32Array(s.at), b0: f64(s.b0), b1: f64(s.b1),
+              by: f64(s.by), la: f64(s.la), lo: f64(s.lo), shade: f64(s.shade), limb: f64(s.limb),
+              sx: f64(s.sx), sy: f64(s.sy), hi: f64(s.hi) },
+      ring: { n: r.at.length, at: new Int32Array(r.at), cov: f64(r.cov), phi: f64(r.phi),
+              pw: f64(r.pw), lum: f64(r.lum), front: new Uint8Array(r.front) },
+      /* the flatter the system sits to us, the more material per glyph */
+      fade: 0.55 + 0.45 * (1 - Math.abs(a.nz)),
+      v: new Float64Array(N),
+      text: text
+    };
+  }
+
+  /* One frame of body p turned to `angle`, as the bytes of its text. The
+     buffer is the body's own and the next frame overwrites it. */
+  function frame(p, angle) {
+    var c = p.view;
+    if (!c || c.cols !== p.cols || c.rows !== p.rows || c.extX !== p.extX ||
+        c.extY !== p.extY || c.yc !== (p.yc || 0) || c.tilt !== p.tilt ||
+        c.roll !== p.roll || c.amb !== p.amb || c.gain !== (p.gain || BODY_GAIN) ||
+        c.rings !== p.rings) c = p.view = see(p);
+    var W = c.cols, H = c.rows, v = c.v, s = c.surf, r = c.ring, tex = p.tex;
+    var ca = Math.cos(angle), sa = Math.sin(angle), q, k;
+    v.fill(0);
+
+    /* ---- lit surface ---- */
+    if (p.rock) {
+      var a = c.axes, nx = a.nx, ny = a.ny, nz = a.nz, ux = a.ux, uy = a.uy, uz = a.uz;
+      var vx = a.vx, vy = a.vy, vz = a.vz, lx = L[0], ly = L[1], lz = L[2];
+      /* Scratch, not a returned array: this runs once per bisection step per
+         cell, and allocating there would be all GC and no work. */
+      var _bx = 0, _by = 0, _bz = 0;
+      var toBody = function (px, py, pz) {
+        var Lr = Math.sqrt(px * px + py * py + pz * pz) || 1;
+        var ax = px / Lr, ay = py / Lr, az = pz / Lr;
+        _by = ax * nx + ay * ny + az * nz;
+        var b0 = ax * ux + ay * uy + az * uz;
+        var b1 = ax * vx + ay * vy + az * vz;
+        _bx = b0 * ca + b1 * sa;
+        _bz = b1 * ca - b0 * sa;
+        return Lr;
+      };
+      for (q = 0; q < s.n; q++) {
+        var sx = s.sx[q], sy = s.sy[q];
+        /* Bisect down the ray: hi starts outside the bounding sphere, lo at
+           the z=0 plane. Newton would be fewer steps but blows up near the
+           silhouette where the surface is edge-on; bisection just works. */
+        if (!(toBody(sx, sy, 0) < rockRadiusAt(_bx, _by, _bz))) continue;
+        var lo = 0, hi = s.hi[q];
+        for (var it = 0; it < 9; it++) {
+          var mid = (lo + hi) * 0.5;
+          if (toBody(sx, sy, mid) < rockRadiusAt(_bx, _by, _bz)) lo = mid;
+          else hi = mid;
+        }
+        var Lp = toBody(sx, sy, lo);            // also fills _bx/_by/_bz
+        var nzv = lo / Lp;                      // cosine of the view angle
+        var lum = (sx / Lp) * lx + (sy / Lp) * ly + nzv * lz;
+        if (lum < 0) lum = 0;
+        var by = clamp(_by, -1, 1);
+        var rockAlb = tex(_bx, by, _bz, Math.asin(by), Math.atan2(_bz, _bx));
+        var rockLit = rockAlb * (p.amb + (1 - p.amb) * lum * (0.45 + 0.55 * lum));
+        rockLit *= (0.58 + 0.42 * nzv) * c.gain;          // limb darkening
+        v[s.at[q]] = rockLit;
+      }
+    } else {
+      for (q = 0; q < s.n; q++) {
+        var p0 = s.b0[q], p1 = s.b1[q];
+        var tx = p0 * ca + p1 * sa, tz = p1 * ca - p0 * sa;
+        /* atan2(tz, tx), by way of the longitude before the turn, folded
+           back into -pi..pi where atan2 would have put it: a texture with a
+           seam (Mars, whose terms are not whole multiples of the longitude)
+           keeps it where it was. */
+        var lon = s.lo[q] - angle;
+        lon -= TWO_PI * Math.round(lon / TWO_PI);
+        var lit = tex(tx, s.by[q], tz, s.la[q], lon) * s.shade[q];
+        lit *= s.limb[q];
+        v[s.at[q]] = lit;
+      }
+    }
+
+    /* ---- ring plane, composited over whatever is behind it ---- */
+    for (q = 0; q < r.n; q++) {
+      var phi = r.phi[q] - angle * r.pw[q] * 1.7;
+      var cov = r.cov[q];
+      cov *= 0.70 + 0.30 * (0.62 * Math.sin(phi * 2.0 + 0.4)
+                          + 0.38 * Math.sin(phi * 5.0 - 1.1));
+      cov = clamp(cov, 0, 1) * c.fade;
+      if (cov > 0 && r.front[q]) { k = r.at[q]; v[k] = r.lum[q] * cov + v[k] * (1 - cov); }
+    }
+
+    /* ---- onto the ramp ---- */
+    var out = c.text, last = RAMP_CODES.length - 1, i = 0;
+    for (var j = 0; j < H; j++, i++) {
+      for (k = j * W; k < (j + 1) * W; k++, i++) {
+        var x = v[k];
+        out[i] = RAMP_CODES[Math.round((x < 0 ? 0 : x > 1 ? 1 : x) * last)];
+      }
+    }
+    return out;
+  }
+
+  /* The same frame as text, for the console hook. */
+  function render(p, angle) {
+    return ascii.decode(frame(p, angle));
   }
 
   /* --- scene ---------------------------------------------- */
@@ -551,20 +706,22 @@
     offset %= BODIES.length;
   }
 
+  /* `drawn` is the angle on screen and `text` the glyphs: a frame that comes out
+     the same as the last is not written again. */
   var live = [];
   for (var b = 0; b < BODIES.length; b++) {
     var p = BODIES[(b + offset) % BODIES.length];
     var pre = document.createElement('pre');
     pre.className = 'cosmos__body';
     host.appendChild(pre);
-    live.push({ p: p, el: pre, drawn: null, left: 0, top: 0, w: 0, h: 0 });
+    live.push({ p: p, el: pre, drawn: null, text: '', left: 0, top: 0, w: 0, h: 0 });
   }
   /* The horizon is not a drifter: pinned to the foot of the document and always
      on, so it stays out of `live` and its count logic. */
   var horizonEl = document.createElement('pre');
   horizonEl.className = 'cosmos__body cosmos__horizon';
   host.appendChild(horizonEl);
-  var horizon = { p: EARTH, el: horizonEl, drawn: null, top: 0, h: 0 };
+  var horizon = { p: EARTH, el: horizonEl, drawn: null, text: '', top: 0, h: 0 };
 
   /* The copyright line sits over the foot of the globe. */
   var note = document.querySelector('.foot__note');
@@ -612,15 +769,13 @@
   }
 
   /* Blank the glyphs the copyright covers, rather than letting it sit on top of
-     terrain whose brightness changes as the body turns. */
-  function punch(text) {
-    if (noteTo <= noteFrom || noteRow1 < noteRow0) return text;
-    var lines = text.split('\n');
-    var gap = new Array(noteTo - noteFrom + 1).join(' ');
-    for (var i = noteRow0; i <= noteRow1 && i < lines.length; i++) {
-      lines[i] = lines[i].slice(0, noteFrom) + gap + lines[i].slice(noteTo);
+     terrain whose brightness changes as the body turns. Done on the frame's
+     bytes, `cols` glyphs and a newline to a row. */
+  function punch(bytes, cols) {
+    if (noteTo <= noteFrom || noteRow1 < noteRow0) return;
+    for (var j = noteRow0; j <= noteRow1; j++) {
+      bytes.fill(32, j * (cols + 1) + noteFrom, j * (cols + 1) + noteTo);
     }
-    return lines.join('\n');
   }
 
   document.body.insertBefore(host, document.body.firstChild);
@@ -746,6 +901,11 @@
   /* --- layout --------------------------------------------- */
   var count = 1;
   var pageH = 0;              /* the body's height at the last measure() */
+  /* Where the window is, as of the last scroll or measure(). Kept rather than
+     asked for: reading scrollY makes the browser bring style and layout up to
+     date first, and asked on every wake it settled the last frame's text and
+     every twinkling star a second time, in the middle of the wake. */
+  var scrollTop = 0, viewH = 0;
 
   /* Which monospace font actually resolved decides the glyph advance, and
      both disk roundness and the on-screen fit depend on it. Measure once
@@ -753,7 +913,8 @@
   function measureAspect() {
     var probe = document.createElement('pre');
     probe.className = 'cosmos__body';
-    probe.style.cssText = 'position:absolute;visibility:hidden;left:-9999px;top:0;font-size:100px';
+    /* contain:none, or the class's size containment measures it as empty. */
+    probe.style.cssText = 'position:absolute;visibility:hidden;left:-9999px;top:0;font-size:100px;contain:none';
     probe.textContent = new Array(51).join('M');          // 50 glyphs
     host.appendChild(probe);
     var w = probe.getBoundingClientRect().width;
@@ -804,6 +965,8 @@
   function measure() {
     /* clientWidth, not innerWidth: the scrollbar is not usable space. */
     var vw = document.documentElement.clientWidth, vh = window.innerHeight;
+    viewH = vh;
+    scrollTop = window.scrollY || window.pageYOffset || 0;
     /* Two sizes, and only one follows the window. `base` sets the horizon's
        grid and the copyright in it, both of which span the window. A drifting
        body does not: resizing with the window reads as the art breathing, so on
@@ -903,6 +1066,11 @@
       s.h = p.rows * fs;
       s.top = Math.max(0, spots[i]);
       s.el.style.top = s.top + 'px';
+      /* Its size, stated: the stylesheet contains each body (strict), which
+         keeps a frame's relayout and repaint inside it, and a contained box
+         takes no size from its text. */
+      s.el.style.width = w + 'px';
+      s.el.style.height = s.h + 'px';
       s.drawn = null;                     // force a repaint at the new size
     }
 
@@ -939,6 +1107,7 @@
     horizonEl.style.fontSize = efs + 'px';
     horizonEl.style.left = '0px';
     horizonEl.style.top = horizon.top + 'px';
+    horizonEl.style.height = horizon.h + 'px';       // the width is the stylesheet's 100%
 
     /* Read the line back after sizing it: this is what the gap is cut from.
        punch() clears whatever block of cells it covers, so the line and the
@@ -950,34 +1119,50 @@
   /* Rotation runs on wall-clock time, not scroll position, so the bodies keep
      turning while the page sits still. Only bodies near the viewport are
      drawn, and the angle is quantized so a redraw only happens when a glyph
-     could actually change. Returns the seconds until the next of those
-     redraws, or Infinity when nothing in range turns. */
+     could actually change. Returns the seconds until the quickest body in
+     range next steps, which is when the loop wakes again (see below), or
+     Infinity when nothing in range turns. */
   function draw(spun) {
-    var y = window.scrollY || window.pageYOffset || 0;
-    var vh = window.innerHeight;
+    var y = scrollTop, vh = viewH;
     var near = y - vh * 0.5, far = y + vh * 1.5;
-    var wait = Infinity;
+    var steps = 0, wait = Infinity;
 
     for (var i = 0; i < count; i++) {
       var s = live[i];
       if (s.top + s.h < near || s.top > far) continue;
       var q = Math.round((s.p.phase + spun * s.p.rate) * 120) / 120;
       if (q !== s.drawn) {
-        s.el.textContent = render(s.p, q);
+        show(s, frame(s.p, q));
         s.drawn = q;
       }
-      wait = Math.min(wait, untilStep(s.p, spun, 120));
+      if (Math.abs(s.p.rate * 120) > steps) {
+        steps = Math.abs(s.p.rate * 120);
+        wait = untilStep(s.p, spun, 120);
+      }
     }
 
     if (horizon.h && horizon.top + horizon.h >= near && horizon.top <= far) {
       var qe = Math.round((horizon.p.phase + spun * horizon.p.rate) * 240) / 240;
       if (qe !== horizon.drawn) {
-        horizon.el.textContent = punch(render(horizon.p, qe));
+        var bytes = frame(horizon.p, qe);
+        punch(bytes, horizon.p.cols);
+        show(horizon, bytes);
         horizon.drawn = qe;
       }
-      wait = Math.min(wait, untilStep(horizon.p, spun, 240));
+      if (Math.abs(horizon.p.rate * 240) > steps) wait = untilStep(horizon.p, spun, 240);
     }
     return wait;
+  }
+
+  /* Put a frame on the page, unless it is the one already there: the same
+     text handed over again still costs a relayout of every glyph in it. The
+     text node is updated in place rather than replaced. */
+  function show(s, bytes) {
+    var text = ascii.decode(bytes);
+    if (text === s.text) return;
+    if (s.el.firstChild) s.el.firstChild.data = text;
+    else s.el.textContent = text;
+    s.text = text;
   }
 
   /* Seconds until a body's quantized angle next changes. Counted in quanta,
@@ -993,8 +1178,23 @@
   /* The loop sleeps from one step to the next instead of asking for every
      frame. A frame is not free even when nothing in it changes: the browser
      restyles every twinkling star for it, and at 60 a second that cost more
-     than drawing the bodies did. */
-  var spun = 0, last = 0, timer = 0;
+     than drawing the bodies did.
+
+     And it wakes only for the quickest body in range (see draw()). Every body
+     steps on its own clock, and given a wake each, three or four bodies made
+     thirty frames a second between them, each one restyling every star. On
+     the quickest body's clock, that body still takes every step on time, and
+     a wake draws whichever of the others have stepped since the last: they
+     share its frames, each of their steps landing a fraction of a glyph late
+     at most. On the home page that is Saturn's twelve and a half frames a
+     second for all of them.
+
+     And never sooner than DUTY times what a wake costs, so on a machine slow
+     enough for the bodies to be heavy they are drawn less often, rather than
+     taking more than a third of the main thread. The same cap cosmos.js
+     puts on its preview. */
+  var DUTY = 3;
+  var spun = 0, last = 0, timer = 0, cost = 0;
 
   function wake() {
     clearTimeout(timer);
@@ -1003,10 +1203,14 @@
     if (last) spun += (now - last) / 1000;
     last = now;
     var wait = draw(spun);
+    /* Smoothed, so one slow wake, a garbage collection say, does not hold
+       the bodies back for long. */
+    var ms = performance.now() - now;
+    cost = cost ? cost * 0.75 + ms * 0.25 : ms;
     /* A few ms past the step, so a timer that fires a hair early still finds
        it taken. With nothing in range there is nothing to wait for, and the
        next scroll wakes it. */
-    if (wait < Infinity) timer = setTimeout(wake, wait * 1000 + 4);
+    if (wait < Infinity) timer = setTimeout(wake, Math.max(wait * 1000 + 4, cost * DUTY));
   }
 
   function stop() { clearTimeout(timer); timer = 0; last = 0; }
@@ -1025,12 +1229,18 @@
     if (document.hidden) stop(); else redraw();
   });
 
-  /* Scrolling brings bodies into range, so it draws, once a frame at most. */
+  /* Scrolling brings bodies into range, so it draws, once a frame at most. The
+     position is read here, in the frame, where style and layout are due
+     anyway. */
   var queued = false;
   addEventListener('scroll', function () {
     if (queued) return;
     queued = true;
-    requestAnimationFrame(function () { queued = false; redraw(); });
+    requestAnimationFrame(function () {
+      queued = false;
+      scrollTop = window.scrollY || window.pageYOffset || 0;
+      redraw();
+    });
   }, { passive: true });
 
   /* Exposed so the bodies can be inspected and tuned outside the page. */
