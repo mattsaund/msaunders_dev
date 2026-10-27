@@ -3,7 +3,8 @@
    tiny is a terminal program and this page has no terminal. It runs here as
    tiny.wasm, built by tools/build_tiny.py from the web branch of the clone, and
    this file stands in for what a terminal would have given it: a filesystem
-   with a project in it, a keyboard, and a screen to paint frames on.
+   with a project in it, a keyboard and a mouse, and a screen to paint frames
+   on.
 
    The program itself downloads only when someone presses its button: it is a
    few megabytes, and most people who open this page only read it. What comes
@@ -245,23 +246,62 @@ function mount(box) {
     else if (text) pasteInto("tiny_paste", text);
   });
 
+  // The mouse, the way a terminal reports it: the left button's press, drag
+  // and release at the cell under it, and the wheel. tiny makes the rest of
+  // it, double clicks included. The other buttons stay the browser's, for its
+  // menu and middle-click paste. A press is followed off the screen until it
+  // lets go, so a drag can run past an edge, and a drag only reports a move to
+  // another cell.
+  const cellAt = (e) => {
+    const at = screen.getBoundingClientRect();
+    return [
+      Math.min(want.cols - 1, Math.max(0, Math.floor((e.clientX - at.left) / m.cw))),
+      Math.min(want.rows - 1, Math.max(0, Math.floor((e.clientY - at.top) / m.ch))),
+    ];
+  };
+  // tiny_mouse in src/web.rs; truthy when the screen changed.
+  const send = (kind, [col, row], e) =>
+    call((t) => t.tiny_mouse(kind, col, row, (e.shiftKey ? 1 : 0) | (e.ctrlKey ? 2 : 0) | (e.altKey ? 4 : 0)));
+  let held = null; // the cell the left button is down over, while it is
+  const drag = (e) => {
+    const at = cellAt(e);
+    if (at[0] === held[0] && at[1] === held[1]) return;
+    held = at;
+    if (send(2, at, e)) paint();
+  };
+  const release = (e) => {
+    if (e.button !== 0) return;
+    removeEventListener("mousemove", drag);
+    removeEventListener("mouseup", release);
+    held = null;
+    if (send(1, cellAt(e), e)) paint();
+  };
+  screen.addEventListener("mousedown", (e) => {
+    if (!ex || e.button !== 0) return;
+    // No selecting the page's text, and no dragging the canvas off as an image.
+    e.preventDefault();
+    box.focus({ preventScroll: true });
+    held = cellAt(e);
+    if (send(0, held, e)) paint();
+    addEventListener("mousemove", drag);
+    addEventListener("mouseup", release);
+  });
+
+  // A notch of the wheel for every 40 pixels it scrolls, the way a terminal
+  // turns a touchpad's smooth scrolling into steps.
   screen.addEventListener(
     "wheel",
     (e) => {
       if (!ex) return;
       e.preventDefault();
       wheel += e.deltaMode === 1 ? e.deltaY * 16 : e.deltaY;
-      const at = screen.getBoundingClientRect();
-      const col = Math.max(0, Math.floor((e.clientX - at.left) / m.cw));
-      const row = Math.max(0, Math.floor((e.clientY - at.top) / m.ch));
-      let moved = false;
+      const at = cellAt(e);
+      let changed = false;
       while (Math.abs(wheel) >= 40) {
-        const down = wheel > 0 ? 1 : 0;
-        call((t) => t.tiny_scroll(down, col, row));
+        changed = send(wheel > 0 ? 3 : 4, at, e) || changed;
         wheel -= Math.sign(wheel) * 40;
-        moved = true;
       }
-      if (moved) paint();
+      if (changed) paint();
     },
     { passive: false },
   );

@@ -1,5 +1,5 @@
 This copy ships with the browser build of tiny at msaunders.dev/tiny/, built
-from tiny 8420eb0 for WebAssembly. Below this note is tiny's own notices
+from tiny 3a89165 for WebAssembly. Below this note is tiny's own notices
 file, unchanged. The browser build carries every crate it lists except any
 named here, and it does not carry Lua, which it leaves out along with
 plugins. The syntax definitions' acknowledgments are in
