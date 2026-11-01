@@ -7,8 +7,9 @@ instead of a terminal. This script turns that clone into what the page loads:
 
   app/tiny.wasm      the program, built for wasm32-wasip1 and shrunk
   app/project.json   the project it opens: tiny's own source, exactly as it
-                     stands on `main`, plus the answers Source Control asks
-                     git for, recorded from a real checkout of it
+                     stands on `main`, plus the answers tiny asks git for
+                     (Source Control's, and what the map leaves out),
+                     recorded from a real checkout of it
   app/start/<rows>.json
                      the first frame tiny draws, at every size the page can
                      give it, one file for each height: the page shows it
@@ -175,15 +176,25 @@ def project(stage):
     with tempfile.TemporaryDirectory() as tmp:
         co = os.path.join(tmp, "checkout")
         run(["git", "clone", "--quiet", "--single-branch", "--branch", "main", CLONE, co])
-        status = run(["git", "status", "--porcelain=v1", "--branch", "-z"], cwd=co, env=env)
-        graph = run(["git", "log", "--graph", "--all", "--decorate", "--color=never",
-                     "--date=short", "--pretty=format:%h %d %s", "-n", GRAPH_LIMIT], cwd=co, env=env)
+        asked = {
+            # Source Control: the branch and the changes, the graph, and
+            # whether there are commits and somewhere to push them, which
+            # decide its buttons.
+            "status": ["status", "--porcelain=v1", "--branch", "-z"],
+            "graph": ["log", "--graph", "--all", "--decorate", "--color=never",
+                      "--date=short", "--pretty=format:%h %d %s", "-n", GRAPH_LIMIT],
+            "head": ["rev-parse", "--verify", "--quiet", "HEAD"],
+            "remote": ["remote"],
+            # What the map leaves out.
+            "ignored": ["ls-files", "-z", "--others", "--ignored", "--exclude-standard", "--directory"],
+        }
+        answers = {name: run(["git"] + args, cwd=co, env=env).decode("utf-8") for name, args in asked.items()}
 
     image = {
         "commit": commit,
         "dir": PROJECT_DIR,
         "files": files,
-        "git": {"status": status.decode("utf-8"), "graph": graph.decode("utf-8")},
+        "git": answers,
     }
     data = json.dumps(image, ensure_ascii=False, separators=(",", ":")).encode("utf-8")
     with open(os.path.join(stage, "project.json"), "wb") as fh:
@@ -346,9 +357,9 @@ def start_worker(stage):
             with open(full, "w", encoding="utf-8") as fh:
                 fh.write(text)
         os.makedirs(os.path.join(root, ".tiny-web"))
-        for name in ("status", "graph"):
+        for name, text in project["git"].items():
             with open(os.path.join(root, ".tiny-web", name), "w", encoding="utf-8") as fh:
-                fh.write(project["git"][name])
+                fh.write(text)
         os.makedirs(os.path.join(root, "home", ".config"))
         os.makedirs(os.path.join(root, "tmp"))
 

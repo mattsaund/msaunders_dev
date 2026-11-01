@@ -275,6 +275,7 @@ function mount(box) {
     removeEventListener("mouseup", release);
     held = null;
     if (send(1, cellAt(e), e)) paint();
+    handOver();
   };
   screen.addEventListener("mousedown", (e) => {
     if (!ex || e.button !== 0) return;
@@ -283,6 +284,7 @@ function mount(box) {
     box.focus({ preventScroll: true });
     held = cellAt(e);
     if (send(0, held, e)) paint();
+    handOver();
     addEventListener("mousemove", drag);
     addEventListener("mouseup", release);
   });
@@ -325,15 +327,20 @@ function mount(box) {
     paint();
   }
 
-  /* What tiny just copied, onto the browser's clipboard. A page may only
-     write there while it handles something the person did, so this runs
-     after each key. */
+  /* What tiny hands out to the browser: a copy, onto its clipboard, and a web
+     address a link in a note asked to open, into a new tab (a mailto: to the
+     mail program instead, without an empty tab). A page may only do either
+     while it handles something the person did, so this runs after each key
+     and each press and release of the mouse. tiny only hands out web and
+     mail addresses; the page checks again rather than open anything else. */
   function handOver() {
-    const text = call((t) => {
-      const n = t.tiny_copied_len();
-      return n ? read(t, t.tiny_copied_ptr(), n) : "";
-    });
+    const [text, link] = call((t) => {
+      const n = t.tiny_copied_len(), l = t.tiny_link_len();
+      return [n ? read(t, t.tiny_copied_ptr(), n) : "", l ? read(t, t.tiny_link_ptr(), l) : ""];
+    }) || ["", ""];
     if (text && navigator.clipboard) navigator.clipboard.writeText(text).catch(() => {});
+    if (/^mailto:/i.test(link)) location.href = link;
+    else if (/^https?:\/\//i.test(link)) window.open(link, "_blank", "noopener,noreferrer");
   }
 
   /* Every call into tiny once it runs. A panic in tiny aborts the program and
@@ -843,13 +850,12 @@ function filesystem(project) {
     );
   return new Map([
     [project.dir, new Directory(entries(tree))],
+    // The answers git gave in a checkout of the project, one file each, which
+    // the browser build's git reads in place of running git.
     [
       ".tiny-web",
       new Directory(
-        new Map([
-          ["status", new File(encoder.encode(project.git.status))],
-          ["graph", new File(encoder.encode(project.git.graph))],
-        ]),
+        new Map(Object.entries(project.git).map(([name, text]) => [name, new File(encoder.encode(text))])),
       ),
     ],
     ["home", new Directory(new Map([[".config", new Directory(new Map())]]))],
