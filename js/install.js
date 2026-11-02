@@ -26,7 +26,7 @@
     });
   }
 
-  /* The status line is one line under both commands, so whichever button
+  /* The status line is one line under all the commands, so whichever button
      spoke last owns it: an earlier button's timer must not clear what a later
      one said. */
   var speaker = null;

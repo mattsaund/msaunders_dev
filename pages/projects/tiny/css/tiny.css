@@ -173,13 +173,13 @@ body {
    against its own command, which is wider than a phone. */
 .get { display: flex; flex-direction: column; align-items: center; gap: 20px; width: 100%; }
 
-/* Wide enough that the whole command shows: the longer of the two is 80
-   characters at 8px (see .cmd__text), 640px, plus the padding and the button.
+/* Wide enough that the whole command shows: the longest is 80 characters
+   at 8px (see .cmd__text), 640px, plus the padding and the button.
    Narrower than that it scrolls rather than wraps, since a wrapped shell
    command reads as two commands. */
 .cmd { width: 100%; max-width: 900px; }
 
-/* The marks stand outside the box, in a column of their own, so the two boxes
+/* The marks stand outside the box, in a column of their own, so the boxes
    keep one left edge whether that column holds one mark or two. */
 .cmd__row { display: flex; align-items: center; gap: 14px; }
 .cmd__row + .cmd__row { margin-top: 10px; }

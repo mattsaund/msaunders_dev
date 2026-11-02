@@ -14,7 +14,7 @@
 <!-- Same self-hosted face as the rest of the site, so a visitor arriving from
      msaunders.dev already has it cached. -->
 <link rel="preload" href="/fonts/paper-mono.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="/tiny/css/tiny.css?v=6aa20e12">
+<link rel="stylesheet" href="/tiny/css/tiny.css?v=c35eda19">
 </head>
 <body>
 
@@ -82,16 +82,16 @@
     <h1 class="hero__title">tiny</h1>
   </div>
 
-  <!-- Download, and under it the same one-line install the repo's README
-       gives, for people who would rather stay in the terminal. The command
-       is in the markup, not the script, so it is still readable and
-       selectable with scripting off. -->
+  <!-- Download, and under it the same installs the repo's README gives (the
+       one-line installers, and the AUR for Arch), for people who would
+       rather stay in the terminal. The commands are in the markup, not the
+       script, so they are still readable and selectable with scripting off. -->
   <div class="get">
     <a class="btn" href="https://github.com/mattsaund/tiny"
        target="_blank" rel="noopener">Download on GitHub</a>
 
     <!-- The platform marks are the Simple Icons outlines (CC0), inline rather
-         than fetched: three files for three 18px glyphs is three round trips,
+         than fetched: four files for four 18px glyphs is four round trips,
          and inline they take the color from the stylesheet. -->
     <div class="cmd">
       <p class="cmd__label">Or use this command in terminal</p>
@@ -123,10 +123,23 @@
         </div>
       </div>
 
+      <div class="cmd__row">
+        <div class="cmd__os" aria-hidden="true">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M11.39.605C10.376 3.092 9.764 4.72 8.635 7.132c.693.734 1.543 1.589 2.923 2.554-1.484-.61-2.496-1.224-3.252-1.86C6.86 10.842 4.596 15.138 0 23.395c3.612-2.085 6.412-3.37 9.021-3.862a6.61 6.61 0 01-.171-1.547l.003-.115c.058-2.315 1.261-4.095 2.687-3.973 1.426.12 2.534 2.096 2.478 4.409a6.52 6.52 0 01-.146 1.243c2.58.505 5.352 1.787 8.914 3.844-.702-1.293-1.33-2.459-1.929-3.57-.943-.73-1.926-1.682-3.933-2.713 1.38.359 2.367.772 3.137 1.234-6.09-11.334-6.582-12.84-8.67-17.74zM22.898 21.36v-.623h-.234v-.084h.562v.084h-.234v.623h.331v-.707h.142l.167.5.034.107a2.26 2.26 0 01.038-.114l.17-.493H24v.707h-.091v-.593l-.206.593h-.084l-.205-.602v.602h-.091"/></svg>
+        </div>
+        <div class="cmd__box">
+          <code class="cmd__text" id="install-arch">yay -S tiny-ide-bin</code>
+          <button class="cmd__copy" type="button" data-copy="install-arch"
+                  data-note="cmd-note" aria-label="Copy the Arch Linux command">
+            <span class="cmd__copy-label">Copy</span>
+          </button>
+        </div>
+      </div>
+
       <p class="cmd__note" id="cmd-note" role="status" aria-live="polite"></p>
       <!-- Laid over the status line's row rather than given one, so nothing
-           moves for it; see .cmd__sizes. From tiny's README, for 0.6.5. -->
-      <p class="cmd__sizes">Installed size: macOS 7.18 to 7.79 MB, Linux 7.80 to 8.48 MB, Windows 7.39 to 8.03 MB</p>
+           moves for it; see .cmd__sizes. From tiny's README, for 0.6.7. -->
+      <p class="cmd__sizes">Installed size: macOS 7.21 to 7.84 MB, Linux 7.83 to 8.53 MB, Windows 7.43 to 8.07 MB</p>
     </div>
   </div>
 </main>
@@ -165,6 +178,6 @@
 </section>
 
 <script type="module" src="/tiny/app/term.js?v=08bdba2c"></script>
-<script src="/js/install.js?v=4c0c6699" defer></script>
+<script src="/js/install.js?v=c18a5198" defer></script>
 </body>
 </html>

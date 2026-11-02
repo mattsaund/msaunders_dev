@@ -185,6 +185,10 @@ def project(stage):
                       "--date=short", "--pretty=format:%h %d %s", "-n", GRAPH_LIMIT],
             "head": ["rev-parse", "--verify", "--quiet", "HEAD"],
             "remote": ["remote"],
+            # The git window's list of branches, here and on the remote.
+            "branches": ["for-each-ref",
+                         "--format=%(HEAD)%00%(refname)%00%(upstream:short)%00%(upstream:track,nobracket)",
+                         "refs/heads", "refs/remotes"],
             # What the map leaves out.
             "ignored": ["ls-files", "-z", "--others", "--ignored", "--exclude-standard", "--directory"],
         }
