@@ -1,64 +1,64 @@
 {
   "wasm": {
     "file": "tiny.wasm",
-    "hash": "85cf6012"
+    "hash": "d3ad555d"
   },
   "project": {
     "file": "project.json",
-    "hash": "d1345e71"
+    "hash": "039c79ce"
   },
   "start": {
     "24": {
       "file": "start/24.json",
-      "hash": "f6b891c0"
+      "hash": "8951ebb1"
     },
     "26": {
       "file": "start/26.json",
-      "hash": "d6b9fe6a"
+      "hash": "fc6393ec"
     },
     "28": {
       "file": "start/28.json",
-      "hash": "a6e0ed28"
+      "hash": "542745e6"
     },
     "30": {
       "file": "start/30.json",
-      "hash": "fcad872c"
+      "hash": "dd03c56c"
     },
     "32": {
       "file": "start/32.json",
-      "hash": "4aae903c"
+      "hash": "bb411d4e"
     },
     "34": {
       "file": "start/34.json",
-      "hash": "e2fd8243"
+      "hash": "c660aa95"
     },
     "36": {
       "file": "start/36.json",
-      "hash": "991750b7"
+      "hash": "4902c694"
     },
     "38": {
       "file": "start/38.json",
-      "hash": "de272a24"
+      "hash": "3ab5ca32"
     },
     "40": {
       "file": "start/40.json",
-      "hash": "250345e9"
+      "hash": "4ef8f001"
     },
     "42": {
       "file": "start/42.json",
-      "hash": "c95db94a"
+      "hash": "1cacc99f"
     },
     "44": {
       "file": "start/44.json",
-      "hash": "7947b7b3"
+      "hash": "cf74a85f"
     },
     "46": {
       "file": "start/46.json",
-      "hash": "3be9d0c1"
+      "hash": "1237a966"
     },
     "48": {
       "file": "start/48.json",
-      "hash": "7a61ba43"
+      "hash": "e307f757"
     }
   }
 }

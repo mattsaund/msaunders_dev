@@ -841,21 +841,31 @@ function filesystem(project) {
     for (const part of parts.slice(0, -1)) node = node[part] || (node[part] = {});
     node[parts[parts.length - 1]] = text;
   }
-  const entries = (node) =>
+  const entries = (node, options) =>
     new Map(
       Object.entries(node).map(([name, v]) => [
         name,
-        typeof v === "string" ? new File(encoder.encode(v)) : new Directory(entries(v)),
+        typeof v === "string" ? new File(encoder.encode(v), options) : new Directory(entries(v, options)),
       ]),
     );
+  // The copy tiny opens and edits, with an empty .git in it: what makes tiny
+  // take it for a repository, as it would a checkout (see app::marks in the
+  // clone). What git would say about it is in .tiny-web.
+  const own = entries(tree);
+  own.set(".git", new Directory(new Map()));
   return new Map([
-    [project.dir, new Directory(entries(tree))],
+    [project.dir, new Directory(own)],
     // The answers git gave in a checkout of the project, one file each, which
-    // the browser build's git reads in place of running git.
+    // the browser build's git reads in place of running git; and the project
+    // again, read-only, as the last commit has it, for the marks beside the
+    // line numbers to be measured against (see git::run::git_bytes).
     [
       ".tiny-web",
       new Directory(
-        new Map(Object.entries(project.git).map(([name, text]) => [name, new File(encoder.encode(text))])),
+        new Map([
+          ...Object.entries(project.git).map(([name, text]) => [name, new File(encoder.encode(text))]),
+          ["committed", new Directory(entries(tree, { readonly: true }))],
+        ]),
       ),
     ],
     ["home", new Directory(new Map([[".config", new Directory(new Map())]]))],

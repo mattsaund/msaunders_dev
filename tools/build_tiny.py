@@ -364,6 +364,15 @@ def start_worker(stage):
         for name, text in project["git"].items():
             with open(os.path.join(root, ".tiny-web", name), "w", encoding="utf-8") as fh:
                 fh.write(text)
+        # The rest of what term.js adds: an empty .git in the project, which
+        # makes tiny take it for a repository, and the project again as the
+        # last commit has it, which the marks beside the line numbers read.
+        os.makedirs(os.path.join(root, project["dir"], ".git"))
+        for path, text in project["files"].items():
+            full = os.path.join(root, ".tiny-web", "committed", path)
+            os.makedirs(os.path.dirname(full), exist_ok=True)
+            with open(full, "w", encoding="utf-8") as fh:
+                fh.write(text)
         os.makedirs(os.path.join(root, "home", ".config"))
         os.makedirs(os.path.join(root, "tmp"))
 
