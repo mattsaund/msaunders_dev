@@ -1,11 +1,11 @@
 {
   "wasm": {
     "file": "tiny.wasm",
-    "hash": "dff9f599"
+    "hash": "4f4e7143"
   },
   "project": {
     "file": "project.json",
-    "hash": "4c10a4cb"
+    "hash": "4de02ee8"
   },
   "start": {
     "24": {
