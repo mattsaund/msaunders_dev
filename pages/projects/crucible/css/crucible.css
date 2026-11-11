@@ -354,21 +354,24 @@ body {
 #tour-experts:checked ~ .tour__shots .tour__shot--experts,
 #tour-models:checked  ~ .tour__shots .tour__shot--models,
 #tour-create:checked  ~ .tour__shots .tour__shot--create,
-#tour-bench:checked   ~ .tour__shots .tour__shot--bench { display: block; }
+#tour-bench:checked   ~ .tour__shots .tour__shot--bench,
+#tour-serve:checked   ~ .tour__shots .tour__shot--serve { display: block; }
 
 #tour-build:checked   ~ .tour__tabs .tour__tab--build,
 #tour-preview:checked ~ .tour__tabs .tour__tab--preview,
 #tour-experts:checked ~ .tour__tabs .tour__tab--experts,
 #tour-models:checked  ~ .tour__tabs .tour__tab--models,
 #tour-create:checked  ~ .tour__tabs .tour__tab--create,
-#tour-bench:checked   ~ .tour__tabs .tour__tab--bench { color: var(--fg); border-bottom-color: var(--flame); }
+#tour-bench:checked   ~ .tour__tabs .tour__tab--bench,
+#tour-serve:checked   ~ .tour__tabs .tour__tab--serve { color: var(--fg); border-bottom-color: var(--flame); }
 
 #tour-build:checked   ~ .tour__tabs .tour__tab--build   .tour__n,
 #tour-preview:checked ~ .tour__tabs .tour__tab--preview .tour__n,
 #tour-experts:checked ~ .tour__tabs .tour__tab--experts .tour__n,
 #tour-models:checked  ~ .tour__tabs .tour__tab--models  .tour__n,
 #tour-create:checked  ~ .tour__tabs .tour__tab--create  .tour__n,
-#tour-bench:checked   ~ .tour__tabs .tour__tab--bench   .tour__n { color: var(--flame); }
+#tour-bench:checked   ~ .tour__tabs .tour__tab--bench   .tour__n,
+#tour-serve:checked   ~ .tour__tabs .tour__tab--serve   .tour__n { color: var(--flame); }
 
 /* The radio has the focus, its name shows it. */
 #tour-build:focus-visible   ~ .tour__tabs .tour__tab--build,
@@ -376,7 +379,8 @@ body {
 #tour-experts:focus-visible ~ .tour__tabs .tour__tab--experts,
 #tour-models:focus-visible  ~ .tour__tabs .tour__tab--models,
 #tour-create:focus-visible  ~ .tour__tabs .tour__tab--create,
-#tour-bench:focus-visible   ~ .tour__tabs .tour__tab--bench { outline: 2px solid var(--fg); outline-offset: 2px; }
+#tour-bench:focus-visible   ~ .tour__tabs .tour__tab--bench,
+#tour-serve:focus-visible   ~ .tour__tabs .tour__tab--serve { outline: 2px solid var(--fg); outline-offset: 2px; }
 
 /* --- foot -------------------------------------------------- */
 .foot {

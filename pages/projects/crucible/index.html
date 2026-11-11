@@ -15,7 +15,7 @@
      msaunders.dev already has it cached. The flame is measured in glyphs, so it
      wants the font in hand before first paint rather than after it. -->
 <link rel="preload" href="/fonts/paper-mono.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="/crucible/css/crucible.css?v=bf13a2bb">
+<link rel="stylesheet" href="/crucible/css/crucible.css?v=ed3c43db">
 </head>
 <body>
 
@@ -99,7 +99,7 @@
   </div>
 </section>
 
-<!-- Six parts, one picture at a time: a row of names above the picture, and
+<!-- Seven parts, one picture at a time: a row of names above the picture, and
      what the chosen one does under it. The choosing is radio buttons and the
      stylesheet, not a script: it works with scripting off, the arrow keys move
      through it as through any radio group, and a picture not yet chosen is a
@@ -112,6 +112,7 @@
     <input class="tour__pick" type="radio" name="tour" id="tour-models">
     <input class="tour__pick" type="radio" name="tour" id="tour-create">
     <input class="tour__pick" type="radio" name="tour" id="tour-bench">
+    <input class="tour__pick" type="radio" name="tour" id="tour-serve">
     <div class="tour__tabs">
       <label class="tour__tab tour__tab--build" for="tour-build"><span class="tour__n">01</span>Build</label>
       <label class="tour__tab tour__tab--preview" for="tour-preview"><span class="tour__n">02</span>Preview</label>
@@ -119,6 +120,7 @@
       <label class="tour__tab tour__tab--models" for="tour-models"><span class="tour__n">04</span>Models</label>
       <label class="tour__tab tour__tab--create" for="tour-create"><span class="tour__n">05</span>Create</label>
       <label class="tour__tab tour__tab--bench" for="tour-bench"><span class="tour__n">06</span>Bench</label>
+      <label class="tour__tab tour__tab--serve" for="tour-serve"><span class="tour__n">07</span>Serve</label>
     </div>
     <div class="tour__shots">
       <figure class="tour__shot tour__shot--build">
@@ -150,6 +152,11 @@
         <img src="/crucible/img/bench.webp" width="1400" height="883" loading="lazy" decoding="async"
              alt="Bench: the board's best models, a spider chart, and every result">
         <figcaption class="tour__line">Nine benchmarks, spider charts, and a public board to measure against.</figcaption>
+      </figure>
+      <figure class="tour__shot tour__shot--serve">
+        <img src="/crucible/img/serve.webp" width="1400" height="883" loading="lazy" decoding="async"
+             alt="Serve: the server on, its addresses, and the last requests it answered">
+        <figcaption class="tour__line">Serve a model to your other apps and computers, at an address that speaks OpenAI's API.</figcaption>
       </figure>
     </div>
   </div>
