@@ -308,7 +308,13 @@ body {
 }
 
 /* Over a hairline, as the bar's tabs sit over theirs: the chosen name's
-   orange replaces the grey under it rather than standing beside it. */
+   orange replaces the grey under it rather than standing beside it.
+
+   All seven on one row where they fit, and otherwise in rows as even as
+   seven allow, each centered: four over three, and on a phone three, two and
+   two. Left to wrap where it liked, the row put 07 alone on a row of its
+   own. The breaks are the box's ::before and ::after, a row wide and no
+   height, put between the names by order (see the steps at the end). */
 .tour__tabs {
   display: flex; flex-wrap: wrap; justify-content: center; gap: 0 36px;
   border-bottom: 1px solid var(--line-2);
@@ -349,7 +355,7 @@ body {
   text-align: center;
 }
 
-#tour-build:checked   ~ .tour__shots .tour__shot--build,
+#tour-ask:checked     ~ .tour__shots .tour__shot--ask,
 #tour-preview:checked ~ .tour__shots .tour__shot--preview,
 #tour-experts:checked ~ .tour__shots .tour__shot--experts,
 #tour-models:checked  ~ .tour__shots .tour__shot--models,
@@ -357,7 +363,7 @@ body {
 #tour-bench:checked   ~ .tour__shots .tour__shot--bench,
 #tour-serve:checked   ~ .tour__shots .tour__shot--serve { display: block; }
 
-#tour-build:checked   ~ .tour__tabs .tour__tab--build,
+#tour-ask:checked     ~ .tour__tabs .tour__tab--ask,
 #tour-preview:checked ~ .tour__tabs .tour__tab--preview,
 #tour-experts:checked ~ .tour__tabs .tour__tab--experts,
 #tour-models:checked  ~ .tour__tabs .tour__tab--models,
@@ -365,7 +371,7 @@ body {
 #tour-bench:checked   ~ .tour__tabs .tour__tab--bench,
 #tour-serve:checked   ~ .tour__tabs .tour__tab--serve { color: var(--fg); border-bottom-color: var(--flame); }
 
-#tour-build:checked   ~ .tour__tabs .tour__tab--build   .tour__n,
+#tour-ask:checked     ~ .tour__tabs .tour__tab--ask     .tour__n,
 #tour-preview:checked ~ .tour__tabs .tour__tab--preview .tour__n,
 #tour-experts:checked ~ .tour__tabs .tour__tab--experts .tour__n,
 #tour-models:checked  ~ .tour__tabs .tour__tab--models  .tour__n,
@@ -374,7 +380,7 @@ body {
 #tour-serve:checked   ~ .tour__tabs .tour__tab--serve   .tour__n { color: var(--flame); }
 
 /* The radio has the focus, its name shows it. */
-#tour-build:focus-visible   ~ .tour__tabs .tour__tab--build,
+#tour-ask:focus-visible     ~ .tour__tabs .tour__tab--ask,
 #tour-preview:focus-visible ~ .tour__tabs .tour__tab--preview,
 #tour-experts:focus-visible ~ .tour__tabs .tour__tab--experts,
 #tour-models:focus-visible  ~ .tour__tabs .tour__tab--models,
@@ -397,6 +403,16 @@ body {
 /* --- responsive steps -------------------------------------- *
    Whole pixels per step, the same way the main site handles its scale.
    ============================================================ */
+/* The seven names are 859px in a row, which fits any window wider than 960
+   with room for a scrollbar. Narrower, four over three, 32 apart rather than
+   36 so the four on top (481px) fit the narrowest window of this step, 561
+   less a scrollbar. */
+@media (max-width: 960px) {
+  .tour__tabs { gap: 0 32px; }
+  .tour__tabs::after { content: ""; flex-basis: 100%; order: 1; }
+  .tour__tab:nth-child(n+5) { order: 2; }
+}
+
 @media (max-width: 860px) {
   .hero__unit { gap: 20px; }
   .hero__title { font-size: 64px; line-height: 64px; }
@@ -430,6 +446,17 @@ body {
      5px. That is about the smallest cell whose glyphs still render: they read
      as texture rather than characters, but the shape holds. */
   .flame { font-size: 3.84px; line-height: 4px; margin-bottom: 6px; }
+}
+
+/* Four names at the phone's size are 382px with their gaps, wider than most
+   phones' column, so three, two and two. 16 apart, which fits the top three
+   on a phone 320 wide. */
+@media (max-width: 460px) {
+  .tour__tabs { gap: 0 16px; }
+  .tour__tabs::before { content: ""; flex-basis: 100%; order: 1; }
+  .tour__tabs::after { order: 3; }
+  .tour__tab:nth-child(n+4) { order: 2; }
+  .tour__tab:nth-child(n+6) { order: 4; }
 }
 
 @media (prefers-reduced-motion: reduce) {

@@ -8,14 +8,14 @@
 <meta name="darkreader-lock">
 <title>Crucible</title>
 <link rel="canonical" href="https://msaunders.dev/crucible/">
-<meta name="description" content="An all in one local AI workshop: agents that build, experts that answer, and models you can make and measure, on your own hardware. Open source.">
+<meta name="description" content="An all in one local AI workshop: experts that answer and write software, and models you can make and measure, on your own hardware. Open source.">
 <link rel="icon" href="/files/images/favicon.svg?v=fabe8c0c" type="image/svg+xml">
 <link rel="icon" href="/files/images/favicon.png?v=0f31fbf3" sizes="any">
 <!-- Same self-hosted face the rest of the site uses, so a visitor arriving from
      msaunders.dev already has it cached. The flame is measured in glyphs, so it
      wants the font in hand before first paint rather than after it. -->
 <link rel="preload" href="/fonts/paper-mono.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="/crucible/css/crucible.css?v=ed3c43db">
+<link rel="stylesheet" href="/crucible/css/crucible.css?v=7bec204c">
 </head>
 <body>
 
@@ -106,7 +106,7 @@
      hidden lazy image, which the browser does not fetch until it is shown. -->
 <section class="tour" aria-label="Inside Crucible">
   <div class="tour__frame">
-    <input class="tour__pick" type="radio" name="tour" id="tour-build" checked>
+    <input class="tour__pick" type="radio" name="tour" id="tour-ask" checked>
     <input class="tour__pick" type="radio" name="tour" id="tour-preview">
     <input class="tour__pick" type="radio" name="tour" id="tour-experts">
     <input class="tour__pick" type="radio" name="tour" id="tour-models">
@@ -114,7 +114,7 @@
     <input class="tour__pick" type="radio" name="tour" id="tour-bench">
     <input class="tour__pick" type="radio" name="tour" id="tour-serve">
     <div class="tour__tabs">
-      <label class="tour__tab tour__tab--build" for="tour-build"><span class="tour__n">01</span>Build</label>
+      <label class="tour__tab tour__tab--ask" for="tour-ask"><span class="tour__n">01</span>Ask</label>
       <label class="tour__tab tour__tab--preview" for="tour-preview"><span class="tour__n">02</span>Preview</label>
       <label class="tour__tab tour__tab--experts" for="tour-experts"><span class="tour__n">03</span>Experts</label>
       <label class="tour__tab tour__tab--models" for="tour-models"><span class="tour__n">04</span>Models</label>
@@ -123,15 +123,15 @@
       <label class="tour__tab tour__tab--serve" for="tour-serve"><span class="tour__n">07</span>Serve</label>
     </div>
     <div class="tour__shots">
-      <figure class="tour__shot tour__shot--build">
-        <img src="/crucible/img/build.webp" width="1400" height="883" decoding="async"
-             alt="Build: an app asked for in the chat, split into tasks, each with the agent working on it">
-        <figcaption class="tour__line">Ask for an app in the chat. Agents plan the work, then write, run and test it in your project.</figcaption>
+      <figure class="tour__shot tour__shot--ask">
+        <img src="/crucible/img/ask.webp" width="1400" height="883" decoding="async"
+             alt="Ask: a question about the project answered in the chat, the file the expert read shown above its answer">
+        <figcaption class="tour__line">Ask for anything. An expert reads, writes and runs what it takes in your project, then answers.</figcaption>
       </figure>
       <figure class="tour__shot tour__shot--preview">
         <img src="/crucible/img/preview.webp" width="1400" height="883" loading="lazy" decoding="async"
-             alt="Preview: a page being built, with an element picked and its settings open">
-        <figcaption class="tour__line">The page as it is built. Pick an element and tune it, then make it an app.</figcaption>
+             alt="Preview: a budget page, with an element picked and its settings open">
+        <figcaption class="tour__line">The page as an expert writes it. Pick an element and tune it, then make it an app.</figcaption>
       </figure>
       <figure class="tour__shot tour__shot--experts">
         <img src="/crucible/img/experts.webp" width="1400" height="883" loading="lazy" decoding="async"
@@ -155,7 +155,7 @@
       </figure>
       <figure class="tour__shot tour__shot--serve">
         <img src="/crucible/img/serve.webp" width="1400" height="883" loading="lazy" decoding="async"
-             alt="Serve: the server on, its addresses, and the last requests it answered">
+             alt="Serve: the server over HTTPS on the local network, its certificate's SHA-256, its addresses, and the last requests it answered">
         <figcaption class="tour__line">Serve a model to your other apps and computers, at an address that speaks OpenAI's API.</figcaption>
       </figure>
     </div>
